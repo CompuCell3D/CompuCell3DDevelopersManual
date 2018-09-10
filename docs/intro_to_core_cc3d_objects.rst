@@ -1,4 +1,4 @@
-Introductio to Core CC3D Objects
+Introduction to Core CC3D Objects
 ================================
 
 * :doc:`simulator`
