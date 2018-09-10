@@ -1,7 +1,7 @@
 Simulator
 ---------
 
-`Potts` is the key C++ module that sits at the root of each simulation run by CC3D. This is essentially a single class
+`Simulator` is the key C++ module that sits at the root of each simulation run by CC3D. This is essentially a single class
 `Simulator` and it is responsible for orchestrating the flow of each CC3D simulation. Simulator object creates and
 manages other key objects such as `Potts3D` and ensures the integrity of the entire simulation.
 The code for the object is stored in `CompuCell3D\Simulator.h` and `CompuCell3D\Simulator.cpp`
@@ -133,3 +133,22 @@ simulations
 
         };
     };
+
+Few things to notice:
+
+1. All CompuCell3D classes are defined within CompuCell3D namespace:
+
+.. code-block:: cpp
+
+    namespace CompuCell3D {
+        class ClassRegistry;
+        ...
+        class COMPUCELLLIB_EXPORT Simulator : public Steppable {
+        ...
+        };
+    };
+
+2. Most CC3D objects are dynamically loaded. To make sure an object can be dynamically loaded on Windows we need
+to include `__decl(dllimport)` and `__decl(dllexport)` class decorators as introduced and required by Microsoft
+Visual Studio Compilers. Therefore the C++ macro you see above  -` COMPUCELLLIB_EXPORT` contains required decorators
+on Windows and is an empty string on all other operating systems
