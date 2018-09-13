@@ -16,7 +16,7 @@ the material presented here):
 
 .. code-block:: cpp
 
-	class /*DECLSPECIFIER*/ Potts3D :public SteerableObject {
+	class Potts3D :public SteerableObject {
 		WatchableField3D<CellG *> *cellFieldG;
 		AttributeAdder * attrAdder;
 		EnergyFunctionCalculator * energyCalculator;
@@ -186,7 +186,81 @@ one of the observer that will be called (we also refere to them as lattice monit
 The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will \
 get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
 inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
-when change in the lattice takes place. Let's look at how this is done:
+when change in the lattice takes place. Let's look at how this is done
+
+WatchableField3D
+~~~~~~~~~~~~~~~~
+
+.. code-block:: cpp
+
+    #ifndef WATCHABLEFIELD3D_H
+    #define WATCHABLEFIELD3D_H
+
+    #include "Field3DImpl.h"
+    #include "Field3DChangeWatcher.h"
+
+    #include <BasicUtils/BasicArray.h>
+    #include <BasicUtils/BasicException.h>
+
+    namespace CompuCell3D {
+
+      template <class T>
+      class Field3DImpl;
+
+      template <class T>
+      class WatchableField3D: public Field3DImpl<T> {
+        BasicArray<Field3DChangeWatcher<T> *> changeWatchers;
+
+      public:
+        /**
+         * @param dim The field dimensions
+         * @param initialValue The initial value of all data elements in the field.
+         */
+        WatchableField3D(const Dim3D dim, const T &initialValue) :
+          Field3DImpl<T>(dim, initialValue) {}
+
+          virtual ~WatchableField3D(){}
+        virtual void addChangeWatcher(Field3DChangeWatcher<T> *watcher) {
+          ASSERT_OR_THROW("addChangeWatcher() watcher cannot be NULL!", watcher);
+          changeWatchers.put(watcher);
+        }
+
+        virtual void set(const Point3D &pt, const T value) {
+          T oldValue = Field3DImpl<T>::get(pt);
+          Field3DImpl<T>::set(pt, value);
+
+          for (unsigned int i = 0; i < changeWatchers.getSize(); i++)
+        changeWatchers[i]->field3DChange(pt, value, oldValue);
+        }
+      };
+    };
+    #endif
+
+The ``WatchableField3D<T>`` template class inherits from ``Field3DImpl<T>`` template. The actual memory allocation takes
+place in the ``Field3DImpl<T>`` but we will not worry about it here. It is sufficient to mention that ``Field3DImpl<T>``
+is tha class that manages cell lattice memory. The important thing is to understand how this automatic calling
+of lattice monitors is implemented. The ``WatchableField3D<T>`` class has a container
+``BasicArray<Field3DChangeWatcher<T> *> changeWatchers;`` that stores pointers to lattice monitors. The lattice monitor object
+is a class that inherits ``Field3DChangeWatcher<T>`` class. In CC3D case ``T`` is set to ``CellG*``. The  ``BasicArray``
+is a thin wrapper around ``std::vector`` class and it is one of the legacies of the early CC3D implementations. So
+``WatchableField3D<T>`` class has a collection of objects that react to the changes in the cell lattice. How do they react?
+If we look at the implementation of `` virtual void set(const Point3D &pt, const T value)`` function that modifies the lattice
+we can see that this function fetches old value stored in the lattice at location indicated by ``Point3D pt`` - in the case of
+cell lattice this will be pointers currently stored at this location. It then assigns new value to the field (new ``CellG`` pointer)
+and then it calls all registered lattice monitors:
+
+.. code-block:: cpp
+
+      for (unsigned int i = 0; i < changeWatchers.getSize(); i++)
+            changeWatchers[i]->field3DChange(pt, value, oldValue);
+
+In particular each lattice monitor (here referred to as ``changeWatcher``) must define function called ``field3DChange``
+that takes 3 argum,ents - location of the change ``pt``, new value we assign to the field (e.g. new pointer to ``CellG`` object)
+and old value that was stored in the field before the assignment (e.g. pointer to the cell whose pixel gets overwritten).
+
+This way the process of updating attributes of ``CellG`` object can be handled by appropriate changeWatchers. We will
+cover in detail examples of change watchers and things will become clearer then.
+
 
 
 
