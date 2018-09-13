@@ -175,9 +175,18 @@ Starting from the top of the file we notice that cell lattice (``WatchableField3
 created by (``void createCellField(const Dim3D dim);``, ``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) ``Potts3D``.
 
 The cell lattice is an instance of the ``WatchableField3D`` class (which strictly speaking is a template class).
-The cell lattice stores **pointers** to cell objects. This means that is I have a single cell
-The reason
-it is called "Watchable" is because this class implements the observer design pattern. Namely any, manipulation of the
-cell lattice (e.g. assigning cell to a given pixel) triggers calls to several observer objects that react to such change.
-For example
+The cell lattice stores **pointers** to cell objects (type ``CellG*``). This means that is I have a single cell but assign the pointer to it
+to several lattice sites , I caused my single cell to have volume equal to the number of lattice sites that have pointer to my cell
+This way ``CellG`` objects do not get repeated for every pixel (this woudl cost too much memory) but rather are referenced from the
+cell lattice via pointers.
+The reason cell lattice field is called "Watchable" is because this class implements the observer design pattern.
+This means any, manipulation of the cell lattice (e.g. assigning cell to a given pixel) triggers calls to multiple registered
+observer objects that react to such change. For example if I am extending a cell by assigning its pointer to the new lattice site
+one of the observer that will be called (we also refere to them as lattice monitors) is a module that tracks cell volume
+The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will \
+get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
+inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
+when change in the lattice takes place. Let's look at how this is done:
+
+
 
