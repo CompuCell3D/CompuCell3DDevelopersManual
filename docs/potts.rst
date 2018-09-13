@@ -11,7 +11,8 @@ consequence that when developing new plugin one does not have to modify ``CellG`
 of cell's attributes entirely in the plugins code. We will cover this in detail in later section.
 
 Let's examine the content of the ``Potts3D`` class (**Note:** we removed some of the code and are presenting only
-code snippets most relevant to current discussion. You are encouraged to ):
+code snippets most relevant to current discussion. You are encouraged to look at the original code though as you go over
+the material presented here):
 
 .. code-block:: cpp
 
@@ -21,7 +22,7 @@ code snippets most relevant to current discussion. You are encouraged to ):
 		EnergyFunctionCalculator * energyCalculator;
 
 		BasicClassGroupFactory cellFactoryGroup; 	//creates aggregate of objects associated with cell
-														//DOES NOT creat group of cells (as a name might suggest)
+
 
 		/// An array of energy functions to be evaluated to determine energy costs.
 		std::vector<EnergyFunction *> energyFunctions;
@@ -29,12 +30,9 @@ code snippets most relevant to current discussion. You are encouraged to ):
 
 		std::map<std::string, EnergyFunction *> nameToEnergyFuctionMap;
 
-
         ...
 
 		std::vector<BasicRandomNumberGeneratorNonStatic> randNSVec;
-
-		TypeTransition *typeTransition; //fires up automatic tasks associated with type reassignment
 
 		/// An array of potts steppers.  These are called after each potts step.
 		std::vector<Stepper *> steppers;
@@ -43,24 +41,12 @@ code snippets most relevant to current discussion. You are encouraged to ):
 		/// The automaton to use.  Assuming one automaton per simulation.
 		Automaton* automaton;
 
-
-		DefaultAcceptanceFunction defaultAcceptanceFunction;
-		FirstOrderExpansionAcceptanceFunction   firstOrderExpansionAcceptanceFunction;
-
-		/// Used to determine the probablity that a pixel flip should be taken.
-		AcceptanceFunction *acceptanceFunction;
-
-		//ExpressionEvaluatorDepot acceptanceEed;
-		CustomAcceptanceFunction customAcceptanceFunction;
-		bool customAcceptanceExpressionDefined;
-
-
+        ...
 
 		FluctuationAmplitudeFunction * fluctAmplFcn;
 
 		/// The current total energy of the system.
 		double energy;
-
 
 		std::string boundary_x; // boundary condition for x axiz
 		std::string boundary_y; // boundary condition for y axis
@@ -87,49 +73,15 @@ code snippets most relevant to current discussion. You are encouraged to ):
 		Potts3D(const Dim3D dim);
 		virtual ~Potts3D();
 
-		/**
-		 * Create the cell field.
-		 *
-		 * @param dim The field dimensions.
-		 */
 		void createCellField(const Dim3D dim);
 		void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());
-		//void resizeCellField(const std::vector<int> & dim, const std::vector<int> & shiftVec);
 
 		double getTemperature() const { return temperature; }
-		unsigned int getCurrentAttempt() { return currentAttempt; }
-		unsigned int getNumberOfAttempts() { return numberOfAttempts; }
-		unsigned int getNumberOfAttemptedEnergyCalculations() { return attemptedEC; }
-		unsigned int getNumberOfAcceptedSpinFlips() { return flips; }
+
 		void registerConnectivityConstraint(EnergyFunction * _connectivityConstraint);
 		EnergyFunction * getConnectivityConstraint();
 
 		bool checkIfFrozen(unsigned char _type);
-
-		//std::set<Point3D> * getBoundaryPixelSetPtr() { return &boundaryPixelSet; }
-		std::unordered_set<Point3D, Point3DHasher, Point3DComparator> * getBoundaryPixelSetPtr() { return &boundaryPixelSet; }
-
-		std::unordered_set<Point3D, Point3DHasher, Point3DComparator> *  getJustInsertedBoundaryPixelSetPtr() {
-			return &justInsertedBoundaryPixelSet;
-
-		}
-
-		std::unordered_set<Point3D, Point3DHasher, Point3DComparator> * getJustDeletedBoundaryPixelSetPtr() {
-			return &justDeletedBoundaryPixelSet;
-		}
-
-		//std::set<Point3D> *  getJustInsertedBoundaryPixelSetPtr() {
-		//	return &justInsertedBoundaryPixelSet;
-
-		//}
-
-		//std::set<Point3D> * getJustDeletedBoundaryPixelSetPtr() {
-		//	return &justDeletedBoundaryPixelSet;
-		//}
-
-		std::vector<Point3D> * getBoundaryPixelVectorPtr() {
-			return &boundaryPixelVector;
-		}
 
         ...
 
@@ -142,28 +94,9 @@ code snippets most relevant to current discussion. You are encouraged to ):
 
         ...
 
-		Unit getMassUnit() { return massUnit; }
-		Unit getLengthUnit() { return lengthUnit; }
-		Unit getTimeUnit() { return timeUnit; }
-		Unit getEnergyUnit() { return energyUnit; }
-		bool getDisplayUnitsFlag() { return displayUnitsFlag; }
-
-		void updateUnits(CC3DXMLElement *);
-
 		Point3D getFlipNeighbor();
 
-		void setBoundaryXName(std::string const & _xName) { boundary_x = _xName; }
-		void setBoundaryYName(std::string const & _yName) { boundary_y = _yName; }
-		void setBoundaryZName(std::string const & _zName) { boundary_z = _zName; }
-		std::string const & getBoundaryXName() const { return boundary_x; }
-		std::string const & getBoundaryYName() const { return boundary_y; }
-		std::string const & getBoundaryZName() const { return boundary_z; }
-
-		void setMinCoordinates(Point3D _minCoord) { minCoordinates = _minCoord; }
-		void setMaxCoordinates(Point3D _maxCoord) { maxCoordinates = _maxCoord; }
-		Point3D getMinCoordinates() const { return minCoordinates; }
-		Point3D getMaxCoordinates() const { return maxCoordinates; }
-		TypeTransition *getTypeTransition() { return typeTransition; }
+        ...
 
 		virtual void createEnergyFunction(std::string _energyFunctionType);
 		EnergyFunctionCalculator * getEnergyFunctionCalculator() { return energyCalculator; }
@@ -177,30 +110,18 @@ code snippets most relevant to current discussion. You are encouraged to ):
 		virtual void registerEnergyFunctionWithName(EnergyFunction *_function, std::string _functionName);
 		virtual void unregisterEnergyFunction(std::string _functionName);
 
-		double getNewNumber() { return energy; }
 		/// Add the automaton.
 		virtual void registerAutomaton(Automaton* autom);
-
 
 		/// Return the automaton for this simulation.
 		virtual Automaton* getAutomaton();
 		void setParallelUtils(ParallelUtilsOpenMP *_pUtils) { pUtils = _pUtils; }
 
-		virtual void registerAcceptanceFunction(AcceptanceFunction *function);
-
-		virtual void setAcceptanceFunctionByName(std::string _acceptanceFunctionName);
-
-		virtual AcceptanceFunction *getAcceptanceFunction() {
-			return acceptanceFunction;
-		}
-
 		virtual void setFluctuationAmplitudeFunctionByName(std::string _fluctuationAmplitudeFunctionName);
 		/// Add a cell field update watcher.
 
-
 		/// registration of the BCG watcher
 		virtual void registerCellGChangeWatcher(CellGChangeWatcher *_watcher);
-
 
 		/// Register accessor to a class with a cellGroupFactory. Accessor will access a class which is a mamber of a BasicClassGroup
 		virtual void registerClassAccessor(BasicClassAccessorBase *_accessor);
@@ -222,8 +143,6 @@ code snippets most relevant to current discussion. You are encouraged to ):
 		BasicClassGroupFactory * getCellFactoryGroupPtr() { return &cellFactoryGroup; };
 
 		virtual unsigned int getNumCells() { return cellInventory.getCellInventorySize(); }
-
-		virtual double totalEnergy();
 
 		virtual double changeEnergy(Point3D pt, const CellG *newCell,const CellG *oldCell);
 
@@ -251,4 +170,14 @@ code snippets most relevant to current discussion. You are encouraged to ):
 
 	};
 
+
+Starting from the top of the file we notice that cell lattice (``WatchableField3D<CellG *> *cellFieldG;``) is owned and
+created by (``void createCellField(const Dim3D dim);``, ``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) ``Potts3D``.
+
+The cell lattice is an instance of the ``WatchableField3D`` class (which strictly speaking is a template class).
+The cell lattice stores **pointers** to cell objects. This means that is I have a single cell
+The reason
+it is called "Watchable" is because this class implements the observer design pattern. Namely any, manipulation of the
+cell lattice (e.g. assigning cell to a given pixel) triggers calls to several observer objects that react to such change.
+For example
 
