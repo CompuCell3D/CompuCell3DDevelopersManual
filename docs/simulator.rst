@@ -136,7 +136,7 @@ simulations
 
 Few things to notice:
 
-1. All CompuCell3D classes are defined within ``CompuCell3D`` namespace:
+1. All CompuCell3D classes are defined within ``CompuCell3D``  namespace:
 
 .. code-block:: cpp
 
