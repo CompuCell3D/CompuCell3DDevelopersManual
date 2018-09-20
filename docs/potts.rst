@@ -452,11 +452,46 @@ a more sophisticated version of this class called ``EnergyFunctionCalculatorStat
 Steppers
 ~~~~~~~~
 
+A vector of ``Stepper`` objects - ``std::vector<Stepper *> steppers;`` is also a part of ``Potts3D`` object.
+Stepper objects all inherit from ``Stepper`` class defined in ``Potts3D/Stepper.h`` header file:
+
+.. code-block:: cpp
+
+    class Stepper {
+    public:
+        virtual void step() = 0;
+    };
+
+This is a very simple base class that defines only one function called ``step``. More important is the question
+where and why we need this function. Steppers are called at the very end of the pixel copy attempt *i.e.* after
+all energy function calculation and if pixel copy was accpted after modifying ``cellField``. Steppers are called
+always regardless whether pixel copy was accepted or not. A canonical example of the ``Stepper`` object is ``VolumeTracker``
+declared and defined in ``plugins/VolumeTracker/VolumeTrackerPlugin.h`` and
+``plugins/VolumeTracker/VolumeTrackerPlugin.cpp``. ``VolumeTracker`` plugin tracks volume of each cell and ensures that
+cells' volume information is correct. It also removes dead cells i./e. those cells whose volume reached 0. In a sense it
+performs cleanup actions. However cleanup needs to be done as a very last action associated with pixel copy attempt.
+It would be a bad idea to do it earlier because we could remove cell object that might still be needed by other actions
+related to *e.g.* updating ``cellField``.
 
 Cell Inventory
 ~~~~~~~~~~~~~~
 
+``cellInventory`` as its name suggest is an object that serves as a container for pointers to cell objects but it also
+allows fast lookups of particular cells. This is one of he most frequently accessed objects from Python
+(although we do it somewhat indirectly). Many of the Python modules you write for CC3D include the following loop:
+
+.. code-block:: python
+
+    for cell in self.cellList:
+        ...
+
+What we are doing here is we iterate over every cell in the simulation. Internally the ``self.sellList`` Python object
+accesses ``cellInventory``. when we create a cell using ``Potts3D``'s method ``createCellG`` we first construct cell object
+and then insert it into cell inventory. Similarly when we delete cell object using ``destroyCellG`` (method of ``Potts3D``)
+we first remove the ``cell`` object from inventory and then carryout its destruction
+(which as you know is not just simple call to  the C++ ``delete`` operator)
 
 Acceptance Function and Fluctuation Amplitude Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+One of the key aspects
