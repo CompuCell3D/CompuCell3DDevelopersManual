@@ -422,4 +422,27 @@ were to be overwritten by ``cell`` currently residing at location ``pt``. Or usi
 terminology we can say that ``pt <-> changePixel``, ``newCell <-> cell`` and ``oldCell <-> changePixelCell`` where
 we used ``<->`` symbol to illustrate how ``changeEnergy`` function arguments will be assigned in the call.
 
+Interestingly, we call ``changeEnergy`` method of the object called ``energyCalculator``:
 
+.. code-block:: cpp
+
+    double change = energyCalculator->changeEnergy(changePixel, cell, changePixelCell, i);
+
+There is no magic here. If we look inside this function (``Potts3D/EnergyFunctionCalculator.cpp``) we see
+familiar summation over all values returned by ``changeEnergy`` of each ``EnergyFunction`` object:
+
+.. code-block:: cpp
+
+    double EnergyFunctionCalculator::changeEnergy(Point3D &pt, const CellG *newCell,const CellG *oldCell,const unsigned int _flipAttempt){
+
+        double change = 0;
+        for (unsigned int i = 0; i < energyFunctions.size(); i++){
+            change += energyFunctions[i]->changeEnergy(pt, newCell, oldCell);
+        }
+        return change;
+    }
+
+The reason we use ``EnergyFunctionCalculator`` object instead of implementing summation loop inside ``metropolisFast`` function
+is to handle additional tasks that might be associated with calculating energies - for example collecting information
+on every energy term associated with every pixel copy attempts. In this case we would use not ``EnergyFunctionCalculator`` but
+a more sophisticated version of this class called ``EnergyFunctionCalculatorStatistics``
