@@ -312,6 +312,8 @@ is pointer to a cell object that will occupy ``pt`` location of the ``cellField`
 in CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
 energy function in the ``energyFunctions`` vector will vary depending on what users specify in the CC3DML or in Python.
 
+Later we will present detailed information on how to implement energy function plugins.
+
 When we peek at the ``metropolisFast`` function of the ``Potts3D`` class we can see that the change of energy is calculated
 in a fairly straightforward way:
 
@@ -446,3 +448,15 @@ The reason we use ``EnergyFunctionCalculator`` object instead of implementing su
 is to handle additional tasks that might be associated with calculating energies - for example collecting information
 on every energy term associated with every pixel copy attempts. In this case we would use not ``EnergyFunctionCalculator`` but
 a more sophisticated version of this class called ``EnergyFunctionCalculatorStatistics``
+
+Steppers
+~~~~~~~~
+
+
+Cell Inventory
+~~~~~~~~~~~~~~
+
+
+Acceptance Function and Fluctuation Amplitude Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
