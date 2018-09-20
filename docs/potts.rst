@@ -494,4 +494,35 @@ we first remove the ``cell`` object from inventory and then carryout its destruc
 Acceptance Function and Fluctuation Amplitude Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One of the key aspects
+A key component of the Cellular Potts Model simulation is the so called acceptance function. It is the function
+that is responsible for they dynamic behavior of the simulation. It takes as an input a change in energy due to
+proposed pixel copy and outputs a probability with which this proposed pixel copy attempt will be accepted
+
+Canonical formulation of the Cellular Potts Model acceptance function is as follows:
+
+.. math::
+   :nowrap:
+
+    \begin{cases}
+     & P = e^{-(\Delta E-\delta)/kT} \text{ if } \Delta E > 0 \\
+     & 1 \text{ if } \Delta E > 0 \\
+     & 1/2 \text{ if } \Delta E = 0
+    \end{cases}
+
+where :math:`\Delta E` is a change in the energy due to proposed pixel copy attempt :math:`T` is the the "temperature" which is
+a measure of cell membrane fluctuation amplitude and :math:`k` is a constant which by default is set to ``1`` and
+:math:`\delta` is an energy offset by default set to ``0``
+
+The higher the ``T`` is the higher the chance of accepting pixel copy attempts that result in higher energy
+Those appear to be the "wrong" kind of attempts but it turns out that they often save the simulation from being stuck
+in a local minimum so ensuring some of them are accepted is essential.
+
+The "temperature" or membrane fluctuation amplitude parameter can be set globally and many of the simulations
+using this convention. However, you can imagine that certain cells may have different membrane fluctuation amplitudes
+(different "temperatures"). To account for this fact and the fact that the two cells involved in pixel copy attempt
+may have different "temperatures" we use objects that derive from ``FluctuationAmplitudeFunction`` and whose goal is
+to compute effective "temperature" parameter associated with pixel copy based on the two "temperature" parameters that come
+from two cells involved in pixel copy. There are many possibilities here but the default strategy is to choose minimum
+of the two "temperatures". The details can be found in ``Potts3D/StandardFluctuationAmplitudeFunctions.h`` and
+``Potts3D/StandardFluctuationAmplitudeFunctions.cpp``. We can also create new fluctuation amplitude functions
+depending on our needs.
