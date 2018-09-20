@@ -255,12 +255,171 @@ and then it calls all registered lattice monitors:
             changeWatchers[i]->field3DChange(pt, value, oldValue);
 
 In particular each lattice monitor (here referred to as ``changeWatcher``) must define function called ``field3DChange``
-that takes 3 argum,ents - location of the change ``pt``, new value we assign to the field (e.g. new pointer to ``CellG`` object)
+that takes 3 arguments - location of the change ``pt``, new value we assign to the field (e.g. new pointer to ``CellG`` object)
 and old value that was stored in the field before the assignment (e.g. pointer to the cell whose pixel gets overwritten).
 
-This way the process of updating attributes of ``CellG`` object can be handled by appropriate changeWatchers. We will
+This way the process of updating attributes of ``CellG`` object can be handled by appropriate ``changeWatchers``. We will
 cover in detail examples of change watchers and things will become clearer then.
 
+Energy Functions
+~~~~~~~~~~~~~~~~
 
+Few lines below declaration of ``cellField``, which as we know is an instance of  ``WatchableField3D<CellG *>``
+we find the declaration of containers associated with Energy function calculations. At this point we remind that the essence
+of Cellular Potts Model is in calculating change of energy opf the system due to randomly chosen lattice perturbation
+(change of the single pixel). Pointers energy functions objects are stored inside ``Potts3D`` object as follows:
+
+.. code-block:: cpp
+
+    /// An array of energy functions to be evaluated to determine energy costs.
+    std::vector<EnergyFunction *> energyFunctions;
+    EnergyFunction * connectivityConstraint;
+
+    std::map<std::string, EnergyFunction *> nameToEnergyFuctionMap;
+
+All energy functions are actually objects and they all inherit base class ``EnergyFunction``. ``EnergyFunction`` is defined
+inside ``Potts3D/EnergyFunction.h`` header file:
+
+.. code-block:: cpp
+
+	class EnergyFunction {
+
+	public:
+		EnergyFunction() {}
+		virtual ~EnergyFunction() {}
+
+		virtual double localEnergy(const Point3D &pt){return 0.0;};
+
+		virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)
+		{
+			if(1!=1);return 0.0;
+		}
+		virtual std::string toString()
+		{
+			return std::string("EnergyFunction");
+		}
+	};
+
+Each class that is responsible for calculating a change in the overall system energy due to a proposed pixel copy has to
+inherit ``EnergyFunction``. The key function that has to be reimplemented in the derived class is
+``virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``. After metropolis algorithm
+function picks candidate for pixel overwrite it will then call ``changeEnergy`` for every element of the ``energyFunctions`` vector
+defined in class ``Potts3D`` (see above). The ``pt`` argument is a reference to a location of a pixel
+(specified as simple object ``Point3D``) that would be overwritten as result of the pixel copy attempt. The ``newCell``
+is pointer to a cell object that will occupy ``pt`` location of the ``cellField`` IF we accept pixel copy and the
+``oldCell`` is a pointer to a cell that currently occupies lattice location ``pt``.
+
+in CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
+energy function in the ``energyFunctions`` vector will vary depending on what users specify in the CC3DML or in Python.
+
+When we peek at the ``metropolisFast`` function of the ``Potts3D`` class we can see that the change of energy is calculated
+in a fairly straightforward way:
+
+.. code-block:: cpp
+
+        Point3D pt;
+
+        // Pick a random point
+        pt.x = rand->getInteger(sectionDims.first.x, sectionDims.second.x - 1);
+        pt.y = rand->getInteger(sectionDims.first.y, sectionDims.second.y - 1);
+        pt.z = rand->getInteger(sectionDims.first.z, sectionDims.second.z - 1);
+
+        CellG *cell = cellFieldG->getQuick(pt);
+
+        if (sizeFrozenTypeVec && cell) {///must also make sure that cell ptr is different 0; Will never freeze medium
+            if (checkIfFrozen(cell->type))
+                continue;
+        }
+
+        unsigned int directIdx = rand->getInteger(0, maxNeighborIndex);
+
+        Neighbor n = boundaryStrategy->getNeighborDirect(pt, directIdx);
+
+        if (!n.distance) {
+            //if distance is 0 then the neighbor returned is invalid
+            continue;
+        }
+        Point3D changePixel = n.pt;
+
+        //check if changePixel refers to different cell.
+        CellG* changePixelCell = cellFieldG->getQuick(changePixel);
+
+        if (changePixelCell == cell) {
+            //skip the rest of the loop if change pixel points to the same cell as pt
+            continue;
+        }
+
+        if (sizeFrozenTypeVec && changePixelCell) {///must also make sure that cell ptr is different 0; Will never freeze medium
+            if (checkIfFrozen(changePixelCell->type))
+                continue;
+        }
+
+        ++attemptedECVec[currentWorkNodeNumber];
+
+        flipNeighborVec[currentWorkNodeNumber] = pt;
+
+        /// change takes place at change pixel  and pt is a neighbor of changePixel
+        // Calculate change in energy
+
+        double change = energyCalculator->changeEnergy(changePixel, cell, changePixelCell, i);
+
+We first pick a random lattice location ``pt`` and retrieve pointer of a cell that occupies this location:
+
+.. code-block:: cpp
+
+    CellG *cell = cellFieldG->getQuick(pt);
+
+We next make sure that the cell can move *i.e.* it is not frozen:
+
+.. code-block:: cpp
+
+    if (sizeFrozenTypeVec && cell) {///must also make sure that cell ptr is different 0; Will never freeze medium
+        if (checkIfFrozen(cell->type))
+            continue;
+    }
+
+Next we pick a random pixel out of set of neighbors of pixel ``pt``:
+
+.. code-block::
+
+    unsigned int directIdx = rand->getInteger(0, maxNeighborIndex);
+
+    Neighbor n = boundaryStrategy->getNeighborDirect(pt, directIdx);
+
+    if (!n.distance) {
+        //if distance is 0 then the neighbor returned is invalid
+        continue;
+    }
+    Point3D changePixel = n.pt;
+
+    //check if changePixel refers to different cell.
+    CellG* changePixelCell = cellFieldG->getQuick(changePixel);
+
+    if (changePixelCell == cell) {
+        //skip the rest of the loop if change pixel points to the same cell as pt
+        continue;
+    }
+
+    if (sizeFrozenTypeVec && changePixelCell) {///must also make sure that cell ptr is different 0; Will never freeze medium
+        if (checkIfFrozen(changePixelCell->type))
+            continue;
+    }
+We use ``BoundaryStrategy`` object pointed by ``boundaryStrategy`` to carry out all operations related to pixel neighbor
+operations. we will cover it later. For now it is important to remember that tracking.operating on pixel neighbors is
+usually done via ``BoundaryStrategy`` and this heps greatly when we have to deal with periodic boundary conditions
+pixels residing close to the edge of teh lattice or classifying neighbor order of pixels.
+in this example we use boundary strategy to pick a neighbor ``changePixel`` of the ``pt`` and verify that this neighbor is a
+legitimate neighbor - ``if (!n.distance)``. We next fetch cell that occupies ``changePixel``:
+
+.. code-block:: cpp
+
+    CellG* changePixelCell = cellFieldG->getQuick(changePixel);
+
+and verify that ``changePixelCell`` is different than cell at the location ``pt``. We do this because overwriting pixel
+with the same cell pointer does not change lattice configuration at all. After also confirming that the ``changePixelCell``
+is not frozen we compute change of energy if pixel ```changePixel`` currently occupied by ``changePixelCell``
+were to be overwritten by ``cell`` currently residing at location ``pt``. Or using `` double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``
+terminology we can say that ``pt <-> changePixel``, ``newCell <-> cell`` and ``oldCell <-> changePixelCell`` where
+we used ``<->`` symbol to illustrate how ``changeEnergy`` function arguments will be assigned in the call.
 
 
