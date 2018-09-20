@@ -418,7 +418,7 @@ legitimate neighbor - ``if (!n.distance)``. We next fetch cell that occupies ``c
 and verify that ``changePixelCell`` is different than cell at the location ``pt``. We do this because overwriting pixel
 with the same cell pointer does not change lattice configuration at all. After also confirming that the ``changePixelCell``
 is not frozen we compute change of energy if pixel ```changePixel`` currently occupied by ``changePixelCell``
-were to be overwritten by ``cell`` currently residing at location ``pt``. Or using `` double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``
+were to be overwritten by ``cell`` currently residing at location ``pt``. Or using ``double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``
 terminology we can say that ``pt <-> changePixel``, ``newCell <-> cell`` and ``oldCell <-> changePixelCell`` where
 we used ``<->`` symbol to illustrate how ``changeEnergy`` function arguments will be assigned in the call.
 
