@@ -489,7 +489,7 @@ What we are doing here is we iterate over every cell in the simulation. Internal
 accesses ``cellInventory``. when we create a cell using ``Potts3D``'s method ``createCellG`` we first construct cell object
 and then insert it into cell inventory. Similarly when we delete cell object using ``destroyCellG`` (method of ``Potts3D``)
 we first remove the ``cell`` object from inventory and then carryout its destruction
-(which as you know is not just simple call to  the C++ ``delete`` operator)
+(which, as you know, is not just simple call to  the C++ ``delete`` operator)
 
 Acceptance Function and Fluctuation Amplitude Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
