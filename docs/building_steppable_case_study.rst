@@ -33,10 +33,248 @@ however, you want to checkout a branch - you woudl type something like this:
 
 At this point you have complete code in ``CC3D_DEVELOP`` directory. And in addition
 
-Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available.
+Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available - and go to ``CC3D C++`` menu and choose ``Generate New Module...`` entry and fill out the dialog box:
+
+|twedit_steppable_wizard|
+
+This is exactly what we did:
+
+#. We specify a name of a steppable as ``GrowthSteppable``
+#. We specify the location of when steppable code is stored ``/Users/m/CC3D_DEVELOP/CompuCell3D/core/CompuCell3D/steppables``. Note, that we point to the cloned CC3D repository that we originally stored in ``CC3D_DEVELOP`` subdirectory. It happens that the path to this repository is ``/Users/m/CC3D_DEVELOP``.
+#. We select **Steppable** radio in the  **C++ Module Type** panel. We also check ``Python Wrap`` checkbox to allow generation of Python bindings of this steppable.
+
+When we press ``OK`` button Twedit++ will generate a complete set of template files that could be compiled as-is and the steppable will run. Obviously our goal is to modify template file to generate steppable w want. In current implementation of CC3D Twedit++ generates or modifies approximately 10 files.
+
+|twedit_generated_steppable|
+
+As you can see in the ``CMakeLists.txt`` file Twedit++ modified this file and added
+line ``ADD_SUBDIRECTORY(GrowthSteppable)``
+
+Now, let us focus on modifying template files and creating a steppable (``GrowthSteppable``)
+we specify growth rate in the XMl and allow modification of this rate from Python.
+
+Let's first examine the header of the ``GrowthSteppable`` class:
+
+.. code-block:: c++
+
+    #ifndef GROWTHSTEPPABLESTEPPABLE_H
+    #define GROWTHSTEPPABLESTEPPABLE_H
 
 
+
+    #include <CompuCell3D/CC3D.h>
+    #include "GrowthSteppableDLLSpecifier.h"
+
+
+    namespace CompuCell3D {
+
+      template <class T> class Field3D;
+
+      template <class T> class WatchableField3D;
+
+
+        class Potts3D;
+        class Automaton;
+        class BoundaryStrategy;
+        class CellInventory;
+        class CellG;
+
+      class GROWTHSTEPPABLE_EXPORT GrowthSteppable : public Steppable {
+
+
+        WatchableField3D<CellG *> *cellFieldG;
+
+        Simulator * sim;
+
+        Potts3D *potts;
+
+        CC3DXMLElement *xmlData;
+
+        Automaton *automaton;
+
+        BoundaryStrategy *boundaryStrategy;
+
+        CellInventory * cellInventoryPtr;
+
+
+
+        Dim3D fieldDim;
+
+      public:
+
+        GrowthSteppable ();
+
+        virtual ~GrowthSteppable ();
+
+        // SimObject interface
+
+        virtual void init(Simulator *simulator, CC3DXMLElement *_xmlData=0);
+
+        virtual void extraInit(Simulator *simulator);
+
+        //steppable interface
+
+        virtual void start();
+
+        virtual void step(const unsigned int currentStep);
+
+        virtual void finish() {}
+
+        //SteerableObject interface
+
+        virtual void update(CC3DXMLElement *_xmlData, bool _fullInitFlag=false);
+
+        virtual std::string steerableName();
+
+         virtual std::string toString();
+
+      };
+
+    };
+
+    #endif
+
+Each steppable defines ``virtual void start()``, ``virtual void step(const unsigned int currentStep)`` and ``virtual void finish()`` functions. They have exactly the same role
+as analogous functions in Python scripting. The oly differentce is that C++ steppables will be called **before** Python steppables
+
+
+Let us check the generated implementation file of the Cteppable (the ``.cpp`` file):
+
+.. code-block:: c++
+
+
+    #include <CompuCell3D/CC3D.h>
+    using namespace CompuCell3D;
+    using namespace std;
+    #include "GrowthSteppable.h"
+    GrowthSteppable::GrowthSteppable() : cellFieldG(0),sim(0),potts(0),xmlData(0),boundaryStrategy(0),automaton(0),cellInventoryPtr(0){}
+
+    GrowthSteppable::~GrowthSteppable() {
+
+    }
+
+    void GrowthSteppable::init(Simulator *simulator, CC3DXMLElement *_xmlData) {
+
+      xmlData=_xmlData;
+
+      potts = simulator->getPotts();
+
+      cellInventoryPtr=& potts->getCellInventory();
+
+      sim=simulator;
+
+      cellFieldG = (WatchableField3D<CellG *> *)potts->getCellFieldG();
+
+      fieldDim=cellFieldG->getDim();
+
+      simulator->registerSteerableObject(this);
+
+      update(_xmlData,true);
+
+
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void GrowthSteppable::extraInit(Simulator *simulator){
+
+        //PUT YOUR CODE HERE
+
+    }
+     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    void GrowthSteppable::start(){
+
+      //PUT YOUR CODE HERE
+
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    void GrowthSteppable::step(const unsigned int currentStep){
+
+        //REPLACE SAMPLE CODE BELOW WITH YOUR OWN
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+        cerr<<"currentStep="<<currentStep<<endl;
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+
+        {
+
+            cell=cellInventoryPtr->getCell(cInvItr);
+
+            cerr<<"cell.id="<<cell->id<<" vol="<<cell->volume<<endl;
+
+        }
+
+    }
+
+    void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+        //PARSE XML IN THIS FUNCTION
+
+        //For more information on XML parser function please see CC3D code or lookup XML utils API
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+       set<unsigned char> cellTypesSet;
+
+        CC3DXMLElement * exampleXMLElem=_xmlData->getFirstElement("Example");
+
+        if (exampleXMLElem){
+
+            double param=exampleXMLElem->getDouble();
+
+            cerr<<"param="<<param<<endl;
+
+            if(exampleXMLElem->findAttribute("Type")){
+
+                std::string attrib=exampleXMLElem->getAttribute("Type");
+
+                // double attrib=exampleXMLElem->getAttributeAsDouble("Type"); //in case attribute is of type double
+
+                cerr<<"attrib="<<attrib<<endl;
+
+            }
+
+        }
+
+        //boundaryStrategy has information aobut pixel neighbors
+
+        boundaryStrategy=BoundaryStrategy::getInstance();
+
+    }
+
+    std::string GrowthSteppable::toString(){
+
+       return "GrowthSteppable";
+
+    }
+
+    std::string GrowthSteppable::steerableName(){
+
+       return toString();
+
+    }
+
+
+The ``step`` function is
 
 .. |git_setup| image:: images/git_setup.png
    :width: 6.0in
    :height: 2.2in
+
+
+.. |twedit_steppable_wizard| image:: images/twedit_steppable_wizard.png
+   :width: 7.8in
+   :height: 4.4in
+
+.. |twedit_generated_steppable| image:: images/twedit_generated_steppable.png
+   :width: 7.8in
+   :height: 4.4in
+
+
