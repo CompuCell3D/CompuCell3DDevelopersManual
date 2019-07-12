@@ -175,15 +175,16 @@ Starting from the top of the file we notice that cell lattice (``WatchableField3
 created by (``void createCellField(const Dim3D dim);``, ``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) ``Potts3D``.
 
 The cell lattice is an instance of the ``WatchableField3D`` class (which strictly speaking is a template class).
-The cell lattice stores **pointers** to cell objects (type ``CellG*``). This means that is I have a single cell but assign the pointer to it
-to several lattice sites , I caused my single cell to have volume equal to the number of lattice sites that have pointer to my cell
+The cell lattice stores **pointers** to cell objects (type ``CellG*``).
+This means that when a single cell single occupies several lattice sites we create one ``CellG`` object but store pointer to this
+object in all locations of ``cellFieldG`` that are assigned to this particular instance of ``CellG`` object.
 This way ``CellG`` objects do not get repeated for every pixel (this woudl cost too much memory) but rather are referenced from the
 cell lattice via pointers.
 The reason cell lattice field is called "Watchable" is because this class implements the observer design pattern.
-This means any, manipulation of the cell lattice (e.g. assigning cell to a given pixel) triggers calls to multiple registered
-observer objects that react to such change. For example if I am extending a cell by assigning its pointer to the new lattice site
+This means that any manipulation of the cell lattice (e.g. assigning cell to a given pixel) triggers calls to multiple registered
+observer objects that react to such change. For example, if I am extending a cell by assigning its pointer to the new lattice site
 one of the observer that will be called (we also refere to them as lattice monitors) is a module that tracks cell volume
-The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will \
+The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will
 get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
 inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
 when change in the lattice takes place. Let's look at how this is done
@@ -266,7 +267,7 @@ Energy Functions
 
 Few lines below declaration of ``cellField``, which as we know is an instance of  ``WatchableField3D<CellG *>``
 we find the declaration of containers associated with Energy function calculations. At this point we remind that the essence
-of Cellular Potts Model is in calculating change of energy opf the system due to randomly chosen lattice perturbation
+of Cellular Potts Model is in calculating **change of energy of the system due to randomly chosen lattice perturbation**
 (change of the single pixel). Pointers energy functions objects are stored inside ``Potts3D`` object as follows:
 
 .. code-block:: cpp
@@ -300,16 +301,16 @@ inside ``Potts3D/EnergyFunction.h`` header file:
 		}
 	};
 
-Each class that is responsible for calculating a change in the overall system energy due to a proposed pixel copy has to
+Each class that is responsible for calculating a **change in the overall system energy due to a proposed pixel copy** has to
 inherit ``EnergyFunction``. The key function that has to be reimplemented in the derived class is
-``virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``. After metropolis algorithm
+``virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``. After Metropolis algorithm
 function picks candidate for pixel overwrite it will then call ``changeEnergy`` for every element of the ``energyFunctions`` vector
 defined in class ``Potts3D`` (see above). The ``pt`` argument is a reference to a location of a pixel
 (specified as simple object ``Point3D``) that would be overwritten as result of the pixel copy attempt. The ``newCell``
 is pointer to a cell object that will occupy ``pt`` location of the ``cellField`` IF we accept pixel copy and the
 ``oldCell`` is a pointer to a cell that currently occupies lattice location ``pt``.
 
-in CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
+In CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
 energy function in the ``energyFunctions`` vector will vary depending on what users specify in the CC3DML or in Python.
 
 Later we will present detailed information on how to implement energy function plugins.
@@ -463,8 +464,8 @@ Stepper objects all inherit from ``Stepper`` class defined in ``Potts3D/Stepper.
     };
 
 This is a very simple base class that defines only one function called ``step``. More important is the question
-where and why we need this function. Steppers are called at the very end of the pixel copy attempt *i.e.* after
-all energy function calculation and if pixel copy was accpted after modifying ``cellField``. Steppers are called
+where and **why** we need this function. Steppers are called at the very end of the pixel copy attempt *i.e.* after
+all energy function calculation and if pixel copy was accepted after modifying ``cellField``. Steppers are called
 always regardless whether pixel copy was accepted or not. A canonical example of the ``Stepper`` object is ``VolumeTracker``
 declared and defined in ``plugins/VolumeTracker/VolumeTrackerPlugin.h`` and
 ``plugins/VolumeTracker/VolumeTrackerPlugin.cpp``. ``VolumeTracker`` plugin tracks volume of each cell and ensures that
@@ -482,10 +483,10 @@ allows fast lookups of particular cells. This is one of he most frequently acces
 
 .. code-block:: python
 
-    for cell in self.cellList:
+    for cell in self.cell_list:
         ...
 
-What we are doing here is we iterate over every cell in the simulation. Internally the ``self.sellList`` Python object
+What we are doing here is we iterate over every cell in the simulation. Internally the ``self.cell_list`` Python object
 accesses ``cellInventory``. when we create a cell using ``Potts3D``'s method ``createCellG`` we first construct cell object
 and then insert it into cell inventory. Similarly when we delete cell object using ``destroyCellG`` (method of ``Potts3D``)
 we first remove the ``cell`` object from inventory and then carryout its destruction
