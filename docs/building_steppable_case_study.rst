@@ -29,10 +29,14 @@ however, you want to checkout a branch - you woudl type something like this:
 
     git checkout 4.0.0
 
+|git_setup|
+
 At this point you have complete code in ``CC3D_DEVELOP`` directory. And in addition
 
 Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available.
 
 
 
-
+.. |git_setup| image:: images/git_setup.png
+   :width: 3.0in
+   :height: 1.1in
