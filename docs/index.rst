@@ -1,5 +1,5 @@
 ###################################################
-CompuCell3D Reference Manual - 3.7.8
+CompuCell3D Reference Manual - 4.0.0
 ###################################################
 
 The focus of this manual is to explain internals of C++ code and provide all information you need start writing your own
@@ -13,6 +13,7 @@ introduction
    :caption: Introduction To CompuCell3D Core Objects
 
    intro_to_core_cc3d_objects
+   building_steppable_case_study
 
 
 
