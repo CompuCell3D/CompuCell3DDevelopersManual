@@ -3,7 +3,7 @@ Building Steppable
 
 It is probably best to start discussing extension of CC3D by showing a relatively sinple example of a steppable written in C++.
 In typical scenario steppables are written in Python. There are three main reasons for that **1)** No compilation is required.
-**2)** The code is more compact and easier to write that C++. **3)** Python has a rich set of libraries that make scientific computation
+**2)** The code is more compact and easier to write than C++. **3)** Python has a rich set of libraries that make scientific computation
 easily accessible.
 However, writing a steppable in C++ is not that much more difficult, as you will see shortly, and you are almost guaranteed
 that your code will run orders of magnitude faster.
@@ -38,5 +38,5 @@ Now we open Twedit++ - you need to have "standard" installation of CC3D on your 
 
 
 .. |git_setup| image:: images/git_setup.png
-   :width: 3.0in
-   :height: 1.1in
+   :width: 6.0in
+   :height: 2.2in
