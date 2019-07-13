@@ -370,11 +370,7 @@ hard-coding is not scalable. We need better solution. It is time to learn how to
 Parsing XML in C++
 ------------------
 
-Building flexible code requires that we provide some sensible configuration mechanism via
- which users can customize their simulation without the need to recompile code. In CC3D we
- have two ways of achieving it **1)** XML **2)** Python scripting. It is up to you which
-  one you use and we will teach you how to use both approaches. For now let's start with
-   XML parsing.
+Building flexible code requires that we provide some sensible configuration mechanism via which users can customize their simulation without the need to recompile code. In CC3D we have two ways of achieving it **1)** XML **2)** Python scripting. It is up to you which one you use and we will teach you how to use both approaches. For now let's start with XML parsing.
 
 All C++ CC3D Plugins and Steppables define virtual function
 ``update(CC3DXMLElement *_xmlData, bool _fullInitFlag)``. This function takes two arguments:
