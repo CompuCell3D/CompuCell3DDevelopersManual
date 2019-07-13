@@ -138,7 +138,7 @@ Each steppable defines ``virtual void start()``, ``virtual void step(const unsig
 as analogous functions in Python scripting. The oly differentce is that C++ steppables will be called **before** Python steppables
 
 
-Let us check the generated implementation file of the Cteppable (the ``.cpp`` file):
+Let us check the generated implementation file of the Steppable (the ``.cpp`` file):
 
 .. code-block:: c++
 
@@ -173,21 +173,17 @@ Let us check the generated implementation file of the Cteppable (the ``.cpp`` fi
 
 
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void GrowthSteppable::extraInit(Simulator *simulator){
 
         //PUT YOUR CODE HERE
-
     }
-     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void GrowthSteppable::start(){
 
       //PUT YOUR CODE HERE
 
     }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void GrowthSteppable::step(const unsigned int currentStep){
 
@@ -262,7 +258,113 @@ Let us check the generated implementation file of the Cteppable (the ``.cpp`` fi
     }
 
 
-The ``step`` function is
+The ``step`` function the first function we will modify. In its current implementation the
+generated ``step`` function already contains helpful code. Let's take a look:
+
+.. code-block:: c++
+
+        void GrowthSteppable::step(const unsigned int currentStep){
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+        cerr<<"currentStep="<<currentStep<<endl;
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+
+            cerr << "cell.id=" << cell->id << " vol=" << cell->volume << endl;
+
+        }
+
+    }
+
+The ``for`` loop iterates over inventory of cells and prints cell id and cell volume.
+To iterate over cell inventory we are using ``cellInventoryPtr`` which is a pointer to
+``CellInventory`` object. The class for this object (``CellInventory``) is defined in ``Potts3D/CellInventory.h`` and implementation is in ``Potts3D/CellInventory.cpp``. INternally we are using STL(Standard Template Library - C++) maps to keep track of cells. The statement ``cellInventoryPtr->cellInventoryBegin()`` returns an iterator to cell inventory. If you look closely at the implementation files the container we are using as a cell inventory is
+``std::map<CellIdentifier,CellG *>`` and CellIdentifier contains cell id and cluster id to
+ uniquely identify cells. Therefore iteration over cell inventory is simply iteration over
+  STL map. If you are not familiar with concept of iterators and containers of STL we
+  recommend that you look up basic C++ tutorials for example:
+``https://www.tutorialspoint.com/cplusplus/cpp_stl_tutorial`` .
+
+Let us now modify the above step function and implement first version of growth steppable:
+
+
+.. code-block:: c++
+
+        void GrowthSteppable::step(const unsigned int currentStep){
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+        float growthRate = 1.0
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+            cell->targetVolume += growthRate ;
+
+        }
+
+    }
+
+If you are familiar with CC3D Python scripting you will quickly find analogies. The only
+thing we added was the following statement ``cell->targetVolume += growthRate ;``
+
+When we compile and run this example the cells' target volume will increase by amount hardcoded in the ``growthRate`` variable which in our case is ``1.0``.
+
+Let's take it to the next level (slowly). Now we will write a code that increases
+target volume of cells but only for the first 100 MCS and only if cell type is equal to
+``1``.
+
+
+.. code-block:: c++
+
+        void GrowthSteppable::step(const unsigned int currentStep){
+
+        if (currentStep > 100)
+            return;
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+        float growthRate = 1.0
+
+
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+            if (cell->type == 1){
+                cell->targetVolume += growthRate ;
+            }
+
+        }
+
+    }
+
+First thing we do in this steppable is checking if current MCS is greater than ``100`` and
+if so we return. Inside the loop we added ``if (cell->type == 1)`` check that allows increase of target volume only if cell is of type ``1``. Small digression here. If you
+ want to print cell type to the screen you need to use the following syntax:
+
+ .. code-block:: c++:
+
+    cerr << "cell type=" << (int)cell->type <<endl;
+
+As you can see we are performing type cast to ``int``. This is because cell type (defined in
+``Potts3D/Cell.h``) is defined as ``unsigned char``. Consequently CC3D allows only 256 cell types, which at first sight migh look limiting but in practice is more than enough.
+
 
 .. |git_setup| image:: images/git_setup.png
    :width: 6.0in
