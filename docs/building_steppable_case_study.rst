@@ -303,7 +303,7 @@ Let us now modify the above step function and implement first version of growth 
 
         CellG * cell=0;
 
-        float growthRate = 1.0
+        float growthRate = 1.0;
 
         for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
 
@@ -337,9 +337,7 @@ target volume of cells but only for the first 100 MCS and only if cell type is e
 
         CellG * cell=0;
 
-        float growthRate = 1.0
-
-
+        float growthRate = 1.0;
 
         for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
 
@@ -363,7 +361,129 @@ if so we return. Inside the loop we added ``if (cell->type == 1)`` check that al
     cerr << "cell type=" << (int)cell->type <<endl;
 
 As you can see we are performing type cast to ``int``. This is because cell type (defined in
-``Potts3D/Cell.h``) is defined as ``unsigned char``. Consequently CC3D allows only 256 cell types, which at first sight migh look limiting but in practice is more than enough.
+``Potts3D/Cell.h``) is defined as ``unsigned char``. Consequently CC3D allows only 256 cell types, which at first sight might look limiting but in practice is more than enough.
+
+In the previous examples we hard-coded the value of growth rate using
+``float growthRate = 1.0;``. This is not an optimal solution. What if you want to run 5 simulations simultaneously each one with different value of growth rate. If you hard-code values you would need to have 5 distinct compilations of CC3D available. Clearly,
+hard-coding is not scalable. We need better solution. It is time to learn how to parse XML in C++ code
+
+Parsing XML in C++
+------------------
+
+Building flexible code requires that we provide some sensible configuration mechanism via
+ which users can customize their simulation without the need to recompile code. In CC3D we
+ have two ways of achieving it **1)** XML **2)** Python scripting. It is up to you which
+  one you use and we will teach you how to use both approaches. For now let's start with
+   XML parsing.
+
+All C++ CC3D Plugins and Steppables define virtual function
+``update(CC3DXMLElement *_xmlData, bool _fullInitFlag)``. This function takes two arguments:
+pointer to XML element ``_xmlData`` (that CC3D initializes to be the root element of the
+particular Plugin or Steppable) and a flag ``_fullInitFlag`` that specifies if full
+ initialization of the module is required or not.
+
+Suppose that our XML will look as follows:
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate>1.0</GrowthRate>
+    </Steppable>
+
+We would parse this XML in C++ using the following code:
+
+.. code-block::
+
+    void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+
+    automaton = potts->getAutomaton();
+
+    ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+   set<unsigned char> cellTypesSet;
+
+
+
+    CC3DXMLElement * growthElem = _xmlData->getFirstElement("GrowthRate");
+
+    if (growthElem){
+
+        this->growthRate = growthElem->getDouble();
+
+    }
+
+    //boundaryStrategy has information about pixel neighbors
+
+    boundaryStrategy=BoundaryStrategy::getInstance();
+
+}
+
+As we mentioned before ``_xmlData`` points to ``<Steppable Type="GrowthSteppable">``. We
+need to get the child of this element *i.e.* ``<GrowthRate>1.0</GrowthRate>``. Since we know that there is only one child element (let's say we make such constraint for now  - we
+ will relax it later) we use the following code:
+
+.. code-block:: c++
+
+    CC3DXMLElement * growthElem = _xmlData->getFirstElement("GrowthRate");
+
+The ``getFirstElement`` method returns a pointer to a child element that is of the form
+
+.. code-block:: xml
+
+    <GrowthRate ...>...</GrowthRate>
+
+The returned pointer can be ``NULL`` if suitable child element cannot be found. This is why
+we add ``if (growthElem)`` check. Assuming that the ``<GrowthRate>`` child exist we read
+its ``cdata`` part. For any XML element , cdata part (cdata stands for character data) is the part that sits between closing ``>`` and opening ``<`` brackets of XML element. For example in
+
+.. code-block:: xml
+
+    <GrowthRate>1.0</GrowthRate>
+
+the ``cdata`` part is 1.0. The ``CC3DXMLElement`` has several methods that read and convert
+ cdata to appropriate C++ type. Here we are using ``getDouble()``
+
+.. code-block:: c++
+
+    this->growthRate = growthElem->getDouble();
+
+In order for this code to work we need to define growthRate inside ``GrowthSteppable`` class
+header - we can do it as follows:
+
+.. code-block:: c++
+
+  class GROWTHSTEPPABLE_EXPORT GrowthSteppable : public Steppable {
+
+    WatchableField3D<CellG *> *cellFieldG;
+
+    Simulator * sim;
+
+    Potts3D *potts;
+
+    CC3DXMLElement *xmlData;
+
+    Automaton *automaton;
+
+    BoundaryStrategy *boundaryStrategy;
+
+    CellInventory * cellInventoryPtr;
+
+    Dim3D fieldDim;
+
+  public:
+
+    GrowthSteppable ();
+
+    virtual ~GrowthSteppable ();
+
+    double growthRate;
+
+    ...
+    }
+
+
+
 
 
 .. |git_setup| image:: images/git_setup.png
