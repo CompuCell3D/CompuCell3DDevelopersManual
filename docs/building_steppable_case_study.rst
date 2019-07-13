@@ -444,6 +444,8 @@ the ``cdata`` part is 1.0. The ``CC3DXMLElement`` has several methods that read 
 
     this->growthRate = growthElem->getDouble();
 
+Obviously, ``CC3DXMLElement`` defines more methods to convert character data to required type (``getInt``, ``getBool`` , *etc...*)  They are defined in ``XMLUtils/CC3DXMLElement.h``
+
 In order for this code to work we need to define growthRate inside ``GrowthSteppable`` class
 header - we can do it as follows:
 
@@ -478,6 +480,98 @@ header - we can do it as follows:
     ...
     }
 
+With those changes we can rewrite our step function as:
+
+.. code-block::
+
+    void GrowthSteppable::step(const unsigned int currentStep){
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+       if (currentStep > 100)
+           return;
+
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+        {
+
+            cell=cellInventoryPtr->getCell(cInvItr);
+
+            if (cell->type == 1){
+                cell->targetVolume += this->growthRate;
+            }
+
+        }
+
+    }
+
+It is almos the same implementation as before except we use ``cell->targetVolume += this->growthRate;`` instead of ``cell->targetVolume += growthRate;``
+
+The ``this->growthRate`` gets initialized based on the input provided in
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate>1.0</GrowthRate>
+    </Steppable>
+
+If we change it to
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate>2.0</GrowthRate>
+    </Steppable>
+
+and rerun the simulation the rate of increase of target volume will be 2.0. All the changes
+we make to the growth rate now do not require recompilation but only chenges int he XML
+file, exactly how CC3D is designed to work. Next we will learn how to parse attributes of
+the XML elements. As a motivating example we will specify different growth rates for
+different cell types.
+
+Parsing XMl Attributes
+~~~~~~~~~~~~~~~~~~~~~~
+
+If we want our simulation to have different growth rates for different cell types
+we need to store them in *e.g.* STL map and we need to modify header of the
+``GrowthSteppable`` to look as follows:
+
+.. code-block:: c++
+
+  class GROWTHSTEPPABLE_EXPORT GrowthSteppable : public Steppable {
+
+    WatchableField3D<CellG *> *cellFieldG;
+
+    Simulator * sim;
+
+    Potts3D *potts;
+
+    CC3DXMLElement *xmlData;
+
+    Automaton *automaton;
+
+    BoundaryStrategy *boundaryStrategy;
+
+    CellInventory * cellInventoryPtr;
+
+    Dim3D fieldDim;
+
+  public:
+
+    GrowthSteppable ();
+
+    virtual ~GrowthSteppable ();
+
+    std::map<unsigned int, double> growthRateMap;
+
+    ...
+    }
+
+We replaced ``double growthRate`` with ``std::map<unsigned int, double> growthRateMap;``
+The key of the map is cell type and the value is growth rate. Now we need to
+design and parse XML that will allow users to specify required data
 
 
 
