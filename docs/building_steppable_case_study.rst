@@ -670,6 +670,8 @@ than ``cdata`` :
 
 we would need to make only small modification:
 
+.. code-block:: c++
+
     void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
 
         automaton = potts->getAutomaton();
