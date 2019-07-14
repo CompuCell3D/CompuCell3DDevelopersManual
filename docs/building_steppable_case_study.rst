@@ -571,9 +571,135 @@ we need to store them in *e.g.* STL map and we need to modify header of the
 
 We replaced ``double growthRate`` with ``std::map<unsigned int, double> growthRateMap;``
 The key of the map is cell type and the value is growth rate. Now we need to
-design and parse XML that will allow users to specify required data
+design and parse XML that will allow users to specify required data. Let us try the
+following syntax:
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate CellType="1">1.3</GrowthRate>
+        <GrowthRate CellType="2">1.7</GrowthRate>
+    </Steppable>
+
+I case you wonder what I mean by "trying out syntax" it means that it is up to you to design
+XML syntax in such a way that it allows you to specify model in the way you want. The above
+example fulfills this requirement because we specify different growth rates for different
+cell types. However, we could also come up with a different way of specifying the same
+information:
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate CellType="1" Rate="1.3"/>
+        <GrowthRate CellType="2" Rate="1.7"/>
+    </Steppable>
+
+Both approaches are OK.
+
+Let us write the ``update`` function that will parse first of the above XMLs:
+
+.. code-block:: c++
+
+    void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+        set<unsigned char> cellTypesSet;
+
+        CC3DXMLElementList growthVec = _xmlData->getElements("GrowthRate");
+
+        for (int i = 0; i < growthVec.size(); ++i) {
+            unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
+            double growthRateTmp = growthVec[i]->getDouble();
+            this->growthRateMap[cellType] = growthRateTmp;
+        }
 
 
+        //boundaryStrategy has information about pixel neighbors
+        boundaryStrategy=BoundaryStrategy::getInstance();
+
+    }
+
+The code is slightly different this time because we expect multiple entries of the type
+``<GrowthRate CellType="xxx" Rate="yyy"/>``. Therefore, by writing the code:
+
+.. code-block:: c++
+
+    CC3DXMLElementList growthVec = _xmlData->getElements("GrowthRate");
+
+we ensure that CC3D will return a list (actually it is implemented as an STL vector) of XML element pointers that start with ``<GrowthRate ...>`` . Next, we iterate over the vector of
+XML element pointers and notice that ``growthVec[i]`` returns a pointer to XML
+element pointer and we query this element. First, we read and convert to ``unsigned int``
+value of ``CellType`` attribute:
+
+.. code-block:: c++
+
+    unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
+
+The next line:
+
+.. code-block:: c++
+
+    double growthRateTmp = growthVec[i]->getDouble();
+
+should be familiar already because it reads the value of ``cdata`` of
+``<GrowthRate CellType="1">1.3</GrowthRate>``
+
+Once we extracted cell type and actual growth rate from a single element we store those
+values in ``this->growthRateMap`` map:
+
+.. code-block:: c++
+
+    this->growthRateMap[cellType] = growthRateTmp;
+
+.. note::
+
+    We are not performing any error checks in the above code and assume that users enter reasonable values. In the production code we would monitor for possible errors but this extra code would make this introductory manual a bit too confusing
+
+If we wanted to parse second syntax where we specify growth rate as and attribute rather
+than ``cdata`` :
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate CellType="1" Rate="1.3"/>
+        <GrowthRate CellType="2" Rate="1.7"/>
+    </Steppable>
+
+we would need to make only small modification:
+
+    void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+        set<unsigned char> cellTypesSet;
+
+        CC3DXMLElementList growthVec = _xmlData->getElements("GrowthRate");
+
+        for (int i = 0; i < growthVec.size(); ++i) {
+            unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
+            double growthRateTmp = growthVec[i]->getAttributeAsDouble("GrowthRate");
+            this->growthRateMap[cellType] = growthRateTmp;
+        }
+
+
+        //boundaryStrategy has information about pixel neighbors
+        boundaryStrategy=BoundaryStrategy::getInstance();
+
+    }
+
+The code differs from previous parsing code by only one line:
+
+.. code-block:: c++
+
+    double growthRateTmp = growthVec[i]->getAttributeAsDouble("GrowthRate");
+
+As usual for a complete list of functions that read and convert XML attributes to concrete
+C++ types , check ``XMLUtils/CC3DXMLElement.h``
 
 
 .. |git_setup| image:: images/git_setup.png
