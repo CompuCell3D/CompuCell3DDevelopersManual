@@ -1,7 +1,7 @@
 Building Steppable
 ==================
 
-It is probably best to start discussing extension of CC3D by showing a relatively sinple example of a steppable written in C++.
+It is probably best to start discussing extension of CC3D by showing a relatively simple example of a steppable written in C++.
 In typical scenario steppables are written in Python. There are three main reasons for that **1)** No compilation is required.
 **2)** The code is more compact and easier to write than C++. **3)** Python has a rich set of libraries that make scientific computation
 easily accessible.
@@ -23,7 +23,7 @@ Before you start developing CC3D C++ extension modules, you need to clone CC3D r
     git clone https://github.com/CompuCell3D/CompuCell3D.git .
 
 It is optional to checkout a particular branch of CC3D, but most often you will work with ``master`` branch. If ,
-however, you want to checkout a branch - you woudl type something like this:
+however, you want to checkout a branch - you would type something like this:
 
 .. code-block:: console
 
@@ -376,7 +376,7 @@ All C++ CC3D Plugins and Steppables define virtual function
 ``update(CC3DXMLElement *_xmlData, bool _fullInitFlag)``. This function takes two arguments:
 pointer to XML element ``_xmlData`` (that CC3D initializes to be the root element of the
 particular Plugin or Steppable) and a flag ``_fullInitFlag`` that specifies if full
- initialization of the module is required or not.
+initialization of the module is required or not.
 
 Suppose that our XML will look as follows:
 
@@ -388,36 +388,33 @@ Suppose that our XML will look as follows:
 
 We would parse this XML in C++ using the following code:
 
-.. code-block::
+.. code-block:: cpp
 
     void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
 
+        automaton = potts->getAutomaton();
 
-    automaton = potts->getAutomaton();
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
 
-    ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+       set<unsigned char> cellTypesSet;
 
-   set<unsigned char> cellTypesSet;
+        CC3DXMLElement * growthElem = _xmlData->getFirstElement("GrowthRate");
 
+        if (growthElem){
 
+            this->growthRate = growthElem->getDouble();
 
-    CC3DXMLElement * growthElem = _xmlData->getFirstElement("GrowthRate");
+        }
 
-    if (growthElem){
+        //boundaryStrategy has information about pixel neighbors
 
-        this->growthRate = growthElem->getDouble();
+        boundaryStrategy=BoundaryStrategy::getInstance();
 
     }
 
-    //boundaryStrategy has information about pixel neighbors
-
-    boundaryStrategy=BoundaryStrategy::getInstance();
-
-}
-
 As we mentioned before ``_xmlData`` points to ``<Steppable Type="GrowthSteppable">``. We
 need to get the child of this element *i.e.* ``<GrowthRate>1.0</GrowthRate>``. Since we know that there is only one child element (let's say we make such constraint for now  - we
- will relax it later) we use the following code:
+will relax it later) we use the following code:
 
 .. code-block:: c++
 
@@ -438,7 +435,7 @@ its ``cdata`` part. For any XML element , cdata part (cdata stands for character
     <GrowthRate>1.0</GrowthRate>
 
 the ``cdata`` part is 1.0. The ``CC3DXMLElement`` has several methods that read and convert
- cdata to appropriate C++ type. Here we are using ``getDouble()``
+cdata to appropriate C++ type. Here we are using ``getDouble()``
 
 .. code-block:: c++
 
@@ -507,7 +504,8 @@ With those changes we can rewrite our step function as:
 
     }
 
-It is almos the same implementation as before except we use ``cell->targetVolume += this->growthRate;`` instead of ``cell->targetVolume += growthRate;``
+It is almost the same implementation as before except we use ``cell->targetVolume += this->growthRate;``
+instead of ``cell->targetVolume += growthRate;``
 
 The ``this->growthRate`` gets initialized based on the input provided in
 
