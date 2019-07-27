@@ -111,7 +111,104 @@ and ``GrowthSteppable.cpp``
 .. code-block:: cpp
     :linenos:
 
+    #include <CompuCell3D/CC3D.h>
+    using namespace CompuCell3D;
+    using namespace std;
+    #include "GrowthSteppable.h"
 
+
+    GrowthSteppable::GrowthSteppable() :
+    cellFieldG(0),sim(0),potts(0),xmlData(0),
+    boundaryStrategy(0),automaton(0),cellInventoryPtr(0){}
+
+    GrowthSteppable::~GrowthSteppable() {
+
+    }
+
+    void GrowthSteppable::init(Simulator *simulator, CC3DXMLElement *_xmlData) {
+
+      xmlData=_xmlData;
+
+      potts = simulator->getPotts();
+
+      cellInventoryPtr=& potts->getCellInventory();
+
+      sim=simulator;
+
+      cellFieldG = (WatchableField3D<CellG *> *)potts->getCellFieldG();
+
+      fieldDim=cellFieldG->getDim();
+
+      simulator->registerSteerableObject(this);
+
+      update(_xmlData,true);
+    }
+
+    void GrowthSteppable::extraInit(Simulator *simulator){
+
+    }
+
+    void GrowthSteppable::start(){
+
+      //PUT YOUR CODE HERE
+    }
+
+    void GrowthSteppable::step(const unsigned int currentStep){
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+       if (currentStep > 100)
+           return;
+
+        std::map<unsigned int, double>::iterator mitr;
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+        {
+
+            cell=cellInventoryPtr->getCell(cInvItr);
+
+            mitr = this->growthRateMap.find((unsigned int)cell->type);
+
+            if (mitr != this->growthRateMap.end()){
+                cell->targetVolume += mitr->second;
+            }
+
+        }
+
+    }
+
+    void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+        set<unsigned char> cellTypesSet;
+
+        CC3DXMLElementList growthVec = _xmlData->getElements("GrowthRate");
+
+        for (int i = 0; i < growthVec.size(); ++i) {
+            unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
+            double growthRateTmp = growthVec[i]->getAttributeAsDouble("GrowthRate");
+            this->growthRateMap[cellType] = growthRateTmp;
+        }
+
+        //boundaryStrategy has information about pixel neighbors
+        boundaryStrategy=BoundaryStrategy::getInstance();
+
+    }
+
+    std::string GrowthSteppable::toString(){
+
+       return "GrowthSteppable";
+    }
+
+    std::string GrowthSteppable::steerableName(){
+
+       return toString();
+    }
 
 As you can see based on the previous discussion the ``update`` function where we parse XML is designed to
 handle the following syntax for the GrowthSteppable:
