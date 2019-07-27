@@ -220,6 +220,48 @@ handle the following syntax for the GrowthSteppable:
         <GrowthRate CellType="2" Rate="1.7"/>
     </Steppable>
 
+After we generated plugin code and added our modification to those two files, we are ready to begin compilation.
+We will show how to compile code on Windows. Compilation on Linux system is analogous up to CMake configuration
+part but then instead of using Visual Studion you will type ``make`` and ``make install`` in the terminal. For now
+let's stick with Windows compilation. After Twedit++ generated new files in the ``Developer Zone`` we need to use
+CMake tool (GUI - as we will go here, or console based tool) to configure our compilation. This is how CMake
+configuration looks in our case
+
+|dev_zone_3|
+
+First we point to the folder where ``DeveloperZone`` is (``Where the source code is``). In our case it is
+``D:\CC3D_PY3_GIT\CompuCell3D\DeveloperZone``  and location for our Visual Studio project  ``D:/CC3D_PY3_GIT_build_developer_zone`` (see ``Where to build the binaries``)
+
+Then we after click ``Configure`` CMake will display the following dialog:
+
+|dev_zone_3b|
+
+Make sure to select ``Visual Studio 14 2015 Win64`` (we assume we are using 64-bit version of CC3D). If you are using
+32-bit version then you would select ``Visual Studio 14 2015``
+
+Next, we set ``CMAKE_INSTALL_PREFIX`` and ``COMPUCELL3D_INSTALL_PATH`` to the folder where CC3D is installed -
+``D:\Program Files\cc3d_py3_demo_new`` .
+
+We also set where main CC3D code-base is ``COMPUCELL3D_FULL_SOURCE_PATH`` ``D:/CC3D_PY3_GIT/CompuCell3D/core/CompuCell3D``
+Next, we set version number (`4`,  `0`, `0`).  We are almost done but since ``DeveloperZone`` also compiles Python module
+we must set Python paths as follows (you need to specify Python include directory and Python library path):
+
+|dev_zone_3a|
+
+.. note::
+
+    It is perfectly fine to compile ``DeveloperZone`` modules without using Python. If this is what you would like to do, just comment out line  ``add_subdirectory(pyinterface)`` in ``DeveloperZone/CMakeLists.txt``
+
+After we configured all paths in CMake GUI we press ``Configure`` button and then ``Generate`` button. The
+VisualStudio Project will be placed in ``D:/CC3D_PY3_GIT_build_developer_zone`` (see
+``Where to build the binaries`` at the top of CMake GUI). We will open it next and
+will show you how to compile plugins and steppables in the ``DeveloperZone``
+
+Compiling ``DeveloperZone`` in Visual Studio
+---------------------------------------------
+
+Now that we created Visual Studio project for Developer Zone we will show you how to set up compilation.
+
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
    :height: 1.9in
@@ -227,3 +269,17 @@ handle the following syntax for the GrowthSteppable:
 .. |dev_zone_2| image:: images/dev_zone_2.png
    :width: 6.0in
    :height: 2.5in
+
+.. |dev_zone_3| image:: images/dev_zone_3.png
+   :width: 6.0in
+   :height: 2.0in
+
+.. |dev_zone_3b| image:: images/dev_zone_3b.png
+   :width: 2.5in
+   :height: 1.8in
+
+
+.. |dev_zone_3a| image:: images/dev_zone_3a.png
+   :width: 6.0in
+   :height: 2.0in
+
