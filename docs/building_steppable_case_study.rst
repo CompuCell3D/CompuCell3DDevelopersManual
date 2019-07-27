@@ -354,7 +354,7 @@ target volume of cells but only for the first 100 MCS and only if cell type is e
 
 First thing we do in this steppable is checking if current MCS is greater than ``100`` and
 if so we return. Inside the loop we added ``if (cell->type == 1)`` check that allows increase of target volume only if cell is of type ``1``. Small digression here. If you
- want to print cell type to the screen you need to use the following syntax:
+    want to print cell type to the screen you need to use the following syntax:
 
  .. code-block:: c++:
 
@@ -701,6 +701,10 @@ The code differs from previous parsing code by only one line:
 As usual for a complete list of functions that read and convert XML attributes to concrete
 C++ types , check ``XMLUtils/CC3DXMLElement.h``
 
+The presented example went over a theory of how to build a basic steppable and integrate it with
+main CC3D code. In the next tutorial we will present the same steppable but we will build it in the
+``DevelopeZone`` folder of CC3D. The idea here is that this new steppable can live outside
+main CC3D code and still be accessible by the installed binaries.
 
 .. |git_setup| image:: images/git_setup.png
    :width: 6.0in

@@ -14,6 +14,7 @@ introduction
 
    intro_to_core_cc3d_objects
    building_steppable_case_study
+   building_growth_steppable_in_developer_zone
 
 
 
