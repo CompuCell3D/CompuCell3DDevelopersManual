@@ -701,6 +701,58 @@ The code differs from previous parsing code by only one line:
 As usual for a complete list of functions that read and convert XML attributes to concrete
 C++ types , check ``XMLUtils/CC3DXMLElement.h``
 
+In order to take advantage of the specification of growth rate on a per-cell-type basis we modify step function as
+follows:
+
+.. code-block:: cpp
+
+    void GrowthSteppable::step(const unsigned int currentStep){
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell=0;
+
+       if (currentStep > 100)
+           return;
+
+        std::map<unsigned int, double>::iterator mitr;
+
+        for(cInvItr=cellInventoryPtr->cellInventoryBegin() ; cInvItr !=cellInventoryPtr->cellInventoryEnd() ;++cInvItr )
+        {
+
+            cell=cellInventoryPtr->getCell(cInvItr);
+
+            mitr = this->growthRateMap.find((unsigned int)cell->type);
+
+            if (mitr != this->growthRateMap.end()){
+                cell->targetVolume += mitr->second;
+            }
+
+        }
+
+    }
+
+We declare an iterator to the ``std::map<unsigned int, double>``. HInt: iterator is like a pointer and
+in the case of map iterator will have two components ``mitr->first`` which will be a key of ``this->growthRateMap``
+map (in our case a key is a cell type) and ``mitr->second`` which will point to a value of the ``this->growthRateMap``
+which in our case is a growth rate.
+
+When we get a new cell first thing we do is to check if iterator pointing to a pair of (cell type, growth rate)
+exist:
+
+``mitr = this->growthRateMap.find((unsigned int)cell->type);``
+
+If such entry exists in the ``this->growthRateMap`` then this iterator will point to a value different than
+``this->growthRateMap.end()`` and in such a case we know that ``mitr->second`` points to a growth rate for a cell type
+given by ``cell->type``. We simply increase target volume of such cell by the growth rate.
+This logic is code up in the following if statement":
+
+.. code-block:: cpp
+
+    if (mitr != this->growthRateMap.end()){
+        cell->targetVolume += mitr->second;
+    }
+
 The presented example went over a theory of how to build a basic steppable and integrate it with
 main CC3D code. In the next tutorial we will present the same steppable but we will build it in the
 ``DevelopeZone`` folder of CC3D. The idea here is that this new steppable can live outside
