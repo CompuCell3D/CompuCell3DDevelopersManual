@@ -192,7 +192,7 @@ and ``GrowthSteppable.cpp``
 
         for (int i = 0; i < growthVec.size(); ++i) {
             unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
-            double growthRateTmp = growthVec[i]->getAttributeAsDouble("GrowthRate");
+            double growthRateTmp = growthVec[i]->getAttributeAsDouble("Rate");
             this->growthRateMap[cellType] = growthRateTmp;
         }
 
@@ -303,7 +303,19 @@ easy. In fact all we need to do is to add
     </Steppable>
 
 to any simulation where we want cell of type `1` to increase target volume at 1.3 pixels/MCS rate and for cells of type 2
-the growth would be 1.7
+the growth would be 1.7.
+
+Here are the results of the simulation at MCS 0, 20, and 40:
+
+|gs_cpp|
+
+As you can see there are 3 cell types here but we specified growth rates for two of them As a result "red" cells are
+getting squashed by growing neighbors and at MCS 40 they disappear. Also notice that green cells are bigger than blue
+ones. This is what we expect when we have different growth rates
+
+.. note::
+
+    Specified growth rates of 1.3 and 1.7 are very high and we used them for illustration purposes. In your simulation you should much smaller rates to allow cells on the lattice to "equilibrate"
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
@@ -344,3 +356,7 @@ the growth would be 1.7
 .. |dev_zone_8| image:: images/dev_zone_8.png
    :width: 7.2in
    :height: 2.8in
+
+.. |gs_cpp| image:: images/gs_cpp.png
+   :width: 6.9in
+   :height: 2.0in

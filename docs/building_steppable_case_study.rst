@@ -239,7 +239,7 @@ Let us check the generated implementation file of the Steppable (the ``.cpp`` fi
 
         }
 
-        //boundaryStrategy has information aobut pixel neighbors
+        //boundaryStrategy has information about pixel neighbors
 
         boundaryStrategy=BoundaryStrategy::getInstance();
 
@@ -625,7 +625,7 @@ The code is slightly different this time because we expect multiple entries of t
 
 .. code-block:: c++
 
-    CC3DXMLElementList growthVec = _xmlData->getElements("GrowthRate");
+    CC3DXMLElementList growthVec = _xmlData->getElements("Rate");
 
 we ensure that CC3D will return a list (actually it is implemented as an STL vector) of XML element pointers that start with ``<GrowthRate ...>`` . Next, we iterate over the vector of
 XML element pointers and notice that ``growthVec[i]`` returns a pointer to XML
