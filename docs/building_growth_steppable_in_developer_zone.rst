@@ -317,7 +317,7 @@ ones. This is what we expect when we have different growth rates
 
     Specified growth rates of 1.3 and 1.7 are very high and we used them for illustration purposes. In your simulation you should much smaller rates to allow cells on the lattice to "equilibrate"
 
-Full simulation can be downloaded here :download:`zip <images/GrowthSteppableSimulationCpp.png>`
+Full simulation can be downloaded here :download:`zip <images/GrowthSteppableSimulationCpp.zip>`
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
