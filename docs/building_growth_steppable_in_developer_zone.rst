@@ -305,6 +305,10 @@ easy. In fact all we need to do is to add
 to any simulation where we want cell of type `1` to increase target volume at 1.3 pixels/MCS rate and for cells of type 2
 the growth would be 1.7.
 
+.. note::
+
+    The name of the steppable or plugin that we reference from XML is not based on module name but on the label encoded in the proxy file. In our case ``GrowthSteppableProxy.cpp`` has the following line ``growthSteppableProxy("GrowthSteppable", ...`` and there we have label ``GrowthSteppable`` that we use in XML. If we changed this label to e.g. `growthSteppableProxy("MyGrowthSteppable", ...`` then we would need to change first line of XML for GrowthSteppable to ``<Steppable Type="GrowthSteppable">``
+
 Here are the results of the simulation at MCS 0, 20, and 40:
 
 |gs_cpp|
@@ -317,7 +321,8 @@ ones. This is what we expect when we have different growth rates
 
     Specified growth rates of 1.3 and 1.7 are very high and we used them for illustration purposes. In your simulation you should much smaller rates to allow cells on the lattice to "equilibrate"
 
-Full simulation can be downloaded here :download:`zip <images/GrowthSteppableSimulationCpp.zip>`
+Full simulation can be downloaded here :download:`zip <archives/GrowthSteppableSimulationCpp.zip>` and full code for
+``GrowthSteppable`` is here :download:`zip <archives/GrowthSteppable-code-cpp.zip>`.
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
