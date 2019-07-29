@@ -258,10 +258,15 @@ Let us check the generated implementation file of the Steppable (the ``.cpp`` fi
     }
 
 
-The ``step`` function the first function we will modify. In its current implementation the
-generated ``step`` function already contains helpful code. Let's take a look:
+The ``step`` and ``start``functions are the first function we will modify. In its current implementation the
+generated ``step`` function already contains helpful code but start function will be rewritten. Let's take a look:
 
 .. code-block:: c++
+
+    void GrowthSteppable::start(){
+
+
+    }
 
         void GrowthSteppable::step(const unsigned int currentStep){
 
@@ -292,10 +297,25 @@ To iterate over cell inventory we are using ``cellInventoryPtr`` which is a poin
   recommend that you look up basic C++ tutorials for example:
 ``https://www.tutorialspoint.com/cplusplus/cpp_stl_tutorial`` .
 
-Let us now modify the above step function and implement first version of growth steppable:
+Let us now modify the above ``start`` and ``step`` functions and implement first version of growth steppable:
 
 
 .. code-block:: c++
+
+    void GrowthSteppable::start(){
+
+        CellInventory::cellInventoryIterator cInvItr;
+        CellG * cell = 0;
+
+        for (cInvItr = cellInventoryPtr->cellInventoryBegin(); cInvItr != cellInventoryPtr->cellInventoryEnd(); ++cInvItr)
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+            cell->targetVolume = 25.0;
+            cell->lambdaVolume = 2.0;
+        }
+
+    }
 
         void GrowthSteppable::step(const unsigned int currentStep){
 
@@ -315,6 +335,9 @@ Let us now modify the above step function and implement first version of growth 
         }
 
     }
+
+When we create cells they all have ``targetVolume`` and ``lambdaVolume`` set to ``0.0`` and thus volume constraint does
+nothing. We fix it by setting those parameters for each cell in the ``start`` function.
 
 If you are familiar with CC3D Python scripting you will quickly find analogies. The only
 thing we added was the following statement ``cell->targetVolume += growthRate ;``
@@ -477,7 +500,7 @@ header - we can do it as follows:
     ...
     }
 
-With those changes we can rewrite our step function as:
+With those changes we can rewrite our ``step`` function as:
 
 .. code-block::
 

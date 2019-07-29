@@ -151,7 +151,16 @@ and ``GrowthSteppable.cpp``
 
     void GrowthSteppable::start(){
 
-      //PUT YOUR CODE HERE
+        CellInventory::cellInventoryIterator cInvItr;
+        CellG * cell = 0;
+
+        for (cInvItr = cellInventoryPtr->cellInventoryBegin(); cInvItr != cellInventoryPtr->cellInventoryEnd(); ++cInvItr)
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+            cell->targetVolume = 25.0;
+            cell->lambdaVolume = 2.0;
+        }
     }
 
     void GrowthSteppable::step(const unsigned int currentStep){
@@ -315,7 +324,76 @@ Here are the results of the simulation at MCS 0, 20, and 40:
 
 As you can see there are 3 cell types here but we specified growth rates for two of them As a result "red" cells are
 getting squashed by growing neighbors and at MCS 40 they disappear. Also notice that green cells are bigger than blue
-ones. This is what we expect when we have different growth rates
+ones. This is what we expect when we have different growth rates.
+
+Since we are modifying target volume we must use ``Volume`` plugin where we control all parameters for each cell individually - we use "local flex" version of Volume constraint ``<Plugin Name="Volume"/>`` where we only load ``Volume`` plugin but dont pass any parameters to it. Those parameters ``targetVolume`` ``lambdaVolume`` are set in C++ code:
+
+.. code-block:: xml
+
+    <CompuCell3D Revision="20190604" Version="4.0.0">
+
+       <Potts>
+
+          <!-- Basic properties of CPM (GGH) algorithm -->
+          <Dimensions x="100" y="100" z="1"/>
+          <Steps>100000</Steps>
+          <Temperature>10.0</Temperature>
+          <NeighborOrder>1</NeighborOrder>
+       </Potts>
+
+       <Plugin Name="CellType">
+
+          <!-- Listing all cell types in the simulation -->
+          <CellType TypeId="0" TypeName="Medium"/>
+          <CellType TypeId="1" TypeName="A"/>
+          <CellType TypeId="2" TypeName="B"/>
+          <CellType TypeId="3" TypeName="C"/>
+       </Plugin>
+
+       <Plugin Name="Volume"/>
+
+       <Plugin Name="CenterOfMass">
+
+          <!-- Module tracking center of mass of each cell -->
+       </Plugin>
+
+       <Plugin Name="Contact">
+          <!-- Specification of adhesion energies -->
+          <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+          <Energy Type1="Medium" Type2="A">10.0</Energy>
+          <Energy Type1="Medium" Type2="B">10.0</Energy>
+          <Energy Type1="Medium" Type2="C">10.0</Energy>
+          <Energy Type1="A" Type2="A">10.0</Energy>
+          <Energy Type1="A" Type2="B">10.0</Energy>
+          <Energy Type1="A" Type2="C">10.0</Energy>
+          <Energy Type1="B" Type2="B">10.0</Energy>
+          <Energy Type1="B" Type2="C">10.0</Energy>
+          <Energy Type1="C" Type2="C">10.0</Energy>
+          <NeighborOrder>4</NeighborOrder>
+       </Plugin>
+
+       <Steppable Type="UniformInitializer">
+
+          <!-- Initial layout of cells in the form of rectangular slab -->
+          <Region>
+             <BoxMin x="20" y="20" z="0"/>
+             <BoxMax x="80" y="80" z="1"/>
+             <Gap>0</Gap>
+             <Width>5</Width>
+             <Types>A,B,C</Types>
+          </Region>
+       </Steppable>
+
+        <Steppable Type="GrowthSteppable">
+            <GrowthRate CellType="1" Rate="1.3"/>
+            <GrowthRate CellType="2" Rate="1.7"/>
+        </Steppable>
+
+    </CompuCell3D>
+
+.. note::
+
+    We placed ``GrowthSteppable`` last. This is not coincidence. We must place it after steppable that creates cells ``UniformInitializer``. If we reversed the order of those two steppables GrowthSteppable would be called first and in particular its ``start`` function would be called before ``UniformInitializer`` function and as a result the code that is supposed to set initaial volume constraint parameters from ``GrowthSteppable`` (``start`` function) woudl iterate over empty cell inventory. Therefore, listing ``UniformInitializer`` before ``GrowthSteppable`` is the rihght thing to to. Simply put order of appearances of steppables in the XML determines the order in which CC3D will call them
 
 .. note::
 
