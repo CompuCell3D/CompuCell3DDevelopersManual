@@ -110,6 +110,7 @@ and ``GrowthSteppable.cpp``
 
 .. code-block:: cpp
     :linenos:
+    :emphasize-lines: 12,15-18
 
     #include <CompuCell3D/CC3D.h>
     using namespace CompuCell3D;
@@ -261,6 +262,48 @@ Compiling ``DeveloperZone`` in Visual Studio
 ---------------------------------------------
 
 Now that we created Visual Studio project for Developer Zone we will show you how to set up compilation.
+We open up Visual Studio and navigate to ``File->Open->Project/Solution...`` and in the File Open Dialog we go to
+``D:/CC3D_PY3_GIT_build_developer_zone`` and select ``ALL_BUILD.vcxproj``
+
+|dev_zone_4|
+
+After ``DeveloperZone`` Visual Studio project gets loaded we go to ``Build->Configuration Manager...`` and from the
+pull down menu ``Active Solution Configuration`` (at the top of the dialog box) we select ``RelWithDebInfo``:
+
+|dev_zone_5|
+
+|dev_zone_6|
+
+Next, to start compilation, we right-click on ``ALL_BUILD`` and from the context menu select ``Build``:
+
+|dev_zone_7|
+
+Notice that there are additional modules in addition to our ``GrowthSteppable``. Take a looks at those. They show
+how to write simple modules (plugins or steppables).
+
+After the compilation finished and there are no errors, we right-click at ``INSTALL`` subproject and from the context
+menu we select ``Build``. This will install our newly created ``GrowthSteppable`` in the CC3D installation directory
+that we specified during CMake configuration (``D:/Program Files/cc3d_py3_demo_new``)
+
+|dev_zone_8|
+
+At this point we can build a simulation that will use newly created ``GrowthSteppable``
+
+Using DeveloperZone steppable in the simulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Writing C++ code and compiling it was a hard-part of the project. Using newly created steppable in the simulation is
+easy. In fact all we need to do is to add
+
+.. code-block:: xml
+
+    <Steppable Type="GrowthSteppable">
+        <GrowthRate CellType="1" Rate="1.3"/>
+        <GrowthRate CellType="2" Rate="1.7"/>
+    </Steppable>
+
+to any simulation where we want cell of type `1` to increase target volume at 1.3 pixels/MCS rate and for cells of type 2
+the growth would be 1.7
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
@@ -278,8 +321,26 @@ Now that we created Visual Studio project for Developer Zone we will show you ho
    :width: 2.5in
    :height: 1.8in
 
-
 .. |dev_zone_3a| image:: images/dev_zone_3a.png
    :width: 6.0in
    :height: 2.0in
 
+.. |dev_zone_4| image:: images/dev_zone_4.png
+   :width: 4.5in
+   :height: 2.6in
+
+.. |dev_zone_5| image:: images/dev_zone_5.png
+   :width: 3.3in
+   :height: 1.9in
+
+.. |dev_zone_6| image:: images/dev_zone_6.png
+   :width: 3.5in
+   :height: 2.2in
+
+.. |dev_zone_7| image:: images/dev_zone_7.png
+   :width: 6.12in
+   :height: 3.0in
+
+.. |dev_zone_8| image:: images/dev_zone_8.png
+   :width: 7.2in
+   :height: 2.8in
