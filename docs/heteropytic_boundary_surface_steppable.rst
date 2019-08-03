@@ -185,4 +185,13 @@ Let's start analyzing code for ``calculateHeterotypicSurface`` function:
 We will be iterating over lattice pixels. Every lattice pixel has neighbors of different order but 1-st order neighbors
 are simply adjacent pixels. ``BoundaryStrategy`` is an object that facilitates iteration over pixel neighbors and it
 also keeps track of boundary conditions, pixels, adjacent to the boundary etc. so that you can write a simpler code. All
-we need to do to iterate over 1-st order pixel neighbors is to know what is the maximum number of them
+we need to do to iterate over 1-st order pixel neighbors is to know what is the maximum number of them and this is what
+we do in this line:
+
+.. code-block:: c++
+
+    unsigned int maxNeighborIndex = this->boundaryStrategy->getMaxNeighborIndexFromNeighborOrder(1);
+
+We get maximum index of a 1-st order pixel (``BoundaryStrategy`` keeps them in a vector and we are getting max index of
+this vector). On 2D. cartesian lattice there could be up to 4 such neighbors hence the max vector index is 3 (we start
+counting from 0).
