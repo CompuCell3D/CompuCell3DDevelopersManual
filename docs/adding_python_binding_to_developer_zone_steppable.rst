@@ -245,14 +245,95 @@ Next, we add implementation of this function in the ``GrowthSteppable.cpp``:
     void GrowthSteppable::setGrowthRate(unsigned int cellType, double growthRate){
 
         cerr<<"CHANGING GROWTH RATE FOR CELL TYPE "<<cellType<<" TO "<<growthRate<<endl;
-        std::map<unsigned int, double>::iterator mitr;
         this->growthRateMap[cellType] = growthRate;
     }
 
+The implementation of this function is pretty straightforward - it is a function that takes two arguments
+``(unsigned int cellType`` and ``double growthRate`` and prints out message to the screen that it is about to
+change growth rate for a given cell type and then assigns a growth rate to a given entry in the ``this->growthRateMap``.
 
+Why does this function make sense to be implemented in Python? If you think about a simulation where you want to
+run many simulations that need to modify growth rate at a particular MCS but you don't know which mCS it will be
+you can write a simple code where you could try many time points at this you change growth rate and see if the outcome
+matches your expectations. Obviously, you could do it all in c++ but then you would need to pass more parameters to
+the XML making XML harder and harder to understand or you could hard-code everything in C++ but then you would need to
+recompile DeveloperZone every time you run the simulation. You quickly realize that Python provides convenient platform
+for handling situations like this. This is why , it makes perfect sense to add Python bindings to your C++ modules.
 
+At this point we can recompile the DeveloperZone but before we do it it is essential that we "touch"
+``DeveloperZone/pyinterface/CompuCellExtraModules/CompuCellExtraModules.i`` by e.g. add or remove empty line in this
+file and re-saving it.
 
+.. warning::
+
+    If you add new method to header file and want this method be accessible in Python bindings you must force SWIG to re-generate bindings. One way of doing so is by "refreshing" the file but making adding (or removing) extra empty line and saving it. In the future we will write better CMake code to avoid this manual step but for now you should be aware of this limitation.
+
+After we compiled and installed ``DeveloperZone`` modules we can rerun the simulation. Now, however, we will add Python
+code where we show you how to access new C++ steppable from Python.
+
+Here is python Steppable code (``GrowthSteppablePythonModules``):
+
+.. code-block:: python
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
+
+    class GrowthSteppablePython(SteppableBasePy):
+
+        def __init__(self,frequency=1):
+
+            SteppableBasePy.__init__(self,frequency)
+            self.growth_steppable_cpp = None
+
+        def start(self):
+            self.growth_steppable_cpp = CompuCellExtraModules.getGrowthSteppable()
+
+        def step(self,mcs):
+
+            if mcs == 10:
+                self.growth_steppable_cpp.setGrowthRate(1, -1.2)
+
+At the top of the file we import  ``CompuCellExtraModules``. This is the module that SWIG generated for us
+In ``__init__`` constructor we create a variable that will hold a reference to the C++ ``GrowthSteppable``.
+In start function we access C++ ``GrowthSteppable`` by typing:
+
+.. code-block:: c++
+
+    self.growth_steppable_cpp = CompuCellExtraModules.getGrowthSteppable()
+
+If you look at the end of the ``DeveloperZone/pyinterface/CompuCellExtraModules/CompuCellExtraModules.i`` you will see
+``getGrowthSteppable()`` declared there. In other words ``getGrowthSteppable()`` function will become a function of the
+``CompuCellExtraModules`` and therefore we access it as ``CompuCellExtraModules.getGrowthSteppable()``.
+Now, we can get creative, because we can access every publicly defined function of the C++ ``GrowthSteppable``. This is
+exactly what we do in the ``step`` function. We call our newly added function
+
+.. code-block:: python
+
+    self.growth_steppable_cpp.setGrowthRate(1, -1.2)
+
+This call at MCS=10 changes growth of cells of type `1` into shrinking rate.
+
+When we run the simulation at ``mcs==10`` the text output will look as follows:
+
+|gs_python_output|
+
+You can see there our C++ printout being triggered by calling ``setGrowthRate`` from Python level. And the
+simulation configuration at MCS 0 and 30 respectively will looks as follows:
+
+|gs_python_simulation|
+
+Notice that the blue cells almost disappeared. This is the result of the negative growth rate we we set by calling
+``self.growth_steppable_cpp.setGrowthRate(1, -1.2)`` .
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
    :height: 1.9in
+
+.. |gs_python_output| image:: images/gs_python_output.png
+   :width: 4.9in
+   :height: 2.2in
+
+.. |gs_python_simulation| image:: images/gs_python_simulation.png
+   :width: 4.9in
+   :height: 2.2in
+
