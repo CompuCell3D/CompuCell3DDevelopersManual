@@ -167,12 +167,13 @@ Let's start analyzing code for ``calculateHeterotypicSurface`` function:
                             n_cell_type = (unsigned int)nCell->type;
                         }
 
-
                         if (nCell != cell) {
                             unsigned int pair_index_1 = typePairIndex(cell_type, n_cell_type);
                             unsigned int pair_index_2 = typePairIndex(n_cell_type, cell_type);
                             this->typePairHTSurfaceMap[pair_index_1] += unit_surface;
-                            this->typePairHTSurfaceMap[pair_index_2] += unit_surface;
+                            if (pair_index_1 != pair_index_2) {
+                                this->typePairHTSurfaceMap[pair_index_2] += unit_surface;
+                            }
 
                         }
 
@@ -195,3 +196,47 @@ we do in this line:
 We get maximum index of a 1-st order pixel (``BoundaryStrategy`` keeps them in a vector and we are getting max index of
 this vector). On 2D. cartesian lattice there could be up to 4 such neighbors hence the max vector index is 3 (we start
 counting from 0).
+
+We next clear the map where we store our results because each time we call this function it wil be incrementing
+the values so if we did not clear we would be starting counting from different value that zero.
+
+At line 16 we start triple loop where we iterate over all lattice pixels. This might not be the most efficient method
+but it is the simplest to code.
+
+In lines 19 and 20 we get a cell that resides at a given pixel. If the cell pointer returned is ``NULL`` we are dealing
+with ``Medium`` and cell and this is why in lines 23-25 we check if the cell is different than ``NULL``
+(``if (cell)``) before accessing its type. If it is null that we do not execute line 24 and the cell type is 0 as it
+should be for the Medium.
+
+At line 27 we start iterating over neighbors of the current pixel (``Point3D pt(x, y, z)``). This is where we do
+actual calculations. Code in line 28 fetches one of the neighbor of pixel ``pt(x, y, z)``. In line 30 we check
+if this neighbor is a valid one (e.g. if you are at the edge of the lattice we may get pixel that is outside of the
+lattice and then if ``neighbor.distance`` is zero we know we are dealing with invalid pixel), hence in the line 31 we
+skip the rest of the loop. If,however, the pixel is valid then we get a cell that resides at the neighboring pixel (
+line 34):
+
+.. code-block::
+
+    nCell = this->cellFieldG->get(neighbor.pt);
+
+In lines 35-38 we extract cell type of neighbor cell , again we have to be mindful of ``Medium`` as we did in
+lines 22-25.
+
+Finally, lines 41-45 contain actual code that increments boundary surface between two cell types. This code runs only
+if ``nCell`` and ``cell`` *i.e.* cells belonging to adjacent pixels are different cells. In this case we
+compute index for type of ``nCell`` and type of ``cell`` (
+    ``unsigned int pair_index_1 = typePairIndex(cell_type, n_cell_type);``)
+
+and increment appropriate entry in the ``this->typePairHTSurfaceMap`` - lines 44-45. Notice that we also permute
+cell types in call to ``typePairIndex`` - line 43. so that when we access boundary length between cell type 1 and 2
+it will give us the same value as between cell types 2 and 1.
+
+Obviously there is a lot of doublecounting
+
+
+
+
+
+
+
+
