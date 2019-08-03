@@ -227,11 +227,21 @@ if ``nCell`` and ``cell`` *i.e.* cells belonging to adjacent pixels are differen
 compute index for type of ``nCell`` and type of ``cell`` (
     ``unsigned int pair_index_1 = typePairIndex(cell_type, n_cell_type);``)
 
-and increment appropriate entry in the ``this->typePairHTSurfaceMap`` - lines 44-45. Notice that we also permute
-cell types in call to ``typePairIndex`` - line 43. so that when we access boundary length between cell type 1 and 2
-it will give us the same value as between cell types 2 and 1.
+and increment appropriate entry in the ``this->typePairHTSurfaceMap`` - lines 43. Notice that we also permute
+cell types in call to ``typePairIndex`` - line 44-45. so that when we access boundary length between cell type 1 and 2
+it will give us the same value as between cell types 2 and 1. But we do this only when the two types are different
 
-Obviously there is a lot of doublecounting
+Obviously we are double-counting and we correct this in the function that returns heterotypic surfaces
+
+.. code-block:: c++
+
+    double HeterotypicBoundaryLength::getHeterotypicSurface(unsigned int cellType1, unsigned int cellType2) {
+        unsigned int pair_index = typePairIndex(cellType1, cellType2);
+
+        double heterotypic_surface = this->typePairHTSurfaceMap[pair_index]/2.0;
+
+        return heterotypic_surface;
+    }
 
 
 
