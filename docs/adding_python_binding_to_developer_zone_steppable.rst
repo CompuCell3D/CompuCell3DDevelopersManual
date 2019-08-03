@@ -325,6 +325,10 @@ simulation configuration at MCS 0 and 30 respectively will looks as follows:
 Notice that the blue cells almost disappeared. This is the result of the negative growth rate we we set by calling
 ``self.growth_steppable_cpp.setGrowthRate(1, -1.2)`` .
 
+The C++ code for this example can be found in ``DeveloperZone/GrowthSteppable``, python bindings are in
+``DeveloperZone/pyinterface/CompuCellExtraModules/CompuCellExtraModules.i`` and the simulation example is in
+``CompuCell3D/DeveloperZone/Demos/GrowthSteppablePython``
+
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in
    :height: 1.9in
