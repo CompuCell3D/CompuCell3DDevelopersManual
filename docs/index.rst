@@ -19,7 +19,6 @@ introduction
    heteropytic_boundary_surface_steppable
 
 
-
 Indices and tables
 ==================
 

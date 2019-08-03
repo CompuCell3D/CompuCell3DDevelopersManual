@@ -125,7 +125,7 @@ it returns a boundary between them.
 
 Let's start analyzing code for ``calculateHeterotypicSurface`` function:
 
-.. code-block::
+.. code-block:: c++
 
     void HeterotypicBoundaryLength::calculateHeterotypicSurface() {
 
