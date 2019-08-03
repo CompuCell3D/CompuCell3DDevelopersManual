@@ -181,3 +181,8 @@ Let's start analyzing code for ``calculateHeterotypicSurface`` function:
                 }
 
     }
+
+We will be iterating over lattice pixels. Every lattice pixel has neighbors of different order but 1-st order neighbors
+are simply adjacent pixels. ``BoundaryStrategy`` is an object that facilitates iteration over pixel neighbors and it
+also keeps track of boundary conditions, pixels, adjacent to the boundary etc. so that you can write a simpler code. All
+we need to do to iterate over 1-st order pixel neighbors is to know what is the maximum number of them
