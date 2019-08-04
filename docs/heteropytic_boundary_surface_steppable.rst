@@ -212,7 +212,7 @@ At line 27 we start iterating over neighbors of the current pixel (``Point3D pt(
 actual calculations. Code in line 28 fetches one of the neighbor of pixel ``pt(x, y, z)``. In line 30 we check
 if this neighbor is a valid one (e.g. if you are at the edge of the lattice we may get pixel that is outside of the
 lattice and then if ``neighbor.distance`` is zero we know we are dealing with invalid pixel), hence in the line 31 we
-skip the rest of the loop. If,however, the pixel is valid then we get a cell that resides at the neighboring pixel (
+skip the rest of the loop. If, however, the pixel is valid then we get a cell that resides at the neighboring pixel (
 line 34):
 
 .. code-block::
@@ -231,7 +231,7 @@ and increment appropriate entry in the ``this->typePairHTSurfaceMap`` - lines 43
 cell types in call to ``typePairIndex`` - line 44-45. so that when we access boundary length between cell type 1 and 2
 it will give us the same value as between cell types 2 and 1. But we do this only when the two types are different
 
-Obviously we are double-counting and we correct this in the function that returns heterotypic surfaces
+Obviously, we are double-counting and we correct this in the function that returns heterotypic surfaces:
 
 .. code-block:: c++
 
@@ -243,7 +243,65 @@ Obviously we are double-counting and we correct this in the function that return
         return heterotypic_surface;
     }
 
+Running the Simulation with Heterotypic Surface Calculator
+----------------------------------------------------------
 
+The simulation code is quite easy to write as it follows the same pattern that we encountered in the previous chapter
+where we introduced Python bindings to the C++ steppable. We start with XML
+
+.. code-block:: xml
+    :linenos:
+
+    <CompuCell3D Revision="20190604" Version="4.0.0">
+       <Potts>
+          <!-- Basic properties of CPM (GGH) algorithm -->
+          <Dimensions x="256" y="256" z="1"/>
+          <Steps>100000</Steps>
+          <Temperature>10.0</Temperature>
+          <NeighborOrder>1</NeighborOrder>
+       </Potts>
+
+       <Plugin Name="CellType">
+          <!-- Listing all cell types in the simulation -->
+          <CellType TypeId="0" TypeName="Medium"/>
+          <CellType TypeId="1" TypeName="A"/>
+          <CellType TypeId="2" TypeName="B"/>
+       </Plugin>
+
+       <Plugin Name="Volume">
+          <VolumeEnergyParameters CellType="A" LambdaVolume="2.0" TargetVolume="50"/>
+          <VolumeEnergyParameters CellType="B" LambdaVolume="2.0" TargetVolume="50"/>
+       </Plugin>
+
+       <Plugin Name="CenterOfMass">
+          <!-- Module tracking center of mass of each cell -->
+       </Plugin>
+
+       <Plugin Name="Contact">
+          <!-- Specification of adhesion energies -->
+          <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+          <Energy Type1="Medium" Type2="A">10.0</Energy>
+          <Energy Type1="Medium" Type2="B">10.0</Energy>
+          <Energy Type1="A" Type2="A">10.0</Energy>
+          <Energy Type1="A" Type2="B">10.0</Energy>
+          <Energy Type1="B" Type2="B">10.0</Energy>
+          <NeighborOrder>4</NeighborOrder>
+       </Plugin>
+
+       <Steppable Type="UniformInitializer">
+          <!-- Initial layout of cells in the form of rectangular slab -->
+          <Region>
+             <BoxMin x="51" y="51" z="0"/>
+             <BoxMax x="204" y="204" z="1"/>
+             <Gap>0</Gap>
+             <Width>7</Width>
+             <Types>A,B</Types>
+          </Region>
+       </Steppable>
+
+       <Steppable Type="HeterotypicBoundaryLength"/>
+
+    </CompuCell3D>
 
 
 
