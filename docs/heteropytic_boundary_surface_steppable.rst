@@ -313,7 +313,70 @@ because we are not really passing any parameters to the steppable from the XML a
 
     It is important that every module (steppable, plugin) that you develop in C++ be instantiated in XML. Otherwise it will not be loaded and you will not be able to use it from Python. You can, however, write Python code that will properly load and initialize your module but this approach is way more complex that adding a simple line or lines in the XML.
 
+In our example even if we add ``<Steppable Type="HeterotypicBoundaryLength"/>`` to the XML we will not see any
+calculations being done. Why? Because ``start`` and ``step`` functions are empty:
+
+.. code-block:: c++
+
+    void HeterotypicBoundaryLength::start(){
+    }
+
+    void HeterotypicBoundaryLength::step(const unsigned int currentStep){
+    }
+
+    void HeterotypicBoundaryLength::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
+
+        //PARSE XML IN THIS FUNCTION
+
+        //For more information on XML parser function please see CC3D code or lookup XML utils API
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+        //boundaryStrategy has information aobut pixel neighbors
+        boundaryStrategy=BoundaryStrategy::getInstance();
+
+    }
+
+We left those implementations empty on purpose. We wanted to show you how you can use steppable to implement
+functionality that gets called on-demand from Python code. LEt us no look at hte Python code:
+
+.. code-block:: python
+    :linenos:
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
 
 
+    class HeterotypicBoundarySurfaceSteppable(SteppableBasePy):
+
+        def __init__(self, frequency=1):
+            SteppableBasePy.__init__(self, frequency)
+            self.htbl_steppable_cpp = None
+
+        def start(self):
+            self.htbl_steppable_cpp = CompuCellExtraModules.getHeterotypicBoundaryLength()
+
+        def step(self, mcs):
+            self.htbl_steppable_cpp.calculateHeterotypicSurface()
+
+            print(' HTBL between type 1 and 2 is ',
+                  self.htbl_steppable_cpp.getHeterotypicSurface(1, 2))
+
+            print(' HTBL between type 2 and 1 is ',
+                  self.htbl_steppable_cpp.getHeterotypicSurface(1, 2))
+
+            print(' HTBL between type 1 and 1 is ',
+                  self.htbl_steppable_cpp.getHeterotypicSurface(1, 1))
+
+            print(' HTBL between type 0 and 1 is ',
+                  self.htbl_steppable_cpp.getHeterotypicSurface(0, 1))
+
+            print('THIS ENTRY DOES NOT EXIST. HTBL between type 3 and 20 is ',
+                  self.htbl_steppable_cpp.getHeterotypicSurface(3, 20))
+
+At the top we import ``CompuCellExtraModules`` that SWIG generates. This Python contains contains Python-wrapper
+for our ``HeterotypicBoundaryLength`` c++ steppable. We
 
 
