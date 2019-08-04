@@ -247,10 +247,11 @@ Running the Simulation with Heterotypic Surface Calculator
 ----------------------------------------------------------
 
 The simulation code is quite easy to write as it follows the same pattern that we encountered in the previous chapter
-where we introduced Python bindings to the C++ steppable. We start with XML
+where we introduced Python bindings to the C++ steppable. We start with an XML file:
 
 .. code-block:: xml
     :linenos:
+    :emphasize-lines: 48
 
     <CompuCell3D Revision="20190604" Version="4.0.0">
        <Potts>
@@ -303,6 +304,14 @@ where we introduced Python bindings to the C++ steppable. We start with XML
 
     </CompuCell3D>
 
+It is Twedit-generated XML file that has basic energy terms (Volume and Contact Constraints) plus initializer and
+at the end in line 48 we add our new ``HeterotypicBoundaryLength`` steppable. Notice that this is a one-line call
+because we are not really passing any parameters to the steppable from the XML and our
+``update(CC3DXMLElement *_xmlData, bool _fullInitFlag=false)`` method does not contain any code that parses XML.
+
+.. note::
+
+    It is important that every module (steppable, plugin) that you develop in C++ be instantiated in XML. Otherwise it will not be loaded and you will not be able to use it from Python. You can, however, write Python code that will properly load and initialize your module but this approach is way more complex that adding a simple line or lines in the XML.
 
 
 
