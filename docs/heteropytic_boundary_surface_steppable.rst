@@ -398,6 +398,8 @@ if we try to use a key that does not exist in the map the C++ will add this key 
 value-pair to the whatever default constructor of the value type is. In our case our map container has the following
 type : ``std::map<unsigned int, double> typePairHTSurfaceMap`` so that key is of  ``unsigned int`` type and
 value is of ``double`` type. Any modern C++ compiler will put ``0.0`` as a default value for objects of type ``double``.
+If you are familiar with Python ``defaultdict`` class that is a member of standard ``collections`` package than you can
+see similarities. C++ ``std::map`` behaves in similar way to the ``defaultdict``
 Therefore when we access ``typePairHTSurfaceMap`` using key that does not exist C++ will insert this key into
 ``typePairHTSurfaceMap`` and set value to ``0.0``. This is also a reason why the following code works at all:
 
@@ -413,13 +415,11 @@ Therefore from geometry constraints it follows that in 2D on hex lattice unit su
 ``8.0 / 12.0*sqrt(2.0)*pow(9.0 / (16.0*sqrt(3.0)), 1.0 / 3.0)*pow(9.0 / (16.0*sqrt(3.0)), 1.0 / 3.0)`` which is approx
 equal to ``0.445``
 
-
 For more information please see http://www.compucell3d.org/BinDoc/cc3d_binaries/Manuals/HexagonalLattice.pdf as well as
 in the code of the BoundaryStrategy class method
 ``LatticeMultiplicativeFactors BoundaryStrategy::generateLatticeMultiplicativeFactors(LatticeType _latticeType, Dim3D dim)`` in ``CompuCell3D/core/CompuCell3D/Boundary/BoundaryStrategy.cpp``
 
 For completeness we also show SWIG file that was used to generate the wrapper :
-
 
 .. code-block:: c++
 
