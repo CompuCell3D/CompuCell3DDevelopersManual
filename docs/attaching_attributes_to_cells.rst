@@ -110,7 +110,7 @@ example you would like to keep last 50 center of mass positions of each cell to 
 How would you do this? A simple approach would be to attach *e.g.* ``std::queue`` to the ``CellG`` class. This is a
 valid approach but it has one major disadvantage. It will require you to recompile almost entire C++ code because
 ``CellG`` class is a core class that is used by virtually every single CompuCell3D module. Also, if you would like to
-share the code with your colleague he woudl also need to recompile his or her copy of CC3D. Hence while this simple
+share the code with your colleague he would also need to recompile his or her copy of CC3D. Hence while this simple
 approach would certainly work it it is not the most convenient way of adding attributes.
 What about Python then? Yes, adding new attribute in Python is very simple:
 
@@ -120,14 +120,196 @@ What about Python then? Yes, adding new attribute in Python is very simple:
     cell.dict['cell_y_positions'] = [0.0]*50
     cell.dict['cell_z_positions'] = [0.0]*50
 
-Here, I added 3 attributes each one representing last 50 positions x, y, or z coordinates of center of mass. I initialized
-them to be 0.0 hence the code ``[0.0]*50``. In Python when you multiply list by an integer it will return a list that
-is contains multiple copies of the list you originally multiplied (in our case we will get a list with 50 zeros).
+Here, we added 3 attributes each one representing last 50 positions x, y, or z coordinates of center of mass. We
+initialized them to be 0.0 hence the code ``[0.0]*50``. In Python when you multiply list by an integer it will return
+a list that is contains multiple copies of the list you originally multiplied (in our case we will get a list
+with 50 zeros).
 
-Python approach would certainly work, but what if for efficiency reasons you want to stay in C++ world. There is a
-solution for this that scales nicely i.e. it does not require recomopilation of entire code and it allows to attach
-any C++ class as a cell attribute. This is what we will teachi you next.
+Python approach would certainly work, but what if, for efficiency reasons, you want to stay in C++ world. There is a
+solution for this that scales nicely i.e. it does not require recompilation of entire code and it allows to attach
+any C++ class as a cell attribute. This is what we will teaching you next.
 
 Constructing Steppable with Custom Class Attached to Each Cell
 --------------------------------------------------------------
 
+We begin the usual way - open Twedit++, fo to ``CC3D C++`` menu and choose ``Generate New Module...``` from the
+menu. There, as before we fill out steppable (we call it ``CustomCellAttributeSteppable``) details -
+making sure to check ``Developer Zone`` radio button, but in addition to this we also check ``Attach Cell Attribute``
+check box. This ensures that the code that Twedit++ generates contains code that will inform CC3D cell factory
+object to attach additional cell attribute.
+
+|custom_attrs_01|
+
+We press ``OK`` button and the steppables code with additional attribute
+will get generated and the code will open in Twedit++ tabs:
+
+|custom_attrs_02|
+
+The class shown in the editor window will be used during cell construction to create object of this class
+and attach it to each cell. In other words, once the steppable we have just created gets loaded it will tell CC3D
+to attach to each cell an object of class ``CustomCellAttributeSteppableData``
+
+.. code-block:: c++
+
+    #ifndef CUSTOMCELLATTRIBUTESTEPPABLEPATA_H
+    #define CUSTOMCELLATTRIBUTESTEPPABLEPATA_H
+
+    #include <vector>
+    #include "CustomCellAttributeSteppableDLLSpecifier.h"
+
+    namespace CompuCell3D {
+
+       class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppableData{
+
+          public:
+
+             CustomCellAttributeSteppableData(){};
+             ~CustomCellAttributeSteppableData(){};
+
+             std::vector<float> array;
+
+             int x;
+
+       };
+
+    };
+
+    #endif
+
+If we look into ``CustomCellAttributeSteppable`` ``init`` function (this function is called during steppable
+initialization) we can see a line ``potts->getCellFactoryGroupPtr()->registerClass(&customCellAttributeSteppableDataAccessor);``
+This line is responsible for telling cell factory object that each new cell should have an object of type
+``CustomCellAttributeSteppableData`` attached.
+
+.. code-block:: c++
+
+    void CustomCellAttributeSteppable::init(Simulator *simulator, CC3DXMLElement *_xmlData) {
+
+      xmlData=_xmlData;
+
+      potts = simulator->getPotts();
+
+      cellInventoryPtr=& potts->getCellInventory();
+
+      sim=simulator;
+
+      cellFieldG = (WatchableField3D<CellG *> *)potts->getCellFieldG();
+
+      fieldDim=cellFieldG->getDim();
+
+      potts->getCellFactoryGroupPtr()->registerClass(&customCellAttributeSteppableDataAccessor);
+
+      simulator->registerSteerableObject(this);
+
+      update(_xmlData,true);
+
+    }
+
+How do we know that ``CustomCellAttributeSteppableData`` is the class whose objects will get attached to
+each cell? We look into steppable header file and see the following line:
+``BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+
+This line creates special accessor object that given a pointer to a cell it will fetch attached object of
+type ``CustomCellAttributeSteppableData``. The exact details of how this is done are beyond the scope of this
+manual but if you follow the pattern you will be able to attach arbitrary C++ objects to cc3d cells.
+The pattern is as follows:
+
+1. Add BasicAccessor member to your module - steppable or a plugin - ``BasicClassAccessor<ClassYouWantToAttach>``.
+In our case we add ``BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+
+2. Add a function that accessess a pointer to this BasicAccessor member - in our case we add (see code below)
+``BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}``
+
+3. Register BasicAccessor object with cell factory (we do it in the ``init`` function) of the steppable or plugin -
+see full ``init`` function above:
+
+``potts->getCellFactoryGroupPtr()->registerClass(&customCellAttributeSteppableDataAccessor);``
+
+
+.. code-block:: c++
+
+    #ifndef CUSTOMCELLATTRIBUTESTEPPABLESTEPPABLE_H
+    #define CUSTOMCELLATTRIBUTESTEPPABLESTEPPABLE_H
+    #include <CompuCell3D/CC3D.h>
+    #include "CustomCellAttributeSteppableData.h"
+    #include "CustomCellAttributeSteppableDLLSpecifier.h"
+
+    namespace CompuCell3D {
+
+      template <class T> class Field3D;
+      template <class T> class WatchableField3D;
+
+        class Potts3D;
+        class Automaton;
+        class BoundaryStrategy;
+        class CellInventory;
+        class CellG;
+
+      class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppable : public Steppable {
+
+        BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
+
+        WatchableField3D<CellG *> *cellFieldG;
+
+        Simulator * sim;
+
+        Potts3D *potts;
+
+        CC3DXMLElement *xmlData;
+
+        Automaton *automaton;
+
+        BoundaryStrategy *boundaryStrategy;
+
+        CellInventory * cellInventoryPtr;
+
+        Dim3D fieldDim;
+
+      public:
+
+        CustomCellAttributeSteppable ();
+
+        virtual ~CustomCellAttributeSteppable ();
+
+        // SimObject interface
+
+        virtual void init(Simulator *simulator, CC3DXMLElement *_xmlData=0);
+
+        virtual void extraInit(Simulator *simulator);
+
+        BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
+
+        //steppable interface
+
+        virtual void start();
+
+        virtual void step(const unsigned int currentStep);
+
+        virtual void finish() {}
+
+
+        //SteerableObject interface
+
+        virtual void update(CC3DXMLElement *_xmlData, bool _fullInitFlag=false);
+
+        virtual std::string steerableName();
+
+        virtual std::string toString();
+
+
+      };
+
+    };
+
+    #endif
+
+
+
+.. |custom_attrs_01| image:: images/custom_attrs_01.png
+   :width: 2.4in
+   :height: 1.9in
+
+
+.. |custom_attrs_02| image:: images/custom_attrs_02.png
+   :width: 4.9in
+   :height: 2.6in
