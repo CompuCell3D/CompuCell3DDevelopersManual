@@ -310,7 +310,27 @@ example and then we will modify ``step`` function to store a product of cell ``i
 will also store x-coordinates of 5 last center of mass positions of each cell.
 
 Here is implementation of the ``update`` function where we remove XML parsing code since we are not doing
-any XML parsing in this particular case
+any XML parsing in this particular case:
+
+.. code-block:: c++
+
+    void CustomCellAttributeSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag) {
+
+
+
+        //PARSE XML IN THIS FUNCTION
+
+        //For more information on XML parser function please see CC3D code or lookup XML utils API
+
+        automaton = potts->getAutomaton();
+
+        ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
+
+
+            //boundaryStrategy has information aobut pixel neighbors
+            boundaryStrategy = BoundaryStrategy::getInstance();
+
+    }
 
 The implementation of step function is a bit more involved but not by much:
 
@@ -349,7 +369,6 @@ The implementation of step function is a bit more involved but not by much:
                 vec[vec.size() - 1] = cell->xCOM;
             }
 
-
         }
 
         //printouts
@@ -367,8 +386,41 @@ The implementation of step function is a bit more involved but not by much:
 
     }
 
+Lines ``7-11`` should be familiar. We iterate over all cells in the simulation and fetch a cell pointer from
+inventory and store it in local variable ``cell``.
 
+In line ``13`` we make use of out accessor object. Here we are actually fetching object of type
+``CustomCellAttributeSteppableData`` that is attached to each cell. Note that
+``customCellAttributeSteppableDataAccessor.get`` function takes as an input special pointer that is a member of
+every cell object ``cell->extraAttribPtr`` and returns a poiner to the object that accessor is associated with
+in our case it returns a pointer to ``CustomCellAttributeSteppableData``.
 
+In line ``16`` we assign ``x`` variable of the object of class ``CustomCellAttributeSteppableData`` to be a product
+of current cell ``id`` and current MCS.
+
+In lines ``21-33`` we append current ``xCOM`` position of current cell to the vector ``array``. We only keep
+last 5 positions and therefore in the ``else`` portion lines ``25-31`` we last 4 positions of the vector to the
+"front" of the vector and write xCOM in the last position of the vector - line ``30``. Note that the ``else`` part
+gets executed only if we determine that vector has already 5 elements. As you can see our attached attribute can store
+variable number of elements - because we append to vector. In general we can have vectors, lists, maps, queues
+of arbitrary objects. In fact instead of using ``std::vector`` it woudl be better to use queue because queue container
+makes it much easier to remove and add elements  to and from the beginning and end of the container.
+
+.. warning::
+
+    One thing to remember that computer has a finite memory and it you keep appending you may actually exhaust all operating system memory.
+
+.. note::
+
+    Unlike in Python where we can store arbitrary objects in the list or dictionary, in C++ we need to declare which types we want to store. It makes C++ less flexible but you recoup this minor inflexibility in much faster speed of code execution
+
+The full code for this example can be found in ``CompuCell3D/DeveloperZone/Demos/CustomCellAttributesCpp`` directory
+
+Using Python scripting to modify custom C++ attributes
+------------------------------------------------------
+
+Sometimes you may end up in situation where in addition to modifying custom attributes in C++ you may want to modify
+them also in Python. In this part of the tutorial we will show you how to do it
 
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
