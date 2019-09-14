@@ -303,6 +303,72 @@ see full ``init`` function above:
 
     #endif
 
+Now that we know basic rules of adding custom attributes to cells. Let's write a little bit of code that makes use
+use of this functionality. First we will cleanup function that parses XML (we do not need any XML parsing in our)
+example and then we will modify ``step`` function to store a product of cell ``id`` and current MCS in the variable
+``x`` ``CustomCellAttributeSteppableData`` object (remember objects of this class will be attached to cell). We
+will also store x-coordinates of 5 last center of mass positions of each cell.
+
+Here is implementation of the ``update`` function where we remove XML parsing code since we are not doing
+any XML parsing in this particular case
+
+The implementation of step function is a bit more involved but not by much:
+
+.. code-block:: c++
+    :linenos:
+
+    void CustomCellAttributeSteppable::step(const unsigned int currentStep) {
+
+        CellInventory::cellInventoryIterator cInvItr;
+
+        CellG * cell = 0;
+
+        for (cInvItr = cellInventoryPtr->cellInventoryBegin(); cInvItr != cellInventoryPtr->cellInventoryEnd(); ++cInvItr)
+
+        {
+
+            cell = cellInventoryPtr->getCell(cInvItr);
+
+            CustomCellAttributeSteppableData * customCellAttrData = customCellAttributeSteppableDataAccessor.get(cell->extraAttribPtr);
+
+            //storing cell id multiplied by currentStep in "x" member of the CustomCellAttributeSteppableData
+            customCellAttrData->x = cell->id * currentStep;
+
+
+
+            // storing last 5 xCOM positions in the "array" vector (part of  CustomCellAttributeSteppableData)
+            std::vector<float> & vec = customCellAttrData->array;
+            if (vec.size() < 5) {
+                vec.push_back(cell->xCOM);
+            }
+            else
+            {
+                for (int i = 0; i < 4; ++i) {
+                    vec[i] = vec[i + 1];
+                }
+                vec[vec.size() - 1] = cell->xCOM;
+            }
+
+
+        }
+
+        //printouts
+        for (cInvItr = cellInventoryPtr->cellInventoryBegin(); cInvItr != cellInventoryPtr->cellInventoryEnd(); ++cInvItr) {
+            cell = cellInventoryPtr->getCell(cInvItr);
+            CustomCellAttributeSteppableData * customCellAttrData = customCellAttributeSteppableDataAccessor.get(cell->extraAttribPtr);
+
+            cerr << "cell->id=" << cell->id << " mcs = " << currentStep << " attached x variable = " << customCellAttrData->x << endl;
+
+            cerr << "----------- up to last 5 xCOM positions ----- for cell->id " << cell->id << endl;
+            for (int i = 0; i < customCellAttrData->array.size(); ++i) {
+                cerr << "x_com_pos[" << i << "]=" << customCellAttrData->array[i] << endl;
+            }
+        }
+
+    }
+
+
+
 
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
