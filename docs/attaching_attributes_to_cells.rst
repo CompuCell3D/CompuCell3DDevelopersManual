@@ -441,6 +441,86 @@ C++ module we would need to perform a fairly complex fetching of the ``CustomCel
 3. Declare a a public function that takes a pointer to a cell object and returns attached ``CustomCellAttributeSteppableData``
 object. This solution seems like the cleanest of all three options
 
+Let's modify a code and add the function that returns pointer to ``CustomCellAttributeSteppableData`` object. We first
+modify header file for the steppable class:
+
+.. code-block:: c++
+
+  class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppable : public Steppable {
+
+    BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
+
+    WatchableField3D<CellG *> *cellFieldG;
+
+    Simulator * sim;
+
+    // ... we skipped par t fo the code here for brevity
+  public:
+
+    CustomCellAttributeSteppable ();
+
+    virtual ~CustomCellAttributeSteppable ();
+
+    // SimObject interface
+
+    virtual void init(Simulator *simulator, CC3DXMLElement *_xmlData=0);
+
+    virtual void extraInit(Simulator *simulator);
+
+    BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
+
+    CustomCellAttributeSteppableData * getCustomCellAttribute(CellG * cell);
+
+    // ... we skipped par t fo the code here for brevity
+
+    };
+
+
+
+Now, we add implementation of the ``getCustomCellAttribute`` function to implementation file
+
+.. code-block:: c++
+
+    CustomCellAttributeSteppableData * CustomCellAttributeSteppable::getCustomCellAttribute(CellG * cell) {
+
+        CustomCellAttributeSteppableData * customCellAttrData = customCellAttributeSteppableDataAccessor.get(cell->extraAttribPtr);
+        return customCellAttrData;
+    }
+
+.. note::
+
+    Each time you modify header file for a C++ class that you are wrapping in Python . Make sure you also "refresh" SWIG ``.i`` file. It can be as simple as adding extra empty line to ``CompuCell3D\DeveloperZone\pyinterface\CompuCellExtraModules\CompuCellExtraModules.i``
+
+At this point we should be able access ``CustomCellAttributeSteppableData`` objects from "the outside" of the steppable
+class. Let us now add Python steppable where we can access ``CustomCellAttributeSteppable`` and
+``CustomCellAttributeSteppableData``:
+
+.. code-block:: python
+    :linenos:
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
+
+
+    class CustomCellAttributePythonSteppable(SteppableBasePy):
+
+        def __init__(self, frequency=1):
+            SteppableBasePy.__init__(self, frequency)
+            self.custom_attr_steppable_cpp = None
+
+        def start(self):
+            self.custom_attr_steppable_cpp = CompuCellExtraModules.getCustomCellAttributeSteppable()
+
+        def step(self, mcs):
+
+            print ('mcs=', mcs)
+
+            for cell in self.cell_list:
+                custom_cell_attr_data = self.custom_attr_steppable_cpp.getCustomCellAttribute(cell)
+                print('custom_cell_attr_data=', custom_cell_attr_data)
+                print('custom_cell_attr_data.x=', custom_cell_attr_data.x)
+                break
+
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
    :width: 2.4in
