@@ -541,9 +541,66 @@ by Twedit++:
        }
 
 Coming back to out Python code we see that inside for loop we print to the screen the
-``CustomCellAttributeSteppableData`` object (line ``20``) and also print ``x`` member of this object. Later we
-modify and print to the sceen the ``x`` variable of the object and we only do it for the first cell we encounter
+``CustomCellAttributeSteppableData`` object (line ``20``) and also print `x` member of this object. Later we
+modify and print to the sceen the `x` variable of the object and we only do it for the first cell we encounter
 during iteration over all cells to make output more concise (see ``break`` statement at the end of the loop)
+
+The output looks encouraging:
+
+|custom_attrs_03|
+
+We can see - look at the lines:
+
+.. code-block:: bash
+
+    custom_cell_attr_data.x= 3
+    after modification custom_cell_attr_data.x= 9
+
+that we can access and modify `x` variable of the ``CustomCellAttributeSteppableData`` object that is
+attached to each cell.
+
+What about the ``array`` member of ``CustomCellAttributeSteppableData``. Remember, in C++ it is of type
+``std::vector<float>``. Can we access it? Can we modify it? Let's us try:
+
+.. code-block:: python
+    :linenos:
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
+
+
+    class CustomCellAttributePythonSteppable(SteppableBasePy):
+
+        def __init__(self, frequency=1):
+            SteppableBasePy.__init__(self, frequency)
+            self.custom_attr_steppable_cpp = None
+
+        def start(self):
+            self.custom_attr_steppable_cpp = CompuCellExtraModules.getCustomCellAttributeSteppable()
+
+        def step(self, mcs):
+            print('mcs=', mcs)
+
+            for cell in self.cell_list:
+                custom_cell_attr_data = self.custom_attr_steppable_cpp.getCustomCellAttribute(cell)
+                print('custom_cell_attr_data=', custom_cell_attr_data)
+                print('custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                custom_cell_attr_data.x = cell.id * mcs ** 2
+
+                print('after modification custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                print('custom_cell_attr_data.array=', custom_cell_attr_data.array)
+                print('custom_cell_attr_data.array[0]=', custom_cell_attr_data.array[0])
+
+                if len(custom_cell_attr_data.array) < 5:
+                    custom_cell_attr_data.array.push_back(100.0)
+                print('custom_cell_attr_data.array[len(custom_cell_attr_data.array)-1] = ',
+                    custom_cell_attr_data.array[len(custom_cell_attr_data.array)-1])
+
+                break
+
+
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
    :width: 2.4in
@@ -553,3 +610,7 @@ during iteration over all cells to make output more concise (see ``break`` state
 .. |custom_attrs_02| image:: images/custom_attrs_02.png
    :width: 4.9in
    :height: 2.6in
+
+.. |custom_attrs_03| image:: images/custom_attrs_03.png
+   :width: 6.8in
+   :height: 1.7in
