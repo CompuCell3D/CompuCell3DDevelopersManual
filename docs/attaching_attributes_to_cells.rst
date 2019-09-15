@@ -600,7 +600,12 @@ What about the ``array`` member of ``CustomCellAttributeSteppableData``. Remembe
 
                 break
 
-The output is:
+In lines ``26-27`` we print the type of ``custom_cell_attr_data.array`` as well as the first element.
+Later, in lines ``29-32`` we are appending elements to the vector using ``push_back`` C++ function (because ``array`` is a C++ object wrapped in Python). NOtice that we are doing double append for first cell. First append
+(``push_back``) happens in C++ and in Python we are doing a second one. This , somewhat artificial example shows
+how to access and modify custom attributes from C++ and from Python in a single simulation.
+
+Here is the output:
 
 |custom_attrs_04|
 
