@@ -600,6 +600,9 @@ What about the ``array`` member of ``CustomCellAttributeSteppableData``. Remembe
 
                 break
 
+The output is:
+
+|custom_attrs_04|
 
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
@@ -614,3 +617,7 @@ What about the ``array`` member of ``CustomCellAttributeSteppableData``. Remembe
 .. |custom_attrs_03| image:: images/custom_attrs_03.png
    :width: 6.8in
    :height: 1.7in
+
+.. |custom_attrs_04| image:: images/custom_attrs_04.png
+   :width: 7.0in
+   :height: 1.6in
