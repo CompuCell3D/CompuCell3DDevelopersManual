@@ -725,7 +725,7 @@ After this fix when we try to run the earlier Python code we would get the follo
 |custom_attrs_05|
 
 As we can see the size of the map comes up as zero because we did not put any elements in it. Let's add a
-code that puts something int he map:
+code that puts something in the map:
 
 .. code-block:: python
     :linenos:
@@ -776,8 +776,20 @@ code that puts something int he map:
                 break
 
 
+In line ``37`` we create a C++ vector of integers using `` CompuCellExtraModules.vector_int()`` call.
+Remember, ``vector_int`` is precisely template identifier we added in SWIG ``CompuCellExtraModules.i`` file.
+Now we are simply invoking constructor for this type. In the next two lines ``38-39`` we push back two integers
+to the newly created vector and finally in line ``40`` we store this vector in the map that is part fo the object
+that is attached to a cell. To check if we can retrieve the stored vector we use code from line ``42``. The output
+is as follows:
 
+|custom_attrs_06|
 
+Summary
+-------
+
+In this section we learned how to attache C++ attribute to each cell, how to modify it from C++ and how to
+interact with complex types that are part of the attached attribute at the Python level.
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
    :width: 2.4in
@@ -797,5 +809,9 @@ code that puts something int he map:
    :height: 1.6in
 
 .. |custom_attrs_05| image:: images/custom_attrs_05.png
+   :width: 6.8in
+   :height: 1.0in
+
+.. |custom_attrs_06| image:: images/custom_attrs_06.png
    :width: 6.8in
    :height: 1.0in
