@@ -420,7 +420,26 @@ Using Python scripting to modify custom C++ attributes
 ------------------------------------------------------
 
 Sometimes you may end up in situation where in addition to modifying custom attributes in C++ you may want to modify
-them also in Python. In this part of the tutorial we will show you how to do it
+them also in Python. In this part of the tutorial we will show you how to do it. If all we want to do is to access ``x``
+variable from ``CustomCellAttributeSteppableData`` we should be "pre-wired". Well, almost. You see that when we
+access objects of ``CustomCellAttributeSteppableData`` class from within C++ steppable where we declared the accessor
+object we simply type:
+
+.. code-block:: c++
+
+    CustomCellAttributeSteppableData * customCellAttrData = customCellAttributeSteppableDataAccessor.get(cell->extraAttribPtr)
+
+However, note that ``customCellAttributeSteppableDataAccessor`` is declared in the "private" section of
+``CustomCellAttributeSteppable``. Therefore,  it is not "visible" from outsides of C++ ``CustomCellAttributeSteppable``
+class. At this point we have three potential solutions:
+
+1. Make the accessor public - not ideal , this is a low-level object that should remain hidden
+
+2. Make a a public function that returns a pointer to accessor - again, not ideal because then in Python or in other
+C++ module we would need to perform a fairly complex fetching of the ``CustomCellAttributeSteppableData``
+
+3. Declare a a public function that takes a pointer to a cell object and returns attached ``CustomCellAttributeSteppableData``
+object. This solution seems like the cleanest of all three options
 
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
