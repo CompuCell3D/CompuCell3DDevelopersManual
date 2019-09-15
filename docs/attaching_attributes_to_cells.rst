@@ -609,6 +609,175 @@ Here is the output:
 
 |custom_attrs_04|
 
+Adding a complex type to attached attribute and accessing it from Python
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+So far things worked as a charm. We were able to access simple type variables (`x`), STL vectors ``array``. So,
+perhaps we can try adding something more complex to the ``CustomCellAttributeSteppableData``, for example
+let us add ``std::map<long int, std::vector<int> >`` which is C++ dictionary (map) that uses long integers as
+keys and stores vectors of type integer:
+
+.. code-block:: c++
+
+    #ifndef CUSTOMCELLATTRIBUTESTEPPABLEPATA_H
+    #define CUSTOMCELLATTRIBUTESTEPPABLEPATA_H
+
+    #include <vector>
+    #include "CustomCellAttributeSteppableDLLSpecifier.h"
+
+    namespace CompuCell3D {
+
+       class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppableData{
+
+          public:
+
+             CustomCellAttributeSteppableData(){};
+             ~CustomCellAttributeSteppableData(){};
+
+             std::vector<float> array;
+             std::map<long int, std::vector<int> > simple_map;
+
+             int x;
+
+       };
+
+    };
+
+    #endif
+
+After we recompile (remember to refresh ``CompuCellExtraModules.i``) and try running the following Python code:
+
+.. code-block:: python
+    :linenos:
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
+
+
+    class CustomCellAttributePythonSteppable(SteppableBasePy):
+
+        def __init__(self, frequency=1):
+            SteppableBasePy.__init__(self, frequency)
+            self.custom_attr_steppable_cpp = None
+
+        def start(self):
+            self.custom_attr_steppable_cpp = CompuCellExtraModules.getCustomCellAttributeSteppable()
+
+        def step(self, mcs):
+            print('mcs=', mcs)
+
+            for cell in self.cell_list:
+                custom_cell_attr_data = self.custom_attr_steppable_cpp.getCustomCellAttribute(cell)
+                print('custom_cell_attr_data=', custom_cell_attr_data)
+                print('custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                custom_cell_attr_data.x = cell.id * mcs ** 2
+
+                print('after modification custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                print('custom_cell_attr_data.array=', custom_cell_attr_data.array)
+                print('custom_cell_attr_data.array[0]=', custom_cell_attr_data.array[0])
+
+                if len(custom_cell_attr_data.array) < 5:
+                    custom_cell_attr_data.array.push_back(100.0)
+                print('custom_cell_attr_data.array[len(custom_cell_attr_data.array)-1] = ',
+                    custom_cell_attr_data.array[len(custom_cell_attr_data.array)-1])
+
+                simple_map = custom_cell_attr_data.simple_map
+
+                print('simple_map.size()=', simple_map.size())
+
+we will get an error when we try to get number of elements stored in the map (should be 0):
+
+.. code-block:: bash
+
+    Traceback (most recent call last):
+      File "D:\CC3D_PY3_GIT\cc3d\CompuCellSetup\sim_runner.py", line 77, in run_cc3d_project
+        exec(code, globals(), locals())
+      File "D:\CC3D_PY3_GIT\CompuCell3D\DeveloperZone\Demos\CustomCellAttributesPython\Simulation\CustomCellAttributesPython.py", line 6, in <module>
+        CompuCellSetup.run()
+      File "D:\CC3D_PY3_GIT\cc3d\CompuCellSetup\simulation_setup.py", line 117, in run
+        main_loop_fcn(simulator, simthread=simthread, steppable_registry=steppable_registry)
+      File "D:\CC3D_PY3_GIT\cc3d\CompuCellSetup\simulation_setup.py", line 583, in main_loop_player
+        steppable_registry.step(cur_step)
+      File "D:\CC3D_PY3_GIT\cc3d\core\SteppableRegistry.py", line 169, in step
+        steppable.step(_mcs)
+      File "D:\CC3D_PY3_GIT\CompuCell3D\DeveloperZone\Demos\CustomCellAttributesPython\Simulation\CustomCellAttributesPythonModules.py", line 36, in step
+        print('simple_map.size()=', simple_map.size())
+    AttributeError: 'SwigPyObject' object has no attribute 'size'
+
+Why the error? Simply put we did not tell SWIG about the complex types we are using for member ``simple_map``.
+You may ask how come before when we had ``std::vector<int> array;`` things worked. They worked because elsewhere
+in the CompuCell3D main python wrapper we told SWIG about template ``std::vector<int>``. However now that we are
+dealing with ``std::map<long int, std::vector<int> > simple_map;`` we need to tell SWIG how to make those object
+available. It is actually quite easy to do. We add the following lines to ``CompuCellExtraModules.i``:
+
+.. code-block::
+
+    %template (vector_int) std::vector<int>;
+    %template (map_long_vector_int)std::map<long int, std::vector<int> >;
+
+For each template we are using in the our extra attribute we give it a name (e.g. ``vector_int``) and list its
+type - ``%template (vector_int) std::vector<int>;``
+
+After this fix when we try to run the earlier Python code we would get the following output:
+
+|custom_attrs_05|
+
+As we can see the size of the map comes up as zero because we did not put any elements in it. Let's add a
+code that puts something int he map:
+
+.. code-block:: python
+    :linenos:
+
+    from cc3d.core.PySteppables import *
+    from cc3d.cpp import CompuCellExtraModules
+
+
+    class CustomCellAttributePythonSteppable(SteppableBasePy):
+
+        def __init__(self, frequency=1):
+            SteppableBasePy.__init__(self, frequency)
+            self.custom_attr_steppable_cpp = None
+
+        def start(self):
+            self.custom_attr_steppable_cpp = CompuCellExtraModules.getCustomCellAttributeSteppable()
+
+        def step(self, mcs):
+            print('mcs=', mcs)
+
+            for cell in self.cell_list:
+                custom_cell_attr_data = self.custom_attr_steppable_cpp.getCustomCellAttribute(cell)
+                print('custom_cell_attr_data=', custom_cell_attr_data)
+                print('custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                custom_cell_attr_data.x = cell.id * mcs ** 2
+
+                print('after modification custom_cell_attr_data.x=', custom_cell_attr_data.x)
+
+                print('custom_cell_attr_data.array=', custom_cell_attr_data.array)
+                print('custom_cell_attr_data.array[0]=', custom_cell_attr_data.array[0])
+
+                if len(custom_cell_attr_data.array) < 5:
+                    custom_cell_attr_data.array.push_back(100.0)
+                print('custom_cell_attr_data.array[len(custom_cell_attr_data.array)-1] = ',
+                      custom_cell_attr_data.array[len(custom_cell_attr_data.array) - 1])
+
+                simple_map = custom_cell_attr_data.simple_map
+
+                print('simple_map.size()=', simple_map.size())
+                vec = CompuCellExtraModules.vector_int()
+                vec.push_back(20)
+                vec.push_back(30)
+                simple_map[cell.id] = vec
+
+                print('simple_map[cell.id]=', simple_map[cell.id])
+
+                break
+
+
+
+
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
    :width: 2.4in
@@ -626,3 +795,7 @@ Here is the output:
 .. |custom_attrs_04| image:: images/custom_attrs_04.png
    :width: 7.0in
    :height: 1.6in
+
+.. |custom_attrs_05| image:: images/custom_attrs_05.png
+   :width: 6.8in
+   :height: 1.0in
