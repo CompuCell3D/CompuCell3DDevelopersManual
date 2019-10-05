@@ -21,4 +21,8 @@ are fairly simple but the solution itself while not super elegant, it works. The
 We will walk you through all those steps in detail and show you how to compile DeveloperZone C++ extensions on OSX
 
 The good thing is that you do not need to recompile entire CC3D but rather use our binaries. This significantly
-reduces effort required to develop custom C++ modules on OSX.
+reduces effort required to develop custom C++ modules on OSX. Let's get started:
+
+Setting up the compiler
+~~~~~~~~~~~~~~~~~~~~~~
+
