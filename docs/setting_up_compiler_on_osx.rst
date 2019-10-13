@@ -23,17 +23,36 @@ We will walk you through all those steps in detail and show you how to compile D
 The good thing is that you do not need to recompile entire CC3D but rather use our binaries. This significantly
 reduces effort required to develop custom C++ modules on OSX. Let's get started:
 
+Cloning CC3D Source code repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To be able to build additional C++ modules for CC3D you need CC3D source code be on your machine. To do so, first create
+a directory for the repository (we assume you are in your ``/Users/<your user name>`` folder):
+
+.. code-block:: console
+
+    mkdir CC3D_DEVELOP
+
+    cd CC3D_DEVELOP
+
+    git clone https://github.com/CompuCell3D/CompuCell3D.git .
+
+|dev_zone_osx_002|
+
 Setting up the compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
-First thing you would like to do is to verify if ``/usr/local/Cellar`` and ``/usr/local/opt`` exist on your computer.
+To set up compiler that is capable of compiling CC3D code you need to verify if ``/usr/local/Cellar`` and ``/usr/local/opt`` exist on your computer.
 If they do you need to copy them to ``/usr/local/Cellar_orig`` and ``/usr/local/opt_orig`` respectively. To do so
 do the following:
 
 .. code-block:: console
 
-    sudo cp -R /usr/local/Cellar /usr/local/Cellar_orig
-    sudo cp -R /usr/local/opt /usr/local/opt_orig
+    sudo mv /usr/local/Cellar /usr/local/Cellar_orig
+    sudo mv /usr/local/opt /usr/local/opt_orig
+
+See the picture below:
+
+|dev_zone_osx_000|
 
 Next, download ``gcc_4.8_osx_bundle.tar.gz`` from https://sourceforge.net/projects/cc3d/files/DeveloperZone_4.x.x/mac/
 In my case , I downloaded it to ``/Users/m/gcc_bundle`` so if you download it to ``/Users/<your user name>/gcc_bundle``
@@ -72,9 +91,21 @@ summarizes all the above steps. Make sure to replace ``/Users/m`` with the path 
 
 |dev_zone_osx_001|
 
+
+
+
+.. |dev_zone_osx_000| image:: images/dev_zone_osx_000.png
+   :width: 5.8in
+   :height: 1.8in
+
+
 .. |dev_zone_osx_001| image:: images/dev_zone_osx_001.png
    :width: 7.8in
    :height: 2.7in
+
+.. |dev_zone_osx_002| image:: images/dev_zone_osx_002.png
+   :width: 7.8in
+   :height: 2.4in
 
 
 
