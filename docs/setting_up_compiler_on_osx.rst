@@ -24,5 +24,57 @@ The good thing is that you do not need to recompile entire CC3D but rather use o
 reduces effort required to develop custom C++ modules on OSX. Let's get started:
 
 Setting up the compiler
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+First thing you would like to do is to verify if ``/usr/local/Cellar`` and ``/usr/local/opt`` exist on your computer.
+If they do you need to copy them to ``/usr/local/Cellar_orig`` and ``/usr/local/opt_orig`` respectively. To do so
+do the following:
+
+.. code-block:: console
+
+    sudo cp -R /usr/local/Cellar /usr/local/Cellar_orig
+    sudo cp -R /usr/local/opt /usr/local/opt_orig
+
+Next, download ``gcc_4.8_osx_bundle.tar.gz`` from https://sourceforge.net/projects/cc3d/files/DeveloperZone_4.x.x/mac/
+In my case , I downloaded it to ``/Users/m/gcc_bundle`` so if you download it to ``/Users/<your user name>/gcc_bundle``
+folder you should be able to follow the rest of this chapter without much difficulty.
+
+We go to ``/Users/m/gcc_bundle`` (``/Users/<your user name>/gcc_bundle`` on your machine) and unpack
+``gcc_4.8_osx_bundle.tar.gz`` and print the content of ``gcc_bundle``:
+
+.. code-block:: console:
+
+    cd /Users/m/gcc_bundle
+
+    tar -zxf gcc_4.8_osx_bundle.tar.gz
+
+    ls
+
+We should see there ``usr`` folder that comes from unpacking of ``gcc_4.8_osx_bundle.tar.gz``. We step into this folder:
+and print its content
+
+.. code-block:: console
+
+    cd usr/local
+
+    ls
+
+We should see ``Cellar`` and ``opt`` folders. Next we copy those two local folders into machine's ``/usr/local`` folder:
+
+.. code-block::
+
+    sudo cp -R Cellar/ /usr/local/Cellar
+
+    sudo cp -R opt/ /usr/local/opt
+
+At this point you should have a functioning gcc compiler on your machine that can compile CC3D. The picture below
+summarizes all the above steps. Make sure to replace ``/Users/m`` with the path to your actual user directory:
+
+|dev_zone_osx_001|
+
+.. |dev_zone_osx_001| image:: images/dev_zone_osx_001.png
+   :width: 7.8in
+   :height: 2.7in
+
+
 
