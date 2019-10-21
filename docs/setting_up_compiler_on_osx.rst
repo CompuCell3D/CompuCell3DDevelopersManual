@@ -91,6 +91,65 @@ summarizes all the above steps. Make sure to replace ``/Users/m`` with the path 
 
 |dev_zone_osx_001|
 
+Installing SWIG
+~~~~~~~~~~~~~~~
+
+SWIG is a tool that generates Python wrappers based on underlying C++ code. You might not need it in the your first
+attempts to build C++ - only CC3D modules but you do need it to compile examples in DeveloperZone therefore let's
+quickly review installation steps. The easiest way to install SWIG is via Miniconda3. Simply grab installer script
+from https://docs.conda.io/en/latest/miniconda.html (make sure to get bash installer for Miniconda3 for OSX)
+and follow installation steps outlined in this post:
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/macos.html
+
+At the end of your installation you might reach a screen that asks you whether the installer script should initalize
+python from Miniconda3 as your default Python when you open a new console window. Unless you have a good reason not
+to do so we suggest you say "Yes":
+
+|dev_zone_osx_003|
+
+**Important**. After installation is finished, you need to open a new console window so that the changes you've made
+are available to you.
+
+Now we can install swig. All we have to do is to activate ``base`` conda environment (in modern conda installations
+this step migh be redundant):
+
+.. code-block:: console
+
+    conda activate base
+
+and then we type
+
+.. code-block:: console
+
+    conda install swig
+
+|dev_zone_osx_004|
+
+At this point you should swig installed on your system but as before you need to open new console for that changes
+to take effect.
+
+Installing CMake
+~~~~~~~~~~~~~~~~
+
+The last thing we need to accomplish is to install cmake. This task is easy and we will use graphical installer that
+comes with CMake. First we go to https://cmake.org/download/ and grab OSX installation package for CMake 3.15.
+We run this installer - make sure that you install CMake into /Applications by simply dragging CMake icon into
+your Applications folder
+
+After we are done we are ready to start configuring compilation of CC3D's DeveloperZone.
+
+Configuring Compilation of DeveloperZone
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the newly open command line we open up CMake application:
+
+.. code-block::
+
+    cd /Applications/CMake.app/Contents/bin
+    ./cmake-gui
+
+|dev_zone_osx_005|
+
 
 
 
@@ -107,5 +166,14 @@ summarizes all the above steps. Make sure to replace ``/Users/m`` with the path 
    :width: 7.8in
    :height: 2.4in
 
+.. |dev_zone_osx_003| image:: images/dev_zone_osx_003.png
+   :width: 6.7in
+   :height: 4.2in
 
+.. |dev_zone_osx_004| image:: images/dev_zone_osx_004.png
+   :width: 6.7in
+   :height: 0.5in
 
+.. |dev_zone_osx_005| image:: images/dev_zone_osx_005.png
+   :width: 6.7in
+   :height: 0.65in
