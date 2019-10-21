@@ -150,7 +150,127 @@ From the newly open command line we open up CMake application:
 
 |dev_zone_osx_005|
 
+After cmake-gui opens, at the top two lines we specify locations of the DeveloperZone root (in my case it is
+``/Users/m/CC3D_DEVELOP/CompuCell3D/DeveloperZone``) and where we want to intermediate compilation files to be
+placed (in my case it is ``/Users/m/CC3D_DEVELOP_build/CompuCell3D/DeveloperZone``). Here you may need to replace
+``/Users/m`` with location of your home directory, or, if you placed CC3D git repository folder in
+a completely different location make sure you put correct path to the ``DeveloperZone`` folder:
 
+|dev_zone_osx_006|
+
+Once you specified the paths. Click ``Configure`` and you will reach the following screen:
+
+|dev_zone_osx_007|
+
+Make sure to choose ``Specify Native Compilers`` and once you click ``OK`` you will see the dialog screen where we will
+specify location of our newly installed gcc-4.8 compilers (see beginning sections of this chapter)
+
+For C compiler we specify ``/usr/local/Cellar/gcc48/4.8.2/bin/gcc`` and for C++ ``/usr/local/Cellar/gcc48/4.8.2/bin/g++``
+and click ``Done``
+
+|dev_zone_osx_008|
+
+The Cmake will run configuration steps and then it will give us a chance to tweak default configurations.
+First let's fix paths to Python installation. Type ``Python`` in the Search box and chek ``Advanced`` box next to it.
+CMake will display paths for Python include directory and library.
+
+|dev_zone_osx_009|
+
+Here we need to specify location of include directory and python library that is bundled with CC3D binary package
+installation. Clearly, CMake has no way of knowing where this location is so it picks best Python location it can find.
+Let's fix it. In my case my CC3D binaries are installed in ``/Users/m/cc3d_install/CC3D_4.1.0`` and therefore
+I am putting as location of ``PYTHON_INCLUDE_DIR`` as ``/Users/m/cc3d_install/CC3D_4.1.0/python37/include/python3.7m``
+and location of ``PYTHON`` library as ``/Users/m/cc3d_install/CC3D_4.1.0/python37/lib/libpython3.7m.dylib``
+
+|dev_zone_osx_010|
+
+Next, after clearing ``Search`` box and unchecking ``Advanced`` box we will get to the default CMake screen.
+Here we specify ``CMAKE_INSTALL_PREFIX`` as the installation location of CC3D binaries (in my case it is
+``/Users/m/cc3d_install/CC3D_4.1.0``). CMake will use this location to correctly place our newly built modules.
+We also initialize to ``COMPUCELL3D_INSTALL_PATH`` to the same value (in my case ``/Users/m/cc3d_install/CC3D_4.1.0``).
+It is also important to specify location of the CompuCell3D code ``/Users/m/CC3D_DEVELOP/CompuCell3D/core/CompuCell3D``
+Finally, we make sure that ``CMAKE_BUILD_TYPE`` is set to ``Release`` to enable speed-optimization of compiled binaries
+
+|dev_zone_osx_011|
+
+At this point we click ``Configure`` once more time, and then assuming there were no errors, we click ``Generate`` and
+we should be ready to compile DeveloperZone.
+
+We go to the folder where we directed CMake to put intermediate compilation files (in my case it is
+``/Users/m/CC3D_DEVELOP_build/CompuCell3D/DeveloperZone``) and start compilation by issuing ``make`` command
+
+.. code-block::
+
+    cd /Users/m/CC3D_DEVELOP_build/CompuCell3D/DeveloperZone
+    make
+
+|dev_zone_osx_012|
+
+After compilation is finished:
+
+|dev_zone_osx_013|
+
+we install compiled modules into place where we installed CC3D binaries by typing ``make install``
+
+|dev_zone_osx_014|
+
+Running newly compiled modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+At this point we are ready to run our newlu compiled CC3D C++ extension modules. It is best to copy
+Demos folder from DeveloperZone to a CC3D installation folder. To do so we go to DeveloperZone folder
+and execute copy command
+
+.. code-block::
+
+    cd /Users/m/CC3D_DEVELOP/CompuCell3D/DeveloperZone
+    ls
+    cp -R Demos/ /Users/m/cc3d_install/CC3D_4.1.0/DemosDeveloperZone
+
+|dev_zone_osx_015|
+
+Next we open CC3D and navigate to one of the demos that implements growth steppable in pure C++
+(``DemosDeveloperZone/GrowthSteppable``):
+
+|dev_zone_osx_016|
+
+click Play
+
+We will get a simulation screenshot that looks as follows:
+
+|dev_zone_osx_017|
+
+
+Restoring original content of /usr/local/Cellar and /usr/local/opt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+    Be careful executing commands from this step. In particular make sure you have backed up your original folders ``/usr/local/Cellar`` to ``/usr/local/Cellar_orig`` and ``/usr/local/opt`` to ``/usr/local/opt_orig``
+
+
+If you had content in the ``/usr/local/Cellar`` you probably would likek to get it restored. The following steps
+undo the changes we made to those two folders.
+
+
+
+.. code-block:: console
+    cd /usr/local
+    sudo rm -rf Cellar
+    sudo rm -rf opt
+    sudo mv Cellar_orig Cellar
+    sudo mv opt_orig opt
+
+|dev_zone_osx_018|
+
+Summary
+-------
+
+Compiling C++ extensions on OSX takes a little bit extra effort associated with setting up a compiler that can
+properly handle OpenMP code on OSX> But once you are doen with this step the compilation of C++ extension modules
+takes no more effort than on other platforms. The importan thign here is that we do not need to recompile entire
+CC3D code. We simply download binaries and add one or few C++ modules that make our simulations run much faster.
+This performance gain is certainly worth the effort
 
 
 .. |dev_zone_osx_000| image:: images/dev_zone_osx_000.png
@@ -177,3 +297,56 @@ From the newly open command line we open up CMake application:
 .. |dev_zone_osx_005| image:: images/dev_zone_osx_005.png
    :width: 6.7in
    :height: 0.65in
+
+.. |dev_zone_osx_006| image:: images/dev_zone_osx_006.png
+   :width: 8.2in
+   :height: 5.3in
+
+.. |dev_zone_osx_007| image:: images/dev_zone_osx_007.png
+   :width: 6.5in
+   :height: 2.5in
+
+.. |dev_zone_osx_008| image:: images/dev_zone_osx_008.png
+   :width: 10.2in
+   :height: 4.3in
+
+.. |dev_zone_osx_009| image:: images/dev_zone_osx_009.png
+   :width: 8.3in
+   :height: 2.9in
+
+.. |dev_zone_osx_010| image:: images/dev_zone_osx_010.png
+   :width: 10in
+   :height: 5in
+
+.. |dev_zone_osx_011| image:: images/dev_zone_osx_011.png
+   :width: 10in
+   :height: 7.5in
+
+.. |dev_zone_osx_012| image:: images/dev_zone_osx_012.png
+   :width: 7.5in
+   :height: 1.0in
+
+.. |dev_zone_osx_013| image:: images/dev_zone_osx_013.png
+   :width: 7.8in
+   :height: 1.2in
+
+.. |dev_zone_osx_014| image:: images/dev_zone_osx_014.png
+   :width: 7.8in
+   :height: 1.2in
+
+.. |dev_zone_osx_015| image:: images/dev_zone_osx_015.png
+   :width: 8.2in
+   :height: 2.0in
+
+.. |dev_zone_osx_016| image:: images/dev_zone_osx_016.png
+   :width: 9.8in
+   :height: 4.5in
+
+.. |dev_zone_osx_017| image:: images/dev_zone_osx_017.png
+   :width: 4.5in
+   :height: 5.5in
+
+.. |dev_zone_osx_018| image:: images/dev_zone_osx_018.png
+   :width: 5.8in
+   :height: 2.4in
+
