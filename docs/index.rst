@@ -12,6 +12,7 @@ introduction
    :hidden:
    :caption: Introduction To CompuCell3D Core Objects
 
+   funding
    intro_to_core_cc3d_objects
    setting_up_compiler_on_osx
    building_steppable_case_study
