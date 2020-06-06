@@ -20,6 +20,7 @@ introduction
    adding_python_binding_to_developer_zone_steppable
    heteropytic_boundary_surface_steppable
    attaching_attributes_to_cells
+   debugging_cc3d_using_gdb
 
 
 Indices and tables
