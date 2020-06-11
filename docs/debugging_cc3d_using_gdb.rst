@@ -22,6 +22,7 @@ you will see a line that looks as follows:
 we will replace this line with
 
 .. code-block:: console
+
     gdb ${PYTHON_EXEC}
 
 Save the script and run it. As a result we will be dropped to gdb shell that is setup to debug Python
