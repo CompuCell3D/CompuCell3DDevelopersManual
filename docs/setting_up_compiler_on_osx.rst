@@ -5,7 +5,7 @@ Starting with CC3D 4.3.0 when you install CC3D it will come with most of the too
 plugins and steppables. The only thing that you need in addition to this is to install ``xcode-select`` package
 To install this from the terminal run the following:
 
-.. code-block::
+.. code-block:: console
 
     xcode-select --install
 
@@ -29,6 +29,9 @@ Once you install miniconda in the ``base`` environment of newly installed minico
 https://github.com/phracker/MacOSX-SDKs/releases. Here is direct link to the actual compressed folder:
 https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
 Once you unpack move the content to ``/opt`` folder of your Mac. You need to be ``admin`` to do this.
+You should be able to see the following folder ``/opt/MacOSX10.10.sdk`` after the copy is complete
+
+
 4. Clone CC3D repository
 
 .. code-block:: console
