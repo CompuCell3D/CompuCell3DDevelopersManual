@@ -31,7 +31,6 @@ https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.t
 Once you unpack move the content to ``/opt`` folder of your Mac. You need to be ``admin`` to do this.
 You should be able to see the following folder ``/opt/MacOSX10.10.sdk`` after the copy is complete
 
-
 4. Clone CC3D repository
 
 .. code-block:: console
