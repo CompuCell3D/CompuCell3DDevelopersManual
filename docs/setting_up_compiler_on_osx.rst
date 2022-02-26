@@ -1,5 +1,57 @@
-OSX Compiler Setup
-==================
+Setting up your Mac for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
+================================================================================================
+
+Starting with CC3D 4.3.0 when you install CC3D it will come with most of the tools needed to compile C+++
+plugins and steppables. The only thing that you need in addition to this is to install ``xcode-select`` package
+To install this from the terminal run the following:
+
+.. code-block::
+
+    xcode-select --install
+
+This is it and you should be ready to compile custom plugins and steppables written in C++
+
+Setting up you Mac for CC3D compilation via conda
+==================================================
+
+Sometimes you may want to compile entire CC3D C++ code using conda build system. To do that on your Mac follow this
+procedure:
+
+1. Install ``xcode-select`` - see above
+2. install miniconda3 with Python 3.7 - https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-MacOSX-x86_64.sh .
+Once you install miniconda in the ``base`` environment of newly installed miniconda install ``conda-build`` package
+
+.. code-block:: console
+
+    conda install conda-build
+
+3. Get MacOS SDK 10.10 - https://github.com/phracker/MacOSX-SDKs or directly from
+https://github.com/phracker/MacOSX-SDKs/releases. Here is direct link to the actual compressed folder:
+https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
+Once you unpack move the content to ``/opt`` folder of your Mac. You need to be ``admin`` to do this.
+4. Clone CC3D repository
+
+.. code-block:: console
+
+    git clone https://github.com/CompuCell3D/CompuCell3D.git
+
+5. Go to CC3D repository's ``conda-recipes`` folder:
+
+.. code-block:: console
+
+    cd <CC3D repository dir>/conda=recipe
+
+
+6. Start compilation by typing
+
+.. code-block:: console
+
+    conda build . -c conda-forge -c compucell3d
+
+After a while you should have CC3D conda package ready
+
+OSX Compiler Setup - Applies only to CompUCell3D 4.2.5 or lower!
+================================================================
 
 If you are on OSX machine in order to use developer zone modules you will need to use special compiler
 that behaves properly in the presence of OpenMP extensions. It happened so that for whatever reason
