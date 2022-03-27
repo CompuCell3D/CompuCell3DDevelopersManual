@@ -1,5 +1,5 @@
 ###################################################
-CompuCell3D Reference Manual - 4.1.0
+CompuCell3D Reference Manual - 4.3.0
 ###################################################
 
 The focus of this manual is to explain internals of C++ code and provide all information you need start writing your own
@@ -14,7 +14,7 @@ introduction
 
    funding
    intro_to_core_cc3d_objects
-   setting_up_compiler_on_osx
+   setting_up_compilers
    building_steppable_case_study
    building_growth_steppable_in_developer_zone
    adding_python_binding_to_developer_zone_steppable

@@ -1,3 +1,22 @@
+Setting up Windows computer for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
+================================================================================================
+If you want tot develop plugins and steppables under windows you will need to install free Visual Studio
+2015 Community Version. The installation of this package is straightforward but you need to make sure that you are
+installing C/C++ compilers when the installer gives you options to select which programming languages
+you would like to have support for. The best way to download Visual Studio is to
+get it directly from Microsoft website. Current link to visual studio download page is
+here: https://visualstudio.microsoft.com/vs/older-downloads/ .
+Just make sure you scroll down and find Visual Studio 2015. It has to be exactly this version. CompuCell3D compilation
+will likely not work with other versions. Once you download and install Visual Studio 2015 you are ready to start
+compiling Developer Zone projects and develop your own CompuCell3D plugins and steppables in C++.
+
+Setting up Linux computer for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
+================================================================================================
+
+If you are using linux computer , most likely you do not need to do any compiler setup. CC3D on Linux comes prepackaged
+with all compilers and it does not matter if you installed CC3D using automated installer or installed directly using
+``conda install`` command.
+
 Setting up your Mac for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
 ================================================================================================
 
@@ -52,7 +71,7 @@ You should be able to see the following folder ``/opt/MacOSX10.10.sdk`` after th
 
 After a while you should have CC3D conda package ready
 
-OSX Compiler Setup - Applies only to CompUCell3D 4.2.5 or lower!
+OSX Compiler Setup - Applies only to CompuCell3D 4.2.5 or lower!
 ================================================================
 
 If you are on OSX machine in order to use developer zone modules you will need to use special compiler
