@@ -1,9 +1,6 @@
 Configuring DeveloperZone Projects for compilation
 ==================================================
 
-What is DeveloperZone?
-----------------------
-
 From technical viewpoint ``DeveloperZone`` is a folder that contains source code for additional plugins and steppables
 written in C++. Depending on your needs, sometimes, you want to write high-performance CC3D module that runs much faster
 than equivalent Python code. Up until version 4.3.0 of CC3D developing C++ modules was a little bit involved because
@@ -63,7 +60,71 @@ Now let's make build directory. This is a directory where compilers will place t
     It is important to create a fresh (empty) build directory before you can configure DeveloperZone configuration. CC3D cannot use build directory that is non empty
 
 
+Now, fill in full path to CC3D repository (``c:\cc3d_source``) and to build folder (``c:\cc3d_source_build``) and  click
+``Configure`` button in the bottom right corner of the dialog. Configuration process will start. After it is done
+the dialog should display summary of what to do next:
+
+|dz_002|
+
+On Windows, we are asked to open a terminal (ideally Visual Studio 2015 64bit shell - search for VS2015 x64 native tools
+in main search menu of Windows operating system, or simply open any terminal on windows) and run the
+
+.. code-block:: console
+
+    c:\CompuCell3D\conda-shell.ba
+
+This, in addition to activating base miniconda environment will "preconfigure" the terminal for compilation using
+Visual Studio 2015 Tools. You only need to run this ``conda=shell.bat`` command for "regular" terminal. If you opened
+Visual Studio Terminal you may skip this step
+
+Then you run the following:
+
+.. code-block:: console
+
+    cd C:\cc3d_source_build
+
+    nmake
+    nmake install
+
+First command changes directory to the directory that we designated for storing temporary compilation files. This is
+where the Makefile were generated to.
+Next, we run windows version of ``make`` called ``nmake``.
+
+|dz_003|
+
+Once compilation finishes
+
+|dz_004|
+
+we install the compiled modules.
+
+|dz_005|
+
+If you look carefully at the output screen you will see that the modules we compiled will get installed into subfolders
+of ``c:\CompuCell3D\Miniconda3`` which is Miniconda distribution that is part of CC3D installation.
+This is exactly what we want. In other words, with one click and few simple command line commands we were able to
+compile a set of demo extensions modules written in C++. This is significant because this simple procedure allows you
+to easily add new C++ modules and significantly speedup your simulation. From now on you can focus on
+coding rather than figuring out of how to set up compilation
+
+
 
 .. |dz_001| image:: images/dz_001.png
    :width: 3.725in
    :height: 1.8in
+
+.. |dz_002| image:: images/dz_002.png
+   :width: 3.725in
+   :height: 1.8in
+
+.. |dz_003| image:: images/dz_003.png
+   :width: 1.6in
+   :height: 0.4in
+
+.. |dz_004| image:: images/dz_004.png
+   :width: 5in
+   :height: 3in
+
+.. |dz_005| image:: images/dz_005.png
+   :width: 5in
+   :height: 3in
