@@ -64,6 +64,6 @@ Now let's make build directory. This is a directory where compilers will place t
 
 
 
-.. |dz_001| image:: images/dev_zone_osx_000.png
+.. |dz_001| image:: images/dz_001.png
    :width: 3.725in
    :height: 1.8in
