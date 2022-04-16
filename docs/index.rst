@@ -13,8 +13,9 @@ introduction
    :caption: Introduction To CompuCell3D Core Objects
 
    funding
-   intro_to_core_cc3d_objects
    setting_up_compilers
+   configuring_developer_zone
+   intro_to_core_cc3d_objects
    building_steppable_case_study
    building_growth_steppable_in_developer_zone
    adding_python_binding_to_developer_zone_steppable
