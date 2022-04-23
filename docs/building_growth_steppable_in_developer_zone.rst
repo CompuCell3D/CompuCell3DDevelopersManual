@@ -232,7 +232,7 @@ handle the following syntax for the GrowthSteppable:
 
 .. note::
 
-    Starting from version ``4.3.0`` of CC3D the DeveloperZone compilation setup (for any compiler) is is done automatically. All you need to do is to follow procedure outlined in `Configuring Developer Zone <configuring_developer_zone>`_
+    Starting from version ``4.3.0`` of CC3D the DeveloperZone compilation setup (for any compiler) is is done automatically. All you need to do is to follow procedure outlined in `Configuring Developer Zone <configuring_developer_zone.html>`_
 
 After we generated plugin code and added our modification to those two files, we are ready to begin compilation.
 We will show how to compile code on Windows. Compilation on Linux system is analogous up to CMake configuration
