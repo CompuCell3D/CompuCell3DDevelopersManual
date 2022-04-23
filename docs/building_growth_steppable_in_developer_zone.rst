@@ -230,9 +230,13 @@ handle the following syntax for the GrowthSteppable:
         <GrowthRate CellType="2" Rate="1.7"/>
     </Steppable>
 
+.. note::
+
+    Starting from version ``4.3.0`` of CC3D the DeveloperZone compilation setup (for any compiler) is is done automatically. All you need to do is to follow procedure outlined in `Configuring Developer Zone <configuring_developer_zone>`_
+
 After we generated plugin code and added our modification to those two files, we are ready to begin compilation.
 We will show how to compile code on Windows. Compilation on Linux system is analogous up to CMake configuration
-part but then instead of using Visual Studion you will type ``make`` and ``make install`` in the terminal. For now
+part but then instead of using Visual Studio you will type ``make`` and ``make install`` in the terminal. For now
 let's stick with Windows compilation. After Twedit++ generated new files in the ``Developer Zone`` we need to use
 CMake tool (GUI - as we will go here, or console based tool) to configure our compilation. This is how CMake
 configuration looks in our case
