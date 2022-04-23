@@ -6,7 +6,7 @@ this module is responsible for creating cell lattice and ``Potts3D`` class has m
 destruction of cells. It is worth pointing out that creation and destruction of cells is not limited to calling
 ``new`` or ``delete`` operators but it also involves several steps necessary to ensure that cells created have all the
 attributes needed by requested by the user plugins. In CC3D cells' attributes are added dynamically
-and CC3D cells by default have only a small subset of attributes hard-coded. This is a design decisiopn that has this nice
+and CC3D cells by default have only a small subset of attributes hard-coded. This is a design decision that has this nice
 consequence that when developing new plugin one does not have to modify ``CellG`` class but rather program the addition
 of cell's attributes entirely in the plugins code. We will cover this in detail in later section.
 
@@ -171,23 +171,27 @@ the material presented here):
 	};
 
 
-Starting from the top of the file we notice that cell lattice (``WatchableField3D<CellG *> *cellFieldG;``) is owned and
-created by (``void createCellField(const Dim3D dim);``, ``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) ``Potts3D``.
+Starting from the top of the file we notice that cell lattice (``WatchableField3D<CellG *> *cellFieldG;``) is owned
+by ``Potts3D`` and created by (``void createCellField(const Dim3D dim);``,
+``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) .
 
 The cell lattice is an instance of the ``WatchableField3D`` class (which strictly speaking is a template class).
 The cell lattice stores **pointers** to cell objects (type ``CellG*``).
-This means that when a single cell single occupies several lattice sites we create one ``CellG`` object but store pointer to this
-object in all locations of ``cellFieldG`` that are assigned to this particular instance of ``CellG`` object.
-This way ``CellG`` objects do not get repeated for every pixel (this woudl cost too much memory) but rather are referenced from the
-cell lattice via pointers.
+This means that when a single cell single occupies several lattice sites we create one ``CellG`` object but store
+pointer to this object in all locations of ``cellFieldG`` that are assigned to this particular instance of ``CellG`` object.
+This way ``CellG`` objects do not get repeated for every pixel (this would cost too much memory)
+but rather are referenced from the cell lattice via pointers.
 The reason cell lattice field is called "Watchable" is because this class implements the observer design pattern.
 This means that any manipulation of the cell lattice (e.g. assigning cell to a given pixel) triggers calls to multiple registered
 observer objects that react to such change. For example, if I am extending a cell by assigning its pointer to the new lattice site
-one of the observer that will be called (we also refere to them as lattice monitors) is a module that tracks cell volume
+one of the observer that will be called (we also refer to them as lattice monitors) is a module that tracks cell volume
 The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will
 get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
 inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
-when change in the lattice takes place. Let's look at how this is done
+when change in the lattice takes place. Observers are called in teh order in which they were registered. Note, this may
+or may not be the order in which they were declared in the CC3DCML. CC3D sometimes requires certain lattice monitors
+to be loaded and registered before others and this happens automatically in the CC3D code.
+Let's look at how ``WatchableField3D`` works in practice:
 
 WatchableField3D
 ~~~~~~~~~~~~~~~~
@@ -197,55 +201,66 @@ WatchableField3D
     #ifndef WATCHABLEFIELD3D_H
     #define WATCHABLEFIELD3D_H
 
+    #include <vector>
+
     #include "Field3DImpl.h"
     #include "Field3DChangeWatcher.h"
 
-    #include <BasicUtils/BasicArray.h>
-    #include <BasicUtils/BasicException.h>
+    #include <CompuCell3D/CC3DExceptions.h>
 
     namespace CompuCell3D {
 
-      template <class T>
-      class Field3DImpl;
+        template<class T>
+        class Field3DImpl;
 
-      template <class T>
-      class WatchableField3D: public Field3DImpl<T> {
-        BasicArray<Field3DChangeWatcher<T> *> changeWatchers;
+        template<class T>
+        class WatchableField3D : public Field3DImpl<T> {
+            std::vector<Field3DChangeWatcher<T> *> changeWatchers;
 
-      public:
-        /**
-         * @param dim The field dimensions
-         * @param initialValue The initial value of all data elements in the field.
-         */
-        WatchableField3D(const Dim3D dim, const T &initialValue) :
-          Field3DImpl<T>(dim, initialValue) {}
+        public:
+            /**
+             * @param dim The field dimensions
+             * @param initialValue The initial value of all data elements in the field.
+             */
+            WatchableField3D(const Dim3D dim, const T &initialValue) :
+                    Field3DImpl<T>(dim, initialValue) {}
 
-          virtual ~WatchableField3D(){}
-        virtual void addChangeWatcher(Field3DChangeWatcher<T> *watcher) {
-          ASSERT_OR_THROW("addChangeWatcher() watcher cannot be NULL!", watcher);
-          changeWatchers.put(watcher);
-        }
+            virtual ~WatchableField3D() {}
 
-        virtual void set(const Point3D &pt, const T value) {
-          T oldValue = Field3DImpl<T>::get(pt);
-          Field3DImpl<T>::set(pt, value);
+            virtual void addChangeWatcher(Field3DChangeWatcher<T> *watcher) {
+                if (!watcher) throw CC3DException("addChangeWatcher() watcher cannot be NULL!");
+                changeWatchers.push_back(watcher);
+            }
 
-          for (unsigned int i = 0; i < changeWatchers.getSize(); i++)
-        changeWatchers[i]->field3DChange(pt, value, oldValue);
-        }
-      };
+            virtual void set(const Point3D &pt, const T value) {
+                T oldValue = Field3DImpl<T>::get(pt);
+                Field3DImpl<T>::set(pt, value);
+
+                for (unsigned int i = 0; i < changeWatchers.size(); i++)
+                    changeWatchers[i]->field3DChange(pt, value, oldValue);
+            }
+
+            virtual void set(const Point3D &pt, const Point3D &addPt, const T value) {
+                T oldValue = Field3DImpl<T>::get(pt);
+                Field3DImpl<T>::set(pt, value);
+
+                for (unsigned int i = 0; i < changeWatchers.size(); i++) {
+                    changeWatchers[i]->field3DChange(pt, value, oldValue);
+                    changeWatchers[i]->field3DChange(pt, addPt, value, oldValue);
+                }
+            }
+        };
     };
     #endif
-
 The ``WatchableField3D<T>`` template class inherits from ``Field3DImpl<T>`` template. The actual memory allocation takes
 place in the ``Field3DImpl<T>`` but we will not worry about it here. It is sufficient to mention that ``Field3DImpl<T>``
 is tha class that manages cell lattice memory. The important thing is to understand how this automatic calling
 of lattice monitors is implemented. The ``WatchableField3D<T>`` class has a container
-``BasicArray<Field3DChangeWatcher<T> *> changeWatchers;`` that stores pointers to lattice monitors. The lattice monitor object
+``std::vector<Field3DChangeWatcher<T> *> changeWatchers;`` that stores pointers to lattice monitors. The lattice monitor object
 is a class that inherits ``Field3DChangeWatcher<T>`` class. In CC3D case ``T`` is set to ``CellG*``. The  ``BasicArray``
 is a thin wrapper around ``std::vector`` class and it is one of the legacies of the early CC3D implementations. So
 ``WatchableField3D<T>`` class has a collection of objects that react to the changes in the cell lattice. How do they react?
-If we look at the implementation of `` virtual void set(const Point3D &pt, const T value)`` function that modifies the lattice
+If we look at the implementation of ``virtual void set(const Point3D &pt, const T value)`` function that modifies the lattice
 we can see that this function fetches old value stored in the lattice at location indicated by ``Point3D pt`` - in the case of
 cell lattice this will be pointers currently stored at this location. It then assigns new value to the field (new ``CellG`` pointer)
 and then it calls all registered lattice monitors:
@@ -268,7 +283,7 @@ Energy Functions
 Few lines below declaration of ``cellField``, which as we know is an instance of  ``WatchableField3D<CellG *>``
 we find the declaration of containers associated with Energy function calculations. At this point we remind that the essence
 of Cellular Potts Model is in calculating **change of energy of the system due to randomly chosen lattice perturbation**
-(change of the single pixel). Pointers energy functions objects are stored inside ``Potts3D`` object as follows:
+(change of the single pixel). Pointers to energy functions objects are stored inside ``Potts3D`` object as follows:
 
 .. code-block:: cpp
 
@@ -307,7 +322,7 @@ inherit ``EnergyFunction``. The key function that has to be reimplemented in the
 function picks candidate for pixel overwrite it will then call ``changeEnergy`` for every element of the ``energyFunctions`` vector
 defined in class ``Potts3D`` (see above). The ``pt`` argument is a reference to a location of a pixel
 (specified as simple object ``Point3D``) that would be overwritten as result of the pixel copy attempt. The ``newCell``
-is pointer to a cell object that will occupy ``pt`` location of the ``cellField`` IF we accept pixel copy and the
+is pointer to a cell object that will occupy ``pt`` location of the ``cellField`` (if we accept pixel copy) and the
 ``oldCell`` is a pointer to a cell that currently occupies lattice location ``pt``.
 
 In CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
@@ -408,10 +423,10 @@ Next we pick a random pixel out of set of neighbors of pixel ``pt``:
             continue;
     }
 We use ``BoundaryStrategy`` object pointed by ``boundaryStrategy`` to carry out all operations related to pixel neighbor
-operations. we will cover it later. For now it is important to remember that tracking.operating on pixel neighbors is
-usually done via ``BoundaryStrategy`` and this heps greatly when we have to deal with periodic boundary conditions
+operations. we will cover it later. For now it is important to remember that tracking and operating on pixel neighbors is
+usually done via ``BoundaryStrategy`` and this helps greatly when we have to deal with periodic boundary conditions
 pixels residing close to the edge of teh lattice or classifying neighbor order of pixels.
-in this example we use boundary strategy to pick a neighbor ``changePixel`` of the ``pt`` and verify that this neighbor is a
+In this example we use boundary strategy to pick a neighbor ``changePixel`` of the ``pt`` and verify that this neighbor is a
 legitimate neighbor - ``if (!n.distance)``. We next fetch cell that occupies ``changePixel``:
 
 .. code-block:: cpp
@@ -490,7 +505,9 @@ What we are doing here is we iterate over every cell in the simulation. Internal
 accesses ``cellInventory``. when we create a cell using ``Potts3D``'s method ``createCellG`` we first construct cell object
 and then insert it into cell inventory. Similarly when we delete cell object using ``destroyCellG`` (method of ``Potts3D``)
 we first remove the ``cell`` object from inventory and then carryout its destruction
-(which, as you know, is not just simple call to  the C++ ``delete`` operator)
+(which, as you know, is not just simple call to  the C++ ``delete`` operator). It is worth knowing that in addition to
+cell inventories e track cell clusters and even links between cells (``FocalPointPlasticityPlugin``) via various
+"inventory" objects.
 
 Acceptance Function and Fluctuation Amplitude Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

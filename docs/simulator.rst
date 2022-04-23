@@ -117,7 +117,7 @@ simulations
 
             //these two functions are necessary to implement proper cleanup after the simulation
             //1. First it cleans cell inventory, deallocating all dynamic attributes - this has to be done before unloading modules
-            //2. It unloads dynamic CC3D modules - pluginsd and steppables
+            //2. It unloads dynamic CC3D modules - plugins and steppables
             void cleanAfterSimulation();
             //unloads all the plugins - plugin destructors are called
             void unloadModules();
@@ -170,7 +170,7 @@ on Windows and is an empty string on all other operating systems. You can find t
         };
     };
 
-4. ``Simulator`` has adictionary of every concentration field used in the simulation
+4. ``Simulator`` has  dictionary of every concentration field used in the simulation
 
 .. code-block:: cpp
 
@@ -204,7 +204,7 @@ functions:
 Plugins and Steppables and it is the first Simulator function that is called after parsing of the CC3DML is complete
 
 - ``void extraInit()`` is typically executed next and it calls ``extraInit`` method that is a member of every CompuCel3D
-plugin. think of this function as a way of performing a second round of initialization but in the situation where
+plugin. Think of this function as a way of performing a second round of initialization but in the situation where
 all necessary objects (plugins) are instantiated and properly located inside overseeing objects (``Simulator`` / ``Potts3D``)
 
 - ``void start()`` function calls ``start`` method for all Steppables that were requested by current simulation.
@@ -218,7 +218,7 @@ all necessary objects (plugins) are instantiated and properly located inside ove
 
 and it also calls ``step`` method of every steppable requested by the simulation (including PDE solvers) by calling
 ``step`` method of a ``classRegistry`` member of the ``Simulator`` object. You may think about ``classRegistry`` as
-of a container that stores pointers to Steppable objects. Indeed if we looks a the
+of a container that stores pointers to Steppable objects. Indeed, if we looks a the
 ``CompuCell3D\ClassRegistry.h`` declarations we notice that ``ClassRegistry`` class is a collection of containers with
 extra functionality that simplify code calls from parent objects (*e.g.* from ``Simulator``):
 
