@@ -1,15 +1,17 @@
 Building Steppable
 ==================
 
-It is probably best to start discussing extension of CC3D by showing a relatively simple example of a steppable written in C++.
-In typical scenario steppables are written in Python. There are three main reasons for that **1)** No compilation is required.
-**2)** The code is more compact and easier to write than C++. **3)** Python has a rich set of libraries that make scientific computation
-easily accessible.
-However, writing a steppable in C++ is not that much more difficult, as you will see shortly, and you are almost guaranteed
-that your code will run orders of magnitude faster.
-Let me rephrase this last sentence - a **typical** code written in C++ is orders of magnitude faster than equivalent code written in
-pure Python. Since most of the steppable code consists of iterating over all cells and adjusting their attributes, C++ will
-perform this task much faster.
+It is probably best to start discussing extension of CC3D by showing a relatively simple example of a steppable
+written in C++.
+In typical scenario steppables are written in Python. There are three main reasons for that **1)** No compilation is
+required.
+**2)** The code is more compact and easier to write than C++. **3)** Python has a rich set of libraries that make
+scientific computation easily accessible.
+However, writing a steppable in C++ is not that much more difficult, as you will see shortly, and you are almost
+guaranteed that your code will run orders of magnitude faster.
+Let me rephrase this last sentence - a **typical** code written in C++ is orders of magnitude faster than equivalent
+code written in pure Python. Since most of the steppable code consists of iterating over all cells and adjusting
+their attributes, C++ will perform this task much faster.
 
 Getting started
 ---------------
@@ -33,9 +35,14 @@ however, you want to checkout a branch - you would type something like this:
 
 At this point you have complete code in ``CC3D_DEVELOP`` directory. And in addition
 
-Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available - and go to ``CC3D C++`` menu and choose ``Generate New Module...`` entry and fill out the dialog box:
+Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available - and go to ``CC3D C++``
+menu and choose ``Generate New Module...`` entry and fill out the dialog box:
 
 |twedit_steppable_wizard|
+
+.. note::
+
+    In this example we show how to generate steppable code template in the "main" CC3D code. However, a more frequently used scenario is to Generate steppable code in "DeveloperZone" folder. We will show it in the subsequent chapter
 
 This is exactly what we did:
 
@@ -290,11 +297,15 @@ generated ``step`` function already contains helpful code but start function wil
 
 The ``for`` loop iterates over inventory of cells and prints cell id and cell volume.
 To iterate over cell inventory we are using ``cellInventoryPtr`` which is a pointer to
-``CellInventory`` object. The class for this object (``CellInventory``) is defined in ``Potts3D/CellInventory.h`` and implementation is in ``Potts3D/CellInventory.cpp``. INternally we are using STL(Standard Template Library - C++) maps to keep track of cells. The statement ``cellInventoryPtr->cellInventoryBegin()`` returns an iterator to cell inventory. If you look closely at the implementation files the container we are using as a cell inventory is
+``CellInventory`` object. The class for this object (``CellInventory``) is defined in ``Potts3D/CellInventory.h`` and
+implementation is in ``Potts3D/CellInventory.cpp``.
+Internally, we are using STL(Standard Template Library - C++) maps to keep track of cells.
+The statement ``cellInventoryPtr->cellInventoryBegin()`` returns an iterator to cell inventory.
+If you look closely at the implementation files the container we are using as a cell inventory is
 ``std::map<CellIdentifier,CellG *>`` and CellIdentifier contains cell id and cluster id to
- uniquely identify cells. Therefore iteration over cell inventory is simply iteration over
-  STL map. If you are not familiar with concept of iterators and containers of STL we
-  recommend that you look up basic C++ tutorials for example:
+uniquely identify cells. Therefore iteration over cell inventory is simply iteration over
+STL map. If you are not familiar with concept of iterators and containers of STL we
+recommend that you look up basic C++ tutorials for example:
 ``https://www.tutorialspoint.com/cplusplus/cpp_stl_tutorial`` .
 
 Let us now modify the above ``start`` and ``step`` functions and implement first version of growth steppable:
@@ -342,7 +353,8 @@ nothing. We fix it by setting those parameters for each cell in the ``start`` fu
 If you are familiar with CC3D Python scripting you will quickly find analogies. The only
 thing we added was the following statement ``cell->targetVolume += growthRate ;``
 
-When we compile and run this example the cells' target volume will increase by amount hardcoded in the ``growthRate`` variable which in our case is ``1.0``.
+When we compile and run this example the cells' target volume will increase by amount hardcoded in the ``growthRate``
+variable which in our case is ``1.0``.
 
 Let's take it to the next level (slowly). Now we will write a code that increases
 target volume of cells but only for the first 100 MCS and only if cell type is equal to
@@ -376,24 +388,32 @@ target volume of cells but only for the first 100 MCS and only if cell type is e
     }
 
 First thing we do in this steppable is checking if current MCS is greater than ``100`` and
-if so we return. Inside the loop we added ``if (cell->type == 1)`` check that allows increase of target volume only if cell is of type ``1``. Small digression here. If you
-    want to print cell type to the screen you need to use the following syntax:
+if so we return. Inside the loop we added ``if (cell->type == 1)`` check that allows increase of target volume only
+if cell is of type ``1``. Small digression here. If you
+want to print cell type to the screen you need to use the following syntax:
 
  .. code-block:: c++:
 
     cerr << "cell type=" << (int)cell->type <<endl;
 
 As you can see we are performing type cast to ``int``. This is because cell type (defined in
-``Potts3D/Cell.h``) is defined as ``unsigned char``. Consequently CC3D allows only 256 cell types, which at first sight might look limiting but in practice is more than enough.
+``Potts3D/Cell.h``) is defined as ``unsigned char``.
+Consequently CC3D allows only 256 cell types, which at first sight might look limiting but in practice is more than
+enough.
 
 In the previous examples we hard-coded the value of growth rate using
-``float growthRate = 1.0;``. This is not an optimal solution. What if you want to run 5 simulations simultaneously each one with different value of growth rate. If you hard-code values you would need to have 5 distinct compilations of CC3D available. Clearly,
-hard-coding is not scalable. We need better solution. It is time to learn how to parse XML in C++ code
+``float growthRate = 1.0;``. This is not an optimal solution. What if you want to run 5 simulations simultaneously
+each one with different value of growth rate. If you hard-code values you would need to have 5 distinct compilations
+of CC3D available. Clearly, hard-coding is not scalable. We need better solution. It is time
+to learn how to parse XML in C++ code
 
 Parsing XML in C++
 ------------------
 
-Building flexible code requires that we provide some sensible configuration mechanism via which users can customize their simulation without the need to recompile code. In CC3D we have two ways of achieving it **1)** XML **2)** Python scripting. It is up to you which one you use and we will teach you how to use both approaches. For now let's start with XML parsing.
+Building flexible code requires that we provide some sensible configuration mechanism via which users can customize
+their simulation without the need to recompile code. In CC3D we have two ways of achieving it **1)** XML **2)** Python
+scripting. It is up to you which one you use and we will teach you how to use both approaches. For now let's start
+with XML parsing.
 
 All C++ CC3D Plugins and Steppables define virtual function
 ``update(CC3DXMLElement *_xmlData, bool _fullInitFlag)``. This function takes two arguments:
