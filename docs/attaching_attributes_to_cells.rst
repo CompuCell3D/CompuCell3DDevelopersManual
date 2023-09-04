@@ -197,7 +197,8 @@ This line is responsible for telling cell factory object that each new cell shou
 
       fieldDim=cellFieldG->getDim();
 
-      potts->getCellFactoryGroupPtr()->registerClass(&customCellAttributeSteppableDataAccessor);
+      ExtraMembersGroupAccessorBase *accessorPtr = &customCellAttributeSteppableDataAccessor;
+      potts->getCellFactoryGroupPtr()->registerClass(accessorPtr);
 
       simulator->registerSteerableObject(this);
 
@@ -207,20 +208,20 @@ This line is responsible for telling cell factory object that each new cell shou
 
 How do we know that ``CustomCellAttributeSteppableData`` is the class whose objects will get attached to
 each cell? We look into steppable header file and see the following line:
-``BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
 
 This line creates special accessor object that given a pointer to a cell it will fetch attached object of
 type ``CustomCellAttributeSteppableData``. The exact details of how this is done are beyond the scope of this
 manual but if you follow the pattern you will be able to attach arbitrary C++ objects to cc3d cells.
 The pattern is as follows:
 
-1. Add BasicAccessor member to your module - steppable or a plugin - ``BasicClassAccessor<ClassYouWantToAttach>``.
-In our case we add ``BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+1. Add ExtraMembersGroupAccessor member to your module - steppable or a plugin - ``ExtraMembersGroupAccessor<ClassYouWantToAttach>``.
+In our case we add ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
 
-2. Add a function that accessess a pointer to this BasicAccessor member - in our case we add (see code below)
-``BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}``
+2. Add a function that accesses a pointer to this ExtraMembersGroupAccessor member - in our case we add (see code below)
+``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}``
 
-3. Register BasicAccessor object with cell factory (we do it in the ``init`` function) of the steppable or plugin -
+3. Register ExtraMembersGroupAccessor object with cell factory (we do it in the ``init`` function) of the steppable or plugin -
 see full ``init`` function above:
 
 ``potts->getCellFactoryGroupPtr()->registerClass(&customCellAttributeSteppableDataAccessor);``
@@ -247,7 +248,7 @@ see full ``init`` function above:
 
       class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppable : public Steppable {
 
-        BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
+        ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
 
         WatchableField3D<CellG *> *cellFieldG;
 
@@ -277,7 +278,7 @@ see full ``init`` function above:
 
         virtual void extraInit(Simulator *simulator);
 
-        BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
+        ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
 
         //steppable interface
 
@@ -327,7 +328,7 @@ any XML parsing in this particular case:
         ASSERT_OR_THROW("CELL TYPE PLUGIN WAS NOT PROPERLY INITIALIZED YET. MAKE SURE THIS IS THE FIRST PLUGIN THAT YOU SET", automaton)
 
 
-            //boundaryStrategy has information aobut pixel neighbors
+            //boundaryStrategy has information about pixel neighbors
             boundaryStrategy = BoundaryStrategy::getInstance();
 
     }
@@ -392,7 +393,7 @@ inventory and store it in local variable ``cell``.
 In line ``13`` we make use of out accessor object. Here we are actually fetching object of type
 ``CustomCellAttributeSteppableData`` that is attached to each cell. Note that
 ``customCellAttributeSteppableDataAccessor.get`` function takes as an input special pointer that is a member of
-every cell object ``cell->extraAttribPtr`` and returns a poiner to the object that accessor is associated with
+every cell object ``cell->extraAttribPtr`` and returns a pointer to the object that accessor is associated with
 in our case it returns a pointer to ``CustomCellAttributeSteppableData``.
 
 In line ``16`` we assign ``x`` variable of the object of class ``CustomCellAttributeSteppableData`` to be a product
@@ -403,7 +404,7 @@ last 5 positions and therefore in the ``else`` portion lines ``25-31`` we last 4
 "front" of the vector and write xCOM in the last position of the vector - line ``30``. Note that the ``else`` part
 gets executed only if we determine that vector has already 5 elements. As you can see our attached attribute can store
 variable number of elements - because we append to vector. In general we can have vectors, lists, maps, queues
-of arbitrary objects. In fact instead of using ``std::vector`` it woudl be better to use queue because queue container
+of arbitrary objects. In fact instead of using ``std::vector`` it would be better to use queue because queue container
 makes it much easier to remove and add elements  to and from the beginning and end of the container.
 
 .. warning::
@@ -448,7 +449,7 @@ modify header file for the steppable class:
 
   class CUSTOMCELLATTRIBUTESTEPPABLE_EXPORT CustomCellAttributeSteppable : public Steppable {
 
-    BasicClassAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
+     ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;
 
     WatchableField3D<CellG *> *cellFieldG;
 
@@ -467,7 +468,7 @@ modify header file for the steppable class:
 
     virtual void extraInit(Simulator *simulator);
 
-    BasicClassAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
+     ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}
 
     CustomCellAttributeSteppableData * getCustomCellAttribute(CellG * cell);
 
@@ -542,7 +543,7 @@ by Twedit++:
 
 Coming back to out Python code we see that inside for loop we print to the screen the
 ``CustomCellAttributeSteppableData`` object (line ``20``) and also print `x` member of this object. Later we
-modify and print to the sceen the `x` variable of the object and we only do it for the first cell we encounter
+modify and print to the screen the `x` variable of the object and we only do it for the first cell we encounter
 during iteration over all cells to make output more concise (see ``break`` statement at the end of the loop)
 
 The output looks encouraging:
@@ -601,7 +602,8 @@ What about the ``array`` member of ``CustomCellAttributeSteppableData``. Remembe
                 break
 
 In lines ``26-27`` we print the type of ``custom_cell_attr_data.array`` as well as the first element.
-Later, in lines ``29-32`` we are appending elements to the vector using ``push_back`` C++ function (because ``array`` is a C++ object wrapped in Python). NOtice that we are doing double append for first cell. First append
+Later, in lines ``29-32`` we are appending elements to the vector using ``push_back`` C++ function (because ``array``
+is a C++ object wrapped in Python). Notice that we are doing double append for first cell. First append
 (``push_back``) happens in C++ and in Python we are doing a second one. This , somewhat artificial example shows
 how to access and modify custom attributes from C++ and from Python in a single simulation.
 

@@ -311,7 +311,7 @@ because we are not really passing any parameters to the steppable from the XML a
 
 .. note::
 
-    It is important that every module (steppable, plugin) that you develop in C++ be instantiated in XML. Otherwise it will not be loaded and you will not be able to use it from Python. You can, however, write Python code that will properly load and initialize your module but this approach is way more complex that adding a simple line or lines in the XML.
+    It is important that every module (steppable, plugin) that you develop in C++ be instantiated in XML. Otherwise it will not be loaded and you will not be able to use it from Python. You can, however, write Python code that will properly load and initialize your module but this approach is way more complex than adding a simple line or lines in the XML.
 
 In our example even if we add ``<Steppable Type="HeterotypicBoundaryLength"/>`` to the XML we will not see any
 calculations being done. Why? Because ``start`` and ``step`` functions are empty:
@@ -340,7 +340,7 @@ calculations being done. Why? Because ``start`` and ``step`` functions are empty
     }
 
 We left those implementations empty on purpose. We wanted to show you how you can use steppable to implement
-functionality that gets called on-demand from Python code. LEt us no look at hte Python code:
+functionality that gets called on-demand from Python code. Let us now look at the Python code:
 
 .. code-block:: python
     :linenos:
@@ -393,8 +393,8 @@ we included two pair indexes:
     unsigned int pair_index_2 = typePairIndex(n_cell_type, cell_type);
 
 Notice also that if we try to access heterotypic surface between types 3 and 20 (none of those types exist in our
-simulation) we get back ``0.0``. Why? The answer has to do with the behavior of C++ ``std::map`` container. Simply put
-if we try to use a key that does not exist in the map the C++ will add this key and initialize the value of the key
+simulation) we get back ``0.0``. Why? The answer has to do with the behavior of C++ ``std::map`` container.
+If we try to use a key that does not exist in the map the C++ will add this key and initialize the value of the key
 value-pair to the whatever default constructor of the value type is. In our case our map container has the following
 type : ``std::map<unsigned int, double> typePairHTSurfaceMap`` so that key is of  ``unsigned int`` type and
 value is of ``double`` type. Any modern C++ compiler will put ``0.0`` as a default value for objects of type ``double``.

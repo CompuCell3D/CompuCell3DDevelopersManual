@@ -253,7 +253,7 @@ The implementation of this function is pretty straightforward - it is a function
 change growth rate for a given cell type and then assigns a growth rate to a given entry in the ``this->growthRateMap``.
 
 Why does this function make sense to be implemented in Python? If you think about a simulation where you want to
-run many simulations that need to modify growth rate at a particular MCS but you don't know which mCS it will be
+run many simulations that need to modify growth rate at a particular MCS but you don't know which MCS it will be
 you can write a simple code where you could try many time points at this you change growth rate and see if the outcome
 matches your expectations. Obviously, you could do it all in c++ but then you would need to pass more parameters to
 the XML making XML harder and harder to understand or you could hard-code everything in C++ but then you would need to
