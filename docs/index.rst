@@ -21,6 +21,7 @@ introduction
    heteropytic_boundary_surface_steppable
    attaching_attributes_to_cells
    debugging_cc3d_using_gdb
+   working_on_user_interface
 
 
 Indices and tables
