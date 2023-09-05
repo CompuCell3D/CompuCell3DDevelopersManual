@@ -34,7 +34,7 @@ Running CompuCell3D User interface code in PyCharm
 --------------------------------------------------
 .. warning::
 
-    The following instructions are for Windows Operating systems. If you are on OSX or Linux there should not be much of a difference except that when we copy directories you may us soft links and the layout of the Python environment is slightly different
+    The following instructions are for Windows. If you are on OSX or Linux there should not be much of a difference except that when you copy directories you may us soft links and the layout of the Python environment is slightly different on OSX/Linux than it is on Windows. We will point out the differences later in the text.
 
 As you may know by now, CompuCell3D is distributed in the form of conda packages. Typically, you would use a binary installer that under the hood installs distribution of Miniconda, then installs mamba (python package manager that os much faster than conda package manager) and then uses
 mamba to install CompuCell3D. Now, as a developer you will need to do those steps manually. First, let's install conda - here is tha link and installation instructions:
@@ -159,7 +159,7 @@ Right-click on this file and choose, "Run" (or "Debug" if you want to start debu
 
 Twedit++ should open up:
 
-|ui_development_012|
+|ui_development_013|
 
 At this point you are ready to do UI development using PyCharm
 
