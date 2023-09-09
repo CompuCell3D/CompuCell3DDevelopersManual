@@ -10,13 +10,13 @@ In order to compile entire CC3D code on Windows (not just the developer zone) yo
 
 Once you installed Visual Studio 2015 Community Edition (you may need to restart your computer after the installation is finished) you need to install Miniconda3 from heere: https://docs.conda.io/projects/miniconda/en/latest/
 
-Once you install the latest version of Miniconda for your operating system you should install mamba into `base` conda environment:
+Once you install the latest version of Miniconda for your operating system you should install mamba into ``base`` conda environment:
 
 .. code-block:: console
 
     conda install -c conda-forge mamba
 
-Note, `-c conda-forge` points to `conda-forge` channel that is one of the most reliable repositories of conda packages.
+Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the most reliable repositories of conda packages.
 
 Next fork CompuCell3D core code repository from https://github.com/CompuCell3D/CompuCell3D. Simply log in to your github account, navigate to the CompuCell3D link and click Fork button in the upper right corner of the page:
 
@@ -31,13 +31,13 @@ To clone repository you follow command pattern below:
     cd d:/src/
     git clone git@github.com:<your_github_name>/CompuCell3D.git
 
-Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of `D:/src/CompuCell3D/conda-recipes/` directory , in particular at the `D:/src/CompuCell3D/conda-recipes/bld.bat` file. We will leverage content of this file to construct invocation of the `cmake` command that will set up compilation of CompuCell3D in Visual Studio 2015.
+Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of ``D:/src/CompuCell3D/conda-recipes/`` directory , in particular at the ``D:/src/CompuCell3D/conda-recipes/bld.bat`` file. We will leverage content of this file to construct invocation of the ``cmake`` command that will set up compilation of CompuCell3D in Visual Studio 2015.
 
 .. note::
 
-    I assumed that my forked repository was cloned to `D:/src/CompuCell3D`. If you cloned it to a different folder you will need to adjust paths accordingly
+    I assumed that my forked repository was cloned to ``D:/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
 
-At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D.  As a first step let us create a conda environment (let's call it `cc3d_4413_310` but you can call it whatever you want) and install into it CompuCell3D 4.4.1
+At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D.  As a first step let us create a conda environment (let's call it ``cc3d_4413_310`` but you can call it whatever you want) and install into it CompuCell3D 4.4.1
 
 .. code-block::
 
@@ -55,7 +55,7 @@ and let's install into it CompuCell3D:
 
     mamba install -c conda-forge -c compucell3d compucell3d=4.4.1
 
-It may take few minutes for all packages to download. Notice, we are now sourcing our packages from two conda package repositories: `conda-forge` and `compucell3d`.
+It may take few minutes for all packages to download. Notice, we are now sourcing our packages from two conda package repositories: ``conda-forge`` and ``compucell3d``.
 
 If you pay attention to which packages are being installed with CompuCell3D you may notice that cmake is one of them. This is handy because we will use it to configure CompuCell3D build in Visual Studio using this bundled cmake.
 
@@ -67,29 +67,27 @@ Open up a new file in your editor and paste the following cmake invocation
 
 Let us explain what each setting/flag means.
 
-`-S` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in `d:/src/CompuCell3D/CompuCell3D` where `d:/src/CompuCell3D` is a path to repository and inside this folder there is `CompuCell3D` subfolder that stores CMakeLists.txt file.
+``-S`` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in ``d:/src/CompuCell3D/CompuCell3D`` where ``d:/src/CompuCell3D`` is a path to repository and inside this folder there is ``CompuCell3D`` subfolder that stores CMakeLists.txt file.
 
-`-B` option specifies where the build files are written to. The build files include intermediate compiler outputs but also Visual Studio project that we will open in the Visual Studio IDE.
+``-B`` option specifies where the build files are written to. The build files include intermediate compiler outputs but also Visual Studio project that we will open in the Visual Studio IDE.
 
-`-G` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying `Visual Studio 14 2015 Win64` so that CMake can generate VS 2015 project for Win64. You can check which generators are supported by typing
+`-G` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying ``Visual Studio 14 2015 Win64`` so that CMake can generate VS 2015 project for Win64. You can check which generators are supported by typing
 
 .. code-block:: console
 
     cmake --help
 
-The next set of options all begin with `-D`. `-D` is used to set variables that are defined in CMakeLists.txt files or that are standard CMake variables. Let's go over those:
+The next set of options all begin with ``-D``. ``-D`` is used to set variables that are defined in CMakeLists.txt files or that are standard CMake variables. Let's go over those:
 
-`-DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe` - here we specify path to python executable. The Python3_EXECUTABLE is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
+``-DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe`` - here we specify path to python executable. The ``Python3_EXECUTABLE`` is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
 
-`-DNO_OPENCL=ON` - specifies that we do not want to build GPU diffusion solvers. This is the variable that we introduced
-
-`-DBUILD_STANDALONE=OFF` - this is legacy flag that determines how the output files will be arranged. If we use `OFF` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to `ON` those plugins will be installed into `D:/install_projects/cc3d_4413_310`. If you are OK with modifying your conda environment - set it to `OFF` if not set it to `ON`. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (`.dll`) from `d:/install_projects/cc3d_4413_310/bin/` to c:/miniconda3/envs/cc3d_4413_310/Library/bin/
+``-DNO_OPENCL=ON`` - specifies that we do not want to build GPU diffusion solvers. This is the variable that we introduced ``-DBUILD_STANDALONE=OFF`` - this is legacy flag that determines how the output files will be arranged. If we use ``OFF`` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to ``ON`` those plugins will be installed into ``D:/install_projects/cc3d_4413_310``. If you are OK with modifying your conda environment - set it to ``OFF`` if not set it to ``ON``. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (``.dll``) from ``d:/install_projects/cc3d_4413_310/bin/`` to ``c:/miniconda3/envs/cc3d_4413_310/Library/bin/``
 
 .. note::
 
     You will need to do file copy operation after each compilation follwed by Install step. It is a bit of the inconvenience but we will fix it in the future release
 
-`-DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310` sets standard CMake variable tha specifies installation directory.
+``-DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310`` sets standard CMake variable tha specifies installation directory.
 
 Obviously you may need to adjust paths so that they correspond to your file system layout. If you need a template for the above command here it is:
 
@@ -201,15 +199,15 @@ After we execute the above command (with paths adjusted to your file system layo
     -- Generating done
     -- Build files have been written to: D:/src/CompuCell3D_build
 
-The line `-- Generating done` shows -- Build files have been written to: D:/src/CompuCell3D_build`.
+The line ``-- Generating done`` shows ``-- Build files have been written to: D:/src/CompuCell3D_build``.
 
 |cc3d_cpp_002|
 
-At this point we can open the newly generated project in the Visual Studio 2015 IDE and start compilation. In Visual Studio 2015 navigate to `File->Open...->Project/Solution...`
+At this point we can open the newly generated project in the Visual Studio 2015 IDE and start compilation. In Visual Studio 2015 navigate to ``File->Open...->Project/Solution...``
 
 |cc3d_cpp_003|
 
-and navigate to where VS 2015 files are generated and pick `ALL_BUILD.vcxproj`
+and navigate to where VS 2015 files are generated and pick ``ALL_BUILD.vcxproj``
 
 |cc3d_cpp_004|
 
@@ -217,7 +215,7 @@ Once the project is loaded we set compile configration (we choose RelWithDebInfo
 
 |cc3d_cpp_006|
 
-Next, from the `Solution Explorer` panel, right-click on `ALL_BUILD` and select `Build` from context menu
+Next, from the ``Solution Explorer`` panel, right-click on ``ALL_BUILD`` and select ``Build`` from context menu
 
 |cc3d_cpp_007|
 
@@ -227,7 +225,7 @@ The compilation will start and after a while (say 10-15 minutes on Windows , muc
 
 Once compilation succeeded, go ahead and install all the libraries to the target dir:
 
-Find `INSTALL` subproject in the `Solution Explorer`, right-click and choose `Build` to install all the libraries:
+Find ``INSTALL`` subproject in the ``Solution Explorer``, right-click and choose ``Build`` to install all the libraries:
 
 |cc3d_cpp_009|
 
@@ -239,6 +237,11 @@ The only thing that remains now is to copy  dlls from ``d:/install_projects/cc3d
 
 
 At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+
+Using newly compiled binaries with the UI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code:  `running_ui_from_PyCharm`_.
 
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
