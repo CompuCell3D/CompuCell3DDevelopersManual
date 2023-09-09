@@ -231,9 +231,15 @@ Find `INSTALL` subproject in the `Solution Explorer`, right-click and choose `Bu
 
 |cc3d_cpp_009|
 
-and if you take a look at teh outptu screen you will see that some files are installed into `d:\install_projects\cc3d_4413_310` and some are written directly into conda environment `c:\miniconda3\envs\cc3d_4413_310`
+and if you take a look at teh output screen you will see that some files are installed into `d:\install_projects\cc3d_4413_310` and some are written directly into conda environment `c:\miniconda3\envs\cc3d_4413_310`
 
-|cc3d_cpp_009|
+|cc3d_cpp_010|
+
+The only thing that remains now is to copy  dlls from `d:\install_projects\cc3d_4413_310\bin\` to `c:\miniconda3\envs\cc3d_4413_310\Library\bin\`
+
+
+At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
    :width: 8.8in
