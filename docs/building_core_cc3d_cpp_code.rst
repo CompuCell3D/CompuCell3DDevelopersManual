@@ -249,6 +249,8 @@ Reference `My target`_.
 
 Reference `running-ui-from-pycharm`_
 
+Reference :doc:`Potts docs <potts>`.
+
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
     :scale: 50%
