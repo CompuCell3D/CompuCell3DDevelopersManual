@@ -98,7 +98,7 @@ Obviously you may need to adjust paths so that they correspond to your file syst
      cmake -S <PATH TO CompuCell3D REPO>\CompuCell3D -B <dir to store build files> -DPython3_EXECUTABLE=<python executable - from conda environment> -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=<dir where compiled CompuCell3D will be written to>
 
 
-After we execute the above command (with paths adjusted to your file system layout) we will get the putput that looks something as follows:
+After we execute the above command (with paths adjusted to your file system layout) we will get the output that looks something as follows:
 
 .. code-block:: console
 
@@ -209,6 +209,31 @@ At this point we can open the newly generated project in the Visual Studio 2015 
 
 |cc3d_cpp_003|
 
+and navigate to where VS 2015 files are generated and pick `ALL_BUILD.vcxproj`
+
+|cc3d_cpp_004|
+
+Once the project is loaded we set compile configration (we choose RelWithDebInfo from the pull-down menu)
+
+|cc3d_cpp_006|
+
+Next, from the `Solution Explorer` panel, right-click on `ALL_BUILD` and select `Build` from context menu
+
+|cc3d_cpp_007|
+
+The compilation will start and after a while (say 10-15 minutes on Windows , much faster on other platforms) you will get compilation completion screen
+
+|cc3d_cpp_008|
+
+Once compilation succeeded, go ahead and install all the libraries to the target dir:
+
+Find `INSTALL` subproject in the `Solution Explorer`, right-click and choose `Build` to install all the libraries:
+
+|cc3d_cpp_009|
+
+and if you take a look at teh outptu screen you will see that some files are installed into `d:\install_projects\cc3d_4413_310` and some are written directly into conda environment `c:\miniconda3\envs\cc3d_4413_310`
+
+|cc3d_cpp_009|
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
    :width: 8.8in
@@ -219,4 +244,22 @@ At this point we can open the newly generated project in the Visual Studio 2015 
    :height: 1.9in
 
 .. |cc3d_cpp_003| image:: images/cc3d_cpp_003.png
+    :scale: 50%
+
+.. |cc3d_cpp_004| image:: images/cc3d_cpp_004.png
+    :scale: 50%
+
+.. |cc3d_cpp_006| image:: images/cc3d_cpp_006.png
+    :scale: 50%
+
+.. |cc3d_cpp_007| image:: images/cc3d_cpp_007.png
+    :scale: 50%
+
+.. |cc3d_cpp_008| image:: images/cc3d_cpp_008.png
+    :scale: 50%
+
+.. |cc3d_cpp_009| image:: images/cc3d_cpp_009.png
+    :scale: 50%
+
+.. |cc3d_cpp_010| image:: images/cc3d_cpp_010.png
     :scale: 50%
