@@ -241,7 +241,7 @@ At this point your conda environment will contain binaries that are coming from 
 Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code:   or :ref:`working_on_user_interface.rst#running-ui-from-pycharm`
+Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code:   or :ref:`setting up code <working_on_user_interface.rst#running-ui-from-pycharm>`
 
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
