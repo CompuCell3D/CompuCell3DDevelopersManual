@@ -251,6 +251,7 @@ Reference `running-ui-from-pycharm`_
 
 Reference :doc:`Potts docs <potts>`.
 
+Reference :doc:`PyCharm <working_on_user_interface#running-ui-from-pycharm>`.
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
     :scale: 50%
