@@ -22,6 +22,7 @@ introduction
    heteropytic_boundary_surface_steppable
    attaching_attributes_to_cells
    debugging_cc3d_using_gdb
+   building_core_cc3d_cpp_code
    working_on_user_interface
 
 
