@@ -247,6 +247,8 @@ Follow this guide to setup PyCharm to run the Player and use your newly compiled
 
 Reference `My target`_.
 
+Reference `running-ui-from-pycharm`_
+
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
     :scale: 50%
