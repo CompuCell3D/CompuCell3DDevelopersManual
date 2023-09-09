@@ -115,7 +115,7 @@ In my case it was installed to `c:\miniconda3\envs\cc3d_4413_310\python.exe`
 
 After this Click OK on all open dialogs and your newly-created interpreter will be added to the list of Python interpreters available to PyCharm
 
-.. _running_ui_from_PyCharm:
+.. _running-ui-from-pycharm:
 
 Finalizing the setup
 ~~~~~~~~~~~~~~~~~~~~

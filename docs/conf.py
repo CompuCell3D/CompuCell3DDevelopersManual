@@ -52,7 +52,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'CompuCell3D Developers Manual'
 copyright = u'2018, Maciek Swat'
-author = u'Maciek Swat, James A. Glazier'
+author = u'Maciek Swat, James A. Glazier, T.J. Sego'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
