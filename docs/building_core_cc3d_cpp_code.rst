@@ -28,14 +28,14 @@ To clone repository you follow command pattern below:
 
 .. code-block:: console
 
-    cd d:\src\
+    cd d:/src/
     git clone git@github.com:<your_github_name>/CompuCell3D.git
 
-Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of `D:\src\CompuCell3D\conda-recipes\` directory , in particular at the `D:\src\CompuCell3D\conda-recipes\bld.bat` file. We will leverage content of this file to construct invocation of the `cmake` command that will set up compilation of CompuCell3D in Visual Studio 2015.
+Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of `D:/src/CompuCell3D/conda-recipes/` directory , in particular at the `D:/src/CompuCell3D/conda-recipes/bld.bat` file. We will leverage content of this file to construct invocation of the `cmake` command that will set up compilation of CompuCell3D in Visual Studio 2015.
 
 .. note::
 
-    I assumed that my forked repository was cloned to `D:\src\CompuCell3D`. If you cloned it to a different folder you will need to adjust paths accordingly
+    I assumed that my forked repository was cloned to `D:/src/CompuCell3D`. If you cloned it to a different folder you will need to adjust paths accordingly
 
 At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D.  As a first step let us create a conda environment (let's call it `cc3d_4413_310` but you can call it whatever you want) and install into it CompuCell3D 4.4.1
 
@@ -63,11 +63,11 @@ Open up a new file in your editor and paste the following cmake invocation
 
 .. code-block:: batch
 
-    cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
+    cmake -S d:/src/CompuCell3D/CompuCell3D -B d:/src/CompuCell3D_build -DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
 
 Let us explain what each setting/flag means.
 
-`-S` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in `d:\src\CompuCell3D\CompuCell3D` where `d:\src\CompuCell3D` is a path to repository and inside this folder there is `CompuCell3D` subfolder that stores CMakeLists.txt file.
+`-S` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in `d:/src/CompuCell3D/CompuCell3D` where `d:/src/CompuCell3D` is a path to repository and inside this folder there is `CompuCell3D` subfolder that stores CMakeLists.txt file.
 
 `-B` option specifies where the build files are written to. The build files include intermediate compiler outputs but also Visual Studio project that we will open in the Visual Studio IDE.
 
@@ -79,11 +79,11 @@ Let us explain what each setting/flag means.
 
 The next set of options all begin with `-D`. `-D` is used to set variables that are defined in CMakeLists.txt files or that are standard CMake variables. Let's go over those:
 
-`-DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe` - here we specify path to python executable. The Python3_EXECUTABLE is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
+`-DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe` - here we specify path to python executable. The Python3_EXECUTABLE is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
 
 `-DNO_OPENCL=ON` - specifies that we do not want to build GPU diffusion solvers. This is the variable that we introduced
 
-`-DBUILD_STANDALONE=OFF` - this is legacy flag that determines how the output files will be arranged. If we use `OFF` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to `ON` those plugins will be installed into `D:/install_projects/cc3d_4413_310`. If you are OK with modifying your conda environment - set it to `OFF` if not set it to `ON`. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (`.dll`) from `d:\install_projects\cc3d_4413_310\bin\` to c:\miniconda3\envs\cc3d_4413_310\Library\bin\
+`-DBUILD_STANDALONE=OFF` - this is legacy flag that determines how the output files will be arranged. If we use `OFF` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to `ON` those plugins will be installed into `D:/install_projects/cc3d_4413_310`. If you are OK with modifying your conda environment - set it to `OFF` if not set it to `ON`. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (`.dll`) from `d:/install_projects/cc3d_4413_310/bin/` to c:/miniconda3/envs/cc3d_4413_310/Library/bin/
 
 .. note::
 
@@ -95,14 +95,14 @@ Obviously you may need to adjust paths so that they correspond to your file syst
 
 .. code-block:: console
 
-     cmake -S <PATH TO CompuCell3D REPO>\CompuCell3D -B <dir to store build files> -DPython3_EXECUTABLE=<python executable - from conda environment> -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=<dir where compiled CompuCell3D will be written to>
+     cmake -S <PATH TO CompuCell3D REPO>/CompuCell3D -B <dir to store build files> -DPython3_EXECUTABLE=<python executable - from conda environment> -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=<dir where compiled CompuCell3D will be written to>
 
 
 After we execute the above command (with paths adjusted to your file system layout) we will get the output that looks something as follows:
 
 .. code-block:: console
 
-    (cc3d_4413_310) D:\src> cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
+    (cc3d_4413_310) D:/src> cmake -S d:/src/CompuCell3D/CompuCell3D -B d:/src/CompuCell3D_build -DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
     -- Selecting Windows SDK version 10.0.14393.0 to target Windows 10.0.22621.
     -- The C compiler identification is MSVC 19.0.24215.1
     -- The CXX compiler identification is MSVC 19.0.24215.1
@@ -121,12 +121,12 @@ After we execute the above command (with paths adjusted to your file system layo
     -- Found OpenMP: TRUE (found version "2.0")
     openmp c flags -openmp
     openmp cxx flags -openmp
-    -- Found Python3: c:\miniconda3\envs\cc3d_4413_310\python.exe (found version "3.10.12") found components: Interpreter Development NumPy Development.Module Development.Embed
+    -- Found Python3: c:/miniconda3/envs/cc3d_4413_310/python.exe (found version "3.10.12") found components: Interpreter Development NumPy Development.Module Development.Embed
     Python3_FOUND: TRUE
     Python3_Interpreter_FOUND: TRUE
     Python3_VERSION: 3.10.12
     Python3_Development_FOUND: TRUE
-    Python3_EXECUTABLE: c:\miniconda3\envs\cc3d_4413_310\python.exe
+    Python3_EXECUTABLE: c:/miniconda3/envs/cc3d_4413_310/python.exe
     Python3_Development_FOUND: TRUE
     Python3_INCLUDE_DIRS: C:/miniconda3/envs/cc3d_4413_310/include
     Python3_LIBRARIES: C:/miniconda3/envs/cc3d_4413_310/libs/python310.lib
@@ -154,7 +154,7 @@ After we execute the above command (with paths adjusted to your file system layo
     -- OpenCL disabled
     OPENMP FLAGS -openmp
     -- Found SWIG: C:/miniconda3/envs/cc3d_4413_310/Library/bin/swig.exe (found version "4.1.1")
-    -- Found Python3: c:\miniconda3\envs\cc3d_4413_310\python.exe (found suitable version "3.10.12", minimum required is "3.10") found components: Interpreter Development.Module Development.Embed
+    -- Found Python3: c:/miniconda3/envs/cc3d_4413_310/python.exe (found suitable version "3.10.12", minimum required is "3.10") found components: Interpreter Development.Module Development.Embed
     -- Looking for pthread.h
     -- Looking for pthread.h - not found
     -- Found Threads: TRUE
@@ -231,11 +231,11 @@ Find `INSTALL` subproject in the `Solution Explorer`, right-click and choose `Bu
 
 |cc3d_cpp_009|
 
-and if you take a look at teh output screen you will see that some files are installed into ``d:\install_projects\cc3d_4413_310`` and some are written directly into conda environment ``c:\miniconda3\envs\cc3d_4413_310``
+and if you take a look at teh output screen you will see that some files are installed into ``d:/install_projects/cc3d_4413_310`` and some are written directly into conda environment ``c:/miniconda3/envs/cc3d_4413_310``
 
 |cc3d_cpp_010|
 
-The only thing that remains now is to copy  dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+The only thing that remains now is to copy  dlls from ``d:/install_projects/cc3d_4413_310/bin/`` to ``c:/miniconda3/envs/cc3d_4413_310/Library/bin/``
 
 
 At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
