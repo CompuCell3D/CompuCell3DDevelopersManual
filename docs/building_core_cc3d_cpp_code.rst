@@ -2,6 +2,8 @@ Building CompuCell3D C++ Code
 =======================================
 In this section we will show you how to set up compilation of CompuCell3D code on various platforms. We will start with windows
 
+.. _My target:
+
 Windows
 ~~~~~~~~
 
@@ -242,6 +244,8 @@ Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code:   or :ref:`setting up code <working_on_user_interface.rst#running-ui-from-pycharm>`_
+
+Reference `My target`_.
 
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
