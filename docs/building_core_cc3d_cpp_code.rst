@@ -92,7 +92,7 @@ Next two lines specify conda channels (repositories) from which the packages lis
       - conda-forge
       - compucell3d
 
-Here we list conda-forge - by far the most popular and package-rich conda package repository and compucell3d - the repository that stores dependencies needed to install or build compucell3d. The ``dependencies`` section lists all packages needed to build core C++ Compucell3D code. NOtice we specify particular python version 3.10. It is important to know which version of python you are building packages for otjherwise you may see unexpected runtime surprises so always pay attention to nuances like this.
+Here we list conda packages repositories. conda-forge is by far the most popular and package-rich conda package repository and compucell3d is the repository that stores dependencies needed to install or build compucell3d. The ``dependencies`` section lists all packages needed to build core C++ Compucell3D code. NOtice we specify particular python version 3.10. It is important to know which version of python you are building packages for otjherwise you may see unexpected runtime surprises so always pay attention to nuances like this.
 
 Let's use this file to actually create conda environment. Open miniconda console and run the following command:
 
@@ -304,7 +304,19 @@ and if you take a look at teh output screen you will see that some files are ins
 
 |cc3d_cpp_010|
 
+
+After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
+
+|cc3d_cpp_010a|
+
+and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-packages`` because ``site-packages`` that contains ``cc3d` package has been installed directly into conda environment - hence no need to perform manual copy
+
+|cc3d_cpp_010b|
+
+
 The only thing that remains now is to copy  dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+
+|cc3d_cpp_011|
 
 
 At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
@@ -313,6 +325,22 @@ Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code  - :doc:`Running Player and Twedit++ from PyCharm <working_on_user_interface>`.
+
+
+Changing layout of installed CC3C C++ code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To Change the layout of the C++ code we could use ``-DBUILD_STANDALONE=ON`` option  and if we do that and repeat all the steps we showed in this writeup you will end up with the layout of the install directory that looks as follows:
+
+|cc3d_cpp_012|
+
+and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see  ``site-packages``
+
+|cc3d_cpp_012a|
+
+
+so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
+
 
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
@@ -349,4 +377,19 @@ Follow this guide to setup PyCharm to run the Player and use your newly compiled
     :scale: 50%
 
 .. |cc3d_cpp_010| image:: images/cc3d_cpp_010.png
+    :scale: 50%
+
+.. |cc3d_cpp_010a| image:: images/cc3d_cpp_010a.png
+    :scale: 50%
+
+.. |cc3d_cpp_010b| image:: images/cc3d_cpp_010b.png
+    :scale: 50%
+
+.. |cc3d_cpp_011| image:: images/cc3d_cpp_011.png
+    :scale: 50%
+
+.. |cc3d_cpp_012| image:: images/cc3d_cpp_012.png
+    :scale: 50%
+
+.. |cc3d_cpp_012a| image:: images/cc3d_cpp_012a.png
     :scale: 50%
