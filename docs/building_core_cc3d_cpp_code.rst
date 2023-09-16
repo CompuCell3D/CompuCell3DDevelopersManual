@@ -10,7 +10,11 @@ Windows
 In order to compile entire CC3D code on Windows (not just the developer zone) you need to install Visual Studio 2015 Community Edition (free). Here is a reference page on how to find the relevant installation bundles. Make sure you use CommunityEdition: https://stackoverflow.com/questions/44290672/how-to-download-visual-studio-community-edition-2015-not-2017
 
 
-Once you installed Visual Studio 2015 Community Edition (you may need to restart your computer after the installation is finished) you need to install Miniconda3 from heere: https://docs.conda.io/projects/miniconda/en/latest/
+You can also install Visual Studio 2019 from Microsoft Store. Both of those frameworks should work fine when it comes to compilation of CC3D code. One thing to remember that is you want to recompile the code it is often a good idea to close and reopen Visual Studio because otherwise compilations may take a long time and your IDE may even freeze - no matter how fast your computer is
+
+|cc3d_cpp_001a|
+
+Once you installed Visual Studio 2015 Community Edition or Visual Studio 2019 Community Edition  (you may need to restart your computer after the installation is finished) you need to install Miniconda3 from heere: https://docs.conda.io/projects/miniconda/en/latest/
 
 Once you install the latest version of Miniconda for your operating system you should install mamba into ``base`` conda environment:
 
@@ -39,41 +43,106 @@ Now we are ready to start configuring CompuCell3D build. The entire process of s
 
     I assumed that my forked repository was cloned to ``D:/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
 
-At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D.  As a first step let us create a conda environment (let's call it ``cc3d_4413_310`` but you can call it whatever you want) and install into it CompuCell3D 4.4.1
+At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D. Those key packages that are required to compile CC3D are stored in the conda environment file below. Copy the content of this file ave it as env310.yaml. I saved mine to ``D:src\env310.yaml``
 
-.. code-block::
+.. code-block:: yaml
 
-    conda create -n cc3d_4413_310 python=3.10
+    name: cc3d_4413_310
+    channels:
+      - conda-forge
+      - compucell3d
+    dependencies:
+      - python=3.10
+      - numpy=1.24
+      - vtk=9.2
+      - eigen
+      - tbb-devel=2021
+      - boost=1.78
+      - cmake>=3.21
+      - swig=4
+      - psutil
+      - deprecated
+      - cc3d-network-solvers>=0.3.0
+      - scipy
+      - pandas
+      - jinja2
+      - simservice
+      - notebook
+      - ipywidgets
+      - ipyvtklink
+      - sphinx
+      - graphviz
+      - qscintilla2
+      - webcolors
+      - requests
+      - pyqt=5
+      - pyqtgraph
+      - pyqtwebkit
+      - chardet
+      - fipy
 
-next lets activate newly created conda environment:
 
-.. code-block::
+Notice the first line ``name: cc3d_4413_310`` specifies the name oft the conda environment this file will create - it will be called ``cc3d_4413_310``
 
-    conda activate cc3d_4413_310
+Next two lines specify conda channels (repositories) from which the packages listed in the file will be downloaded from
 
-and let's install into it CompuCell3D:
+.. code-block:: yaml
+
+    channels:
+      - conda-forge
+      - compucell3d
+
+Here we list conda-forge - by far the most popular and package-rich conda package repository and compucell3d - the repository that stores dependencies needed to install or build compucell3d. The ``dependencies`` section lists all packages needed to build core C++ Compucell3D code. NOtice we specify particular python version 3.10. It is important to know which version of python you are building packages for otjherwise you may see unexpected runtime surprises so always pay attention to nuances like this.
+
+Let's use this file to actually create conda environment. Open miniconda console and run the following command:
 
 .. code-block:: console
 
-    mamba install -c conda-forge -c compucell3d compucell3d=4.4.1
+    mamba env create -f d:\src\env310.yaml
 
-It may take few minutes for all packages to download. Notice, we are now sourcing our packages from two conda package repositories: ``conda-forge`` and ``compucell3d``.
+the terminal output will look similar to the one below:
 
-If you pay attention to which packages are being installed with CompuCell3D you may notice that cmake is one of them. This is handy because we will use it to configure CompuCell3D build in Visual Studio using this bundled cmake.
+|cc3d_cpp_001b|
 
-Open up a new file in your editor and paste the following cmake invocation
+and after everything is installed we will get the prompt to activate newly created conda environment conda
+
+|cc3d_cpp_001c|
+
+.. note::
+
+    if you are having troubles running mamba - for example if you get permission error you may need to perform conda creation in the Administrator mode or adjust permissions for your entire miniconda installation
+
+
+
+Let's activate newly created conda environment (from now on you should be able to use regular console , not the one that runs in the Administrator mode)
+
+
+.. code-block:: console
+
+    conda activate cc3d_4413_310
+
+We are ready to call ``cmake`` to configure CC3D C++ code compilation. 
+Open up a new file in your editor and paste the following cmake invocation. If you are using Visual Studio 2015 the code snippet looks as follows:
 
 .. code-block:: batch
 
-    cmake -S d:/src/CompuCell3D/CompuCell3D -B d:/src/CompuCell3D_build -DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
+    cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
+
+For Visual Studio 2019 you would use
+
+.. code-block:: batch
+
+    cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
+
+the difference is for the ``-G`` option. Let's see below what each option means
 
 Let us explain what each setting/flag means.
 
-``-S`` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in ``d:/src/CompuCell3D/CompuCell3D`` where ``d:/src/CompuCell3D`` is a path to repository and inside this folder there is ``CompuCell3D`` subfolder that stores CMakeLists.txt file.
+``-S`` option allows you to specify the directory that stores and entry CMakeLists.txt file. In my case it is located in ``d:\src\CompuCell3D\CompuCell3D`` where ``d:\src\CompuCell3D`` is a path to repository and inside this folder there is ``CompuCell3D`` subfolder that stores CMakeLists.txt file.
 
 ``-B`` option specifies where the build files are written to. The build files include intermediate compiler outputs but also Visual Studio project that we will open in the Visual Studio IDE.
 
-`-G` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying ``Visual Studio 14 2015 Win64`` so that CMake can generate VS 2015 project for Win64. You can check which generators are supported by typing
+`-G` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying ``Visual Studio 14 2015 Win64`` so that CMake can generate VS 2015 project for Win64. For Visual Studio 2019 you use ``Visual Studio 16 2019`` . To get the list of all available Cmake generators type the following: 
 
 .. code-block:: console
 
@@ -81,39 +150,39 @@ Let us explain what each setting/flag means.
 
 The next set of options all begin with ``-D``. ``-D`` is used to set variables that are defined in CMakeLists.txt files or that are standard CMake variables. Let's go over those:
 
-``-DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe`` - here we specify path to python executable. The ``Python3_EXECUTABLE`` is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
+``-DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe`` - here we specify path to python executable. The ``Python3_EXECUTABLE`` is defined inside CMake package that sets up all Python related paths and we need to only specify python executable
 
-``-DNO_OPENCL=ON`` - specifies that we do not want to build GPU diffusion solvers. This is the variable that we introduced ``-DBUILD_STANDALONE=OFF`` - this is legacy flag that determines how the output files will be arranged. If we use ``OFF`` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to ``ON`` those plugins will be installed into ``D:/install_projects/cc3d_4413_310``. If you are OK with modifying your conda environment - set it to ``OFF`` if not set it to ``ON``. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (``.dll``) from ``d:/install_projects/cc3d_4413_310/bin/`` to ``c:/miniconda3/envs/cc3d_4413_310/Library/bin/``
+``-DNO_OPENCL=ON`` - specifies that we do not want to build GPU diffusion solvers. This is the variable that we introduced ``-DBUILD_STANDALONE=OFF`` - this is a flag that determines how the output files will be arranged. If we use ``OFF`` setting plugin steppable and python bindings will be installed into miniconda environment directly. If we switch it to ``ON`` those plugins will be installed into ``D:\install_projects\cc3d_4413_310``. If you are OK with modifying your conda environment - set it to ``OFF`` if not set it to ``ON``. Still not all libraries will be moved to conda environment upon install and you will have to copy libraries (``.dll``) from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
 
 .. note::
 
-    You will need to do file copy operation after each compilation follwed by Install step. It is a bit of the inconvenience but we will fix it in the future release
+    You will need to do file copy operation after each compilation followed by Install step. It is a bit of the inconvenience but we will fix it in the future release
 
-``-DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310`` sets standard CMake variable tha specifies installation directory.
+``-DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310`` sets standard CMake variable tha specifies installation directory.
 
 Obviously you may need to adjust paths so that they correspond to your file system layout. If you need a template for the above command here it is:
 
 .. code-block:: console
 
-     cmake -S <PATH TO CompuCell3D REPO>/CompuCell3D -B <dir to store build files> -DPython3_EXECUTABLE=<python executable - from conda environment> -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=<dir where compiled CompuCell3D will be written to>
+     cmake -S <PATH TO CompuCell3D REPO>\CompuCell3D -B <dir to store build files> -DPython3_EXECUTABLE=<python executable - from conda environment> -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=<dir where compiled CompuCell3D will be written to>
 
 
 After we execute the above command (with paths adjusted to your file system layout) we will get the output that looks something as follows:
 
 .. code-block:: console
 
-    (cc3d_4413_310) D:/src> cmake -S d:/src/CompuCell3D/CompuCell3D -B d:/src/CompuCell3D_build -DPython3_EXECUTABLE=c:/miniconda3/envs/cc3d_4413_310/python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:/install_projects/cc3d_4413_310
+    (cc3d_4413_310) D:\src> cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
     -- Selecting Windows SDK version 10.0.14393.0 to target Windows 10.0.22621.
     -- The C compiler identification is MSVC 19.0.24215.1
     -- The CXX compiler identification is MSVC 19.0.24215.1
     -- Detecting C compiler ABI info
     -- Detecting C compiler ABI info - done
-    -- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/cl.exe - skipped
+    -- Check for working C compiler: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\cl.exe - skipped
     -- Detecting C compile features
     -- Detecting C compile features - done
     -- Detecting CXX compiler ABI info
     -- Detecting CXX compiler ABI info - done
-    -- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/cl.exe - skipped
+    -- Check for working CXX compiler: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\cl.exe - skipped
     -- Detecting CXX compile features
     -- Detecting CXX compile features - done
     -- Found OpenMP_C: -openmp (found version "2.0")
@@ -121,69 +190,69 @@ After we execute the above command (with paths adjusted to your file system layo
     -- Found OpenMP: TRUE (found version "2.0")
     openmp c flags -openmp
     openmp cxx flags -openmp
-    -- Found Python3: c:/miniconda3/envs/cc3d_4413_310/python.exe (found version "3.10.12") found components: Interpreter Development NumPy Development.Module Development.Embed
+    -- Found Python3: c:\miniconda3\envs\cc3d_4413_310\python.exe (found version "3.10.12") found components: Interpreter Development NumPy Development.Module Development.Embed
     Python3_FOUND: TRUE
     Python3_Interpreter_FOUND: TRUE
     Python3_VERSION: 3.10.12
     Python3_Development_FOUND: TRUE
-    Python3_EXECUTABLE: c:/miniconda3/envs/cc3d_4413_310/python.exe
+    Python3_EXECUTABLE: c:\miniconda3\envs\cc3d_4413_310\python.exe
     Python3_Development_FOUND: TRUE
-    Python3_INCLUDE_DIRS: C:/miniconda3/envs/cc3d_4413_310/include
-    Python3_LIBRARIES: C:/miniconda3/envs/cc3d_4413_310/libs/python310.lib
-    Python3_LIBRARY_RELEASE: C:/miniconda3/envs/cc3d_4413_310/libs/python310.lib
-    Python3_LIBRARY_DIRS: C:/miniconda3/envs/cc3d_4413_310/libs
-    Python3_RUNTIME_LIBRARY_DIRS: C:/miniconda3/envs/cc3d_4413_310
-    Python3_NumPy_INCLUDE_DIRS: C:/miniconda3/envs/cc3d_4413_310/Lib/site-packages/numpy/core/include
+    Python3_INCLUDE_DIRS: C:\miniconda3\envs\cc3d_4413_310\include
+    Python3_LIBRARIES: C:\miniconda3\envs\cc3d_4413_310\libs\python310.lib
+    Python3_LIBRARY_RELEASE: C:\miniconda3\envs\cc3d_4413_310\libs\python310.lib
+    Python3_LIBRARY_DIRS: C:\miniconda3\envs\cc3d_4413_310\libs
+    Python3_RUNTIME_LIBRARY_DIRS: C:\miniconda3\envs\cc3d_4413_310
+    Python3_NumPy_INCLUDE_DIRS: C:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\numpy\core\include
      THIS IS COMPUCELL3D_BUILD_VERSION 1
     COMPUCELL3D_C_BUILD_VERSION is 1
     GOT VERSION AS 4.4.1
-    -- Found ZLIB: C:/miniconda3/envs/cc3d_4413_310/Library/lib/z.lib (found version "1.2.13")
+    -- Found ZLIB: C:\miniconda3\envs\cc3d_4413_310\Library\lib\z.lib (found version "1.2.13")
      PUBLIC UTILS OPEN MP FLAG-openmp
-    expat library local C:/miniconda3/envs/cc3d_4413_310/Library/lib/expat.lib
-    -- D:/src/CompuCell3D/CompuCell3D
-    CMake Warning (dev) at core/CompuCell3D/steppables/PDESolvers/FindEigen3.cmake:73:
+    expat library local C:\miniconda3\envs\cc3d_4413_310\Library\lib\expat.lib
+    -- D:\src\CompuCell3D\CompuCell3D
+    CMake Warning (dev) at core\CompuCell3D\steppables\PDESolvers\FindEigen3.cmake:73:
       Syntax Warning in cmake code at column 35
 
       Argument not separated from preceding token by whitespace.
     Call Stack (most recent call first):
-      core/CompuCell3D/steppables/PDESolvers/CMakeLists.txt:15 (find_package)
+      core\CompuCell3D\steppables\PDESolvers\CMakeLists.txt:15 (find_package)
     This warning is for project developers.  Use -Wno-dev to suppress it.
 
-    'LOCATEDEIGENAT',C:/miniconda3/envs/cc3d_4413_310/Library/include/Eigen3
-    -- Found Eigen3: C:/miniconda3/envs/cc3d_4413_310/Library/include/Eigen3 (Required is at least version "2.91.0")
+    'LOCATEDEIGENAT',C:\miniconda3\envs\cc3d_4413_310\Library\include\Eigen3
+    -- Found Eigen3: C:\miniconda3\envs\cc3d_4413_310\Library\include\Eigen3 (Required is at least version "2.91.0")
     -- OpenCL disabled
     OPENMP FLAGS -openmp
-    -- Found SWIG: C:/miniconda3/envs/cc3d_4413_310/Library/bin/swig.exe (found version "4.1.1")
-    -- Found Python3: c:/miniconda3/envs/cc3d_4413_310/python.exe (found suitable version "3.10.12", minimum required is "3.10") found components: Interpreter Development.Module Development.Embed
+    -- Found SWIG: C:\miniconda3\envs\cc3d_4413_310\Library\bin\swig.exe (found version "4.1.1")
+    -- Found Python3: c:\miniconda3\envs\cc3d_4413_310\python.exe (found suitable version "3.10.12", minimum required is "3.10") found components: Interpreter Development.Module Development.Embed
     -- Looking for pthread.h
     -- Looking for pthread.h - not found
     -- Found Threads: TRUE
-    -- Found GLEW: C:/miniconda3/envs/cc3d_4413_310/Library/lib/glew32.lib
+    -- Found GLEW: C:\miniconda3\envs\cc3d_4413_310\Library\lib\glew32.lib
     -- Found OpenGL: opengl32  found components: OpenGL
     -- Found HDF5: hdf5-shared (found version "1.14.2") found components: C HL
-    -- Found utf8cpp: C:/miniconda3/envs/cc3d_4413_310/Library/include
-    -- Found JsonCpp: C:/miniconda3/envs/cc3d_4413_310/Library/lib/jsoncpp.lib (found suitable version "1.9.5", minimum required is "0.7.0")
-    -- Found OGG: C:/miniconda3/envs/cc3d_4413_310/Library/lib/ogg.lib
-    -- Found THEORA: C:/miniconda3/envs/cc3d_4413_310/Library/lib/theora.lib
-    -- Found NetCDF: C:/miniconda3/envs/cc3d_4413_310/Library/include (found version "4.9.2")
-    -- Found LibPROJ: C:/miniconda3/envs/cc3d_4413_310/Library/lib/proj.lib (found version "9.2.1")
-    -- Found LibXml2: C:/miniconda3/envs/cc3d_4413_310/Library/lib/xml2.lib (found version "2.11.5")
-    -- Found GL2PS: C:/miniconda3/envs/cc3d_4413_310/Library/lib/gl2ps.lib (found suitable version "1.4.2", minimum required is "1.4.2")
-    -- Found PNG: C:/miniconda3/envs/cc3d_4413_310/Library/lib/libpng.lib (found version "1.6.39")
-    -- Found nlohmann_json: C:/miniconda3/envs/cc3d_4413_310/Library/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake (found version "3.11.2")
-    -- Found SQLite3: C:/miniconda3/envs/cc3d_4413_310/Library/include (found version "3.43.0")
-    -- Found Eigen3: C:/miniconda3/envs/cc3d_4413_310/Library/include/eigen3 (found version "3.4.0")
-    -- Found EXPAT: C:/miniconda3/envs/cc3d_4413_310/Library/lib/expat.lib (found version "2.5.0")
-    -- Found double-conversion: C:/miniconda3/envs/cc3d_4413_310/Library/lib/double-conversion.lib
-    -- Found LZ4: C:/miniconda3/envs/cc3d_4413_310/Library/lib/liblz4.lib (found version "1.9.4")
-    -- Found LZMA: C:/miniconda3/envs/cc3d_4413_310/Library/lib/liblzma.lib (found version "5.4.2")
-    -- Found JPEG: C:/miniconda3/envs/cc3d_4413_310/Library/lib/jpeg.lib (found version "80")
-    -- Found TIFF: C:/miniconda3/envs/cc3d_4413_310/Library/lib/tiff.lib (found version "4.5.1")
-    -- Found Freetype: C:/miniconda3/envs/cc3d_4413_310/Library/lib/freetype.lib (found version "2.12.1")
+    -- Found utf8cpp: C:\miniconda3\envs\cc3d_4413_310\Library\include
+    -- Found JsonCpp: C:\miniconda3\envs\cc3d_4413_310\Library\lib\jsoncpp.lib (found suitable version "1.9.5", minimum required is "0.7.0")
+    -- Found OGG: C:\miniconda3\envs\cc3d_4413_310\Library\lib\ogg.lib
+    -- Found THEORA: C:\miniconda3\envs\cc3d_4413_310\Library\lib\theora.lib
+    -- Found NetCDF: C:\miniconda3\envs\cc3d_4413_310\Library\include (found version "4.9.2")
+    -- Found LibPROJ: C:\miniconda3\envs\cc3d_4413_310\Library\lib\proj.lib (found version "9.2.1")
+    -- Found LibXml2: C:\miniconda3\envs\cc3d_4413_310\Library\lib\xml2.lib (found version "2.11.5")
+    -- Found GL2PS: C:\miniconda3\envs\cc3d_4413_310\Library\lib\gl2ps.lib (found suitable version "1.4.2", minimum required is "1.4.2")
+    -- Found PNG: C:\miniconda3\envs\cc3d_4413_310\Library\lib\libpng.lib (found version "1.6.39")
+    -- Found nlohmann_json: C:\miniconda3\envs\cc3d_4413_310\Library\share\cmake\nlohmann_json\nlohmann_jsonConfig.cmake (found version "3.11.2")
+    -- Found SQLite3: C:\miniconda3\envs\cc3d_4413_310\Library\include (found version "3.43.0")
+    -- Found Eigen3: C:\miniconda3\envs\cc3d_4413_310\Library\include\eigen3 (found version "3.4.0")
+    -- Found EXPAT: C:\miniconda3\envs\cc3d_4413_310\Library\lib\expat.lib (found version "2.5.0")
+    -- Found double-conversion: C:\miniconda3\envs\cc3d_4413_310\Library\lib\double-conversion.lib
+    -- Found LZ4: C:\miniconda3\envs\cc3d_4413_310\Library\lib\liblz4.lib (found version "1.9.4")
+    -- Found LZMA: C:\miniconda3\envs\cc3d_4413_310\Library\lib\liblzma.lib (found version "5.4.2")
+    -- Found JPEG: C:\miniconda3\envs\cc3d_4413_310\Library\lib\jpeg.lib (found version "80")
+    -- Found TIFF: C:\miniconda3\envs\cc3d_4413_310\Library\lib\tiff.lib (found version "4.5.1")
+    -- Found Freetype: C:\miniconda3\envs\cc3d_4413_310\Library\lib\freetype.lib (found version "2.12.1")
     VTK_MAJOR_VERSION=9
     NUMPY_INCLUDE_DIR
     VTK_LIB_DIRS
-    THIS IS cc3d_py_source_dir: D:/src/CompuCell3D/CompuCell3D/../cc3d
+    THIS IS cc3d_py_source_dir: D:\src\CompuCell3D\CompuCell3D\..\cc3d
     USING EXTERNAL PYTHON
     -- Configuring done
     CMake Warning (dev) at compucell3d_cmake_macros.cmake:200 (ADD_LIBRARY):
@@ -193,15 +262,15 @@ After we execute the above command (with paths adjusted to your file system layo
 
       File:
 
-        D:/src/CompuCell3D/CompuCell3D/core/CompuCell3D/steppables/PDESolvers/hpppdesolvers.h
+        D:\src\CompuCell3D\CompuCell3D\core\CompuCell3D\steppables\PDESolvers\hpppdesolvers.h
     Call Stack (most recent call first):
-      core/CompuCell3D/steppables/PDESolvers/CMakeLists.txt:187 (ADD_COMPUCELL3D_STEPPABLE)
+      core\CompuCell3D\steppables\PDESolvers\CMakeLists.txt:187 (ADD_COMPUCELL3D_STEPPABLE)
     This warning is for project developers.  Use -Wno-dev to suppress it.
 
     -- Generating done
-    -- Build files have been written to: D:/src/CompuCell3D_build
+    -- Build files have been written to: D:\src\CompuCell3D_build
 
-The line ``-- Generating done`` shows ``-- Build files have been written to: D:/src/CompuCell3D_build``.
+The line ``-- Generating done`` shows ``-- Build files have been written to: D:\src\CompuCell3D_build``.
 
 |cc3d_cpp_002|
 
@@ -231,11 +300,11 @@ Find ``INSTALL`` subproject in the ``Solution Explorer``, right-click and choose
 
 |cc3d_cpp_009|
 
-and if you take a look at teh output screen you will see that some files are installed into ``d:/install_projects/cc3d_4413_310`` and some are written directly into conda environment ``c:/miniconda3/envs/cc3d_4413_310``
+and if you take a look at teh output screen you will see that some files are installed into ``d:\install_projects\cc3d_4413_310`` and some are written directly into conda environment ``c:\miniconda3\envs\cc3d_4413_310``
 
 |cc3d_cpp_010|
 
-The only thing that remains now is to copy  dlls from ``d:/install_projects/cc3d_4413_310/bin/`` to ``c:/miniconda3/envs/cc3d_4413_310/Library/bin/``
+The only thing that remains now is to copy  dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
 
 
 At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
@@ -247,6 +316,15 @@ Follow this guide to setup PyCharm to run the Player and use your newly compiled
 
 
 .. |cc3d_cpp_001| image:: images/cc3d_cpp_001.png
+    :scale: 50%
+
+.. |cc3d_cpp_001a| image:: images/cc3d_cpp_001a.png
+    :scale: 50%
+
+.. |cc3d_cpp_001b| image:: images/cc3d_cpp_001b.png
+    :scale: 50%
+
+.. |cc3d_cpp_001c| image:: images/cc3d_cpp_001c.png
     :scale: 50%
 
 .. |cc3d_cpp_002| image:: images/cc3d_cpp_002.png
