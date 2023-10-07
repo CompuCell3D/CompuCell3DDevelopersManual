@@ -270,6 +270,9 @@ After we execute the above command (with paths adjusted to your file system layo
     -- Generating done
     -- Build files have been written to: D:\src\CompuCell3D_build
 
+.. note::
+    If your output does not look like this, ensure that you are using the same environment for the entire tutorial, including every instance in your CMake command and every place that you copy compiled files to
+
 The line ``-- Generating done`` shows ``-- Build files have been written to: D:\src\CompuCell3D_build``.
 
 |cc3d_cpp_002|
@@ -283,6 +286,9 @@ and navigate to where VS 2015 files are generated and pick ``ALL_BUILD.vcxproj``
 |cc3d_cpp_004|
 
 Once the project is loaded we set compile configration (we choose RelWithDebInfo from the pull-down menu)
+
+.. note::
+    If you have compilation errors, you may try again with Release mode instead of RelWithDebInfo.
 
 |cc3d_cpp_006|
 
@@ -300,7 +306,7 @@ Find ``INSTALL`` subproject in the ``Solution Explorer``, right-click and choose
 
 |cc3d_cpp_009|
 
-and if you take a look at teh output screen you will see that some files are installed into ``d:\install_projects\cc3d_4413_310`` and some are written directly into conda environment ``c:\miniconda3\envs\cc3d_4413_310``
+and if you take a look at the output screen you will see that some files are installed into ``d:\install_projects\cc3d_4413_310`` and some are written directly into conda environment ``c:\miniconda3\envs\cc3d_4413_310``
 
 |cc3d_cpp_010|
 
@@ -314,7 +320,8 @@ and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-p
 |cc3d_cpp_010b|
 
 
-The only thing that remains now is to copy  dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+The only thing that remains now is to copy dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+See the section "Changing layout of installed CC3C C++ code" for more details.
 
 |cc3d_cpp_011|
 
@@ -340,6 +347,34 @@ and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see
 
 
 so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
+
+
+Example Batch Script for Loading Changes to C++ Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For this example, I am working on new steppable plugin called MyModule. Each time you make changes to the code, do the following:
+
+1. Right-click the module you edited in Visual Studio's Solution Explorer, click Project Only -> Build Only MyModule. If you modified core files, such as Potts, then you should use ALL_BUILD instead of Project Only.
+2. Right click INSTALL, then click Build in Solution Explorer.
+3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
+
+    .. code-block:: bash
+        echo "Step 1: Copy all .dll files from bin"
+        cd d:\install_projects\bin\
+        cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
+
+        echo "Step 2: Copy site-packages"
+        mkdir c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+        cp -r d:\install_projects\lib\site-packages\cc3d\* c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+
+        echo "Step 3: Copy .lib files"
+        cd d:\install_projects\lib\
+        cp *.lib c:\miniconda3\envs\cc3d_4413_310\Library\lib\
+
+        echo "Done"
+        pause
+
+4. Finally, open player or Twedit through Miniconda prompt with ``python -m cc3d.player5``.
 
 
 
