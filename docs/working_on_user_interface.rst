@@ -41,13 +41,13 @@ mamba to install CompuCell3D. Now, as a developer you will need to do those step
 
 https://docs.conda.io/projects/miniconda/en/latest/index.html
 
-Once you install the latest version of Miniconda for your operating system you should install mamba into `base` conda environment:
+Once you install the latest version of Miniconda for your operating system you should install mamba into ``base`` conda environment:
 
 .. code-block:: console
 
     conda install -c conda-forge mamba
 
-Note, `-c conda-forge` points to `conda-forge` channel that is one of the most reliable repositories of conda packages.
+Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the most reliable repositories of conda packages.
 
 Once mamba is installed you should create new conda environment for the latest version of CC3D. As of this writing, this version is 4.4.1.3. Hence we do the following:
 
@@ -67,7 +67,7 @@ and install latest version of CompuCell3D:
 
     mamba install -c conda-forge -c compucell3d compucell3d=4.4.1
 
-It may take few minutes for all packages to download. Notice, we are now sourcing our packages from two conda package repositories: `conda-forge` and `compucell3d`.
+It may take few minutes for all packages to download. Notice, we are now sourcing our packages from two conda package repositories: ``conda-forge`` and ``compucell3d``.
 
 Once CompuCell3d is installed, verify that you can run Player:
 
@@ -110,7 +110,7 @@ and navigate to the place where your newly created conda environment is):
 |ui_development_007|
 
 
-In my case it was installed to `c:\miniconda3\envs\cc3d_4413_310\python.exe`
+In my case it was installed to ``c:\miniconda3\envs\cc3d_4413_310\python.exe``
 
 
 After this Click OK on all open dialogs and your newly-created interpreter will be added to the list of Python interpreters available to PyCharm
@@ -122,22 +122,22 @@ Finalizing the setup
 
 To finalize the setup you need to do few other things:
 
-1. Copy `__init__.py` and `config.py` from  `c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d`
+1. Copy ``__init__.py`` and ``config.py`` from  ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d``
 
 .. note::
 
-    If you are on OSX or Linux your cc3d package will be located in `/Users/m/miniconda3/envs/cc3d_4412_310/lib/python3.10/site-packages/cc3d`.
+    If you are on OSX or Linux your cc3d package will be located in ``/Users/m/miniconda3/envs/cc3d_4412_310/lib/python3.10/site-packages/cc3d``.
 
-to  `cc3d` folder inside the folder into which you cloned your  cc3d-twedit5 repository:
+to  ``cc3d`` folder inside the folder into which you cloned your  cc3d-twedit5 repository:
 
 |ui_development_008|
 
-Comment out line 76 and 77 in `__init__.py`
+Comment out line 76 and 77 in ``__init__.py``
 
 |ui_development_009|
 
-Copy the following directories: `CompuCellSetup`, `core`, `cpp`, `doc` `from c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d` to
-`cc3d` folder inside the folder into which you cloned your  cc3d-twedit5 repository:
+Copy the following directories: ``CompuCellSetup``, ``core``, ``cpp``, ``doc`` from ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d`` to
+``cc3d`` folder inside the folder into which you cloned your  cc3d-twedit5 repository:
 
 |ui_development_010|
 
@@ -145,13 +145,13 @@ Copy the following directories: `CompuCellSetup`, `core`, `cpp`, `doc` `from c:\
 
     If you are on OSX or Linux instead of copying directories you may make soft-links from those directories in the conda environment to appropriate destination within your cloned repo folder
 
-Finally, rename `c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\twedit5` to `c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\twedit5_1`.
+Finally, rename ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\twedit5`` to ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\twedit5_1``.
 
 This last step is to make sure that when you run twedit5 from PyCharm it will be the code from your repository that is run, and not the code that got installed with CompuCell3D.
 
 Now you should run the Twedit++ (cc3d.twedit5) from your PyCharm:
 
-In the left panel of PyCharm "unfold" folders until you reach `cc3d-twedit5\cc3d\twedit5\__main__.py`
+In the left panel of PyCharm "unfold" folders until you reach ``cc3d-twedit5\cc3d\twedit5\__main__.py``
 
 |ui_development_011|
 
