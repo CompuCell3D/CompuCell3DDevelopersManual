@@ -33,7 +33,7 @@ however, you want to checkout a branch - you would type something like this:
 
 |git_setup|
 
-At this point you have complete code in ``CC3D_DEVELOP`` directory. And in addition
+At this point you have complete code in ``CC3D_DEVELOP`` directory.
 
 Now we open Twedit++ - you need to have "standard" installation of CC3D on your machine available - and go to ``CC3D C++``
 menu and choose ``Generate New Module...`` entry and fill out the dialog box:
