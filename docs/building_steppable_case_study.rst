@@ -62,7 +62,7 @@ we specify growth rate in the XMl and allow modification of this rate from Pytho
 
 Let's first examine the header of the ``GrowthSteppable`` class:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     #ifndef GROWTHSTEPPABLESTEPPABLE_H
     #define GROWTHSTEPPABLESTEPPABLE_H
@@ -147,7 +147,7 @@ as analogous functions in Python scripting. The oly differentce is that C++ step
 
 Let us check the generated implementation file of the Steppable (the ``.cpp`` file):
 
-.. code-block:: c++
+.. code-block:: cpp
 
 
     #include <CompuCell3D/CC3D.h>
@@ -268,7 +268,7 @@ Let us check the generated implementation file of the Steppable (the ``.cpp`` fi
 The ``step`` and ``start``functions are the first function we will modify. In its current implementation the
 generated ``step`` function already contains helpful code but start function will be rewritten. Let's take a look:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     void GrowthSteppable::start(){
 
@@ -311,7 +311,7 @@ recommend that you look up basic C++ tutorials for example:
 Let us now modify the above ``start`` and ``step`` functions and implement first version of growth steppable:
 
 
-.. code-block:: c++
+.. code-block:: cpp
 
     void GrowthSteppable::start(){
 
@@ -361,7 +361,7 @@ target volume of cells but only for the first 100 MCS and only if cell type is e
 ``1``.
 
 
-.. code-block:: c++
+.. code-block:: cpp
 
         void GrowthSteppable::step(const unsigned int currentStep){
 
@@ -392,7 +392,7 @@ if so we return. Inside the loop we added ``if (cell->type == 1)`` check that al
 if cell is of type ``1``. Small digression here. If you
 want to print cell type to the screen you need to use the following syntax:
 
- .. code-block:: c++:
+ .. code-block:: cpp
 
     cerr << "cell type=" << (int)cell->type <<endl;
 
@@ -459,7 +459,7 @@ As we mentioned before ``_xmlData`` points to ``<Steppable Type="GrowthSteppable
 need to get the child of this element *i.e.* ``<GrowthRate>1.0</GrowthRate>``. Since we know that there is only one child element (let's say we make such constraint for now  - we
 will relax it later) we use the following code:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     CC3DXMLElement * growthElem = _xmlData->getFirstElement("GrowthRate");
 
@@ -480,7 +480,7 @@ its ``cdata`` part. For any XML element , cdata part (cdata stands for character
 the ``cdata`` part is 1.0. The ``CC3DXMLElement`` has several methods that read and convert
 cdata to appropriate C++ type. Here we are using ``getDouble()``
 
-.. code-block:: c++
+.. code-block:: cpp
 
     this->growthRate = growthElem->getDouble();
 
@@ -489,7 +489,7 @@ Obviously, ``CC3DXMLElement`` defines more methods to convert character data to 
 In order for this code to work we need to define growthRate inside ``GrowthSteppable`` class
 header - we can do it as follows:
 
-.. code-block:: c++
+.. code-block:: cpp
 
   class GROWTHSTEPPABLE_EXPORT GrowthSteppable : public Steppable {
 
@@ -579,7 +579,7 @@ If we want our simulation to have different growth rates for different cell type
 we need to store them in *e.g.* STL map and we need to modify header of the
 ``GrowthSteppable`` to look as follows:
 
-.. code-block:: c++
+.. code-block:: cpp
 
   class GROWTHSTEPPABLE_EXPORT GrowthSteppable : public Steppable {
 
@@ -639,7 +639,7 @@ Both approaches are OK.
 
 Let us write the ``update`` function that will parse first of the above XMLs:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
 
@@ -666,7 +666,7 @@ Let us write the ``update`` function that will parse first of the above XMLs:
 The code is slightly different this time because we expect multiple entries of the type
 ``<GrowthRate CellType="xxx" Rate="yyy"/>``. Therefore, by writing the code:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     CC3DXMLElementList growthVec = _xmlData->getElements("Rate");
 
@@ -675,13 +675,13 @@ XML element pointers and notice that ``growthVec[i]`` returns a pointer to XML
 element pointer and we query this element. First, we read and convert to ``unsigned int``
 value of ``CellType`` attribute:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     unsigned int cellType = growthVec[i]->getAttributeAsUInt("CellType");
 
 The next line:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     double growthRateTmp = growthVec[i]->getDouble();
 
@@ -691,7 +691,7 @@ should be familiar already because it reads the value of ``cdata`` of
 Once we extracted cell type and actual growth rate from a single element we store those
 values in ``this->growthRateMap`` map:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     this->growthRateMap[cellType] = growthRateTmp;
 
@@ -711,7 +711,7 @@ than ``cdata`` :
 
 we would need to make only small modification:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     void GrowthSteppable::update(CC3DXMLElement *_xmlData, bool _fullInitFlag){
 
@@ -737,7 +737,7 @@ we would need to make only small modification:
 
 The code differs from previous parsing code by only one line:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     double growthRateTmp = growthVec[i]->getAttributeAsDouble("GrowthRate");
 

@@ -1,5 +1,5 @@
 Potts3D
----------
+=======
 
 Potts3D module (``Potts3D/Potts3D.cpp``, ``Potts3D/Potts3D.h``) implements entire logic of the Potts algorithm. Moreover,
 this module is responsible for creating cell lattice and ``Potts3D`` class has methods that facilitate creation and
@@ -252,6 +252,7 @@ WatchableField3D
         };
     };
     #endif
+
 The ``WatchableField3D<T>`` template class inherits from ``Field3DImpl<T>`` template. The actual memory allocation takes
 place in the ``Field3DImpl<T>`` but we will not worry about it here. It is sufficient to mention that ``Field3DImpl<T>``
 is tha class that manages cell lattice memory. The important thing is to understand how this automatic calling
@@ -398,7 +399,7 @@ We next make sure that the cell can move *i.e.* it is not frozen:
 
 Next we pick a random pixel out of set of neighbors of pixel ``pt``:
 
-.. code-block::
+.. code-block:: cpp
 
     unsigned int directIdx = rand->getInteger(0, maxNeighborIndex);
 
@@ -422,6 +423,8 @@ Next we pick a random pixel out of set of neighbors of pixel ``pt``:
         if (checkIfFrozen(changePixelCell->type))
             continue;
     }
+
+
 We use ``BoundaryStrategy`` object pointed by ``boundaryStrategy`` to carry out all operations related to pixel neighbor
 operations. we will cover it later. For now it is important to remember that tracking and operating on pixel neighbors is
 usually done via ``BoundaryStrategy`` and this helps greatly when we have to deal with periodic boundary conditions

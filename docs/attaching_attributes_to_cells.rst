@@ -208,7 +208,7 @@ This line is responsible for telling cell factory object that each new cell shou
 
 How do we know that ``CustomCellAttributeSteppableData`` is the class whose objects will get attached to
 each cell? We look into steppable header file and see the following line:
-``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;``.
 
 This line creates special accessor object that given a pointer to a cell it will fetch attached object of
 type ``CustomCellAttributeSteppableData``. The exact details of how this is done are beyond the scope of this
@@ -216,7 +216,7 @@ manual but if you follow the pattern you will be able to attach arbitrary C++ ob
 The pattern is as follows:
 
 1. Add ExtraMembersGroupAccessor member to your module - steppable or a plugin - ``ExtraMembersGroupAccessor<ClassYouWantToAttach>``.
-In our case we add ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor; ``.
+In our case we add ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;``.
 
 2. Add a function that accesses a pointer to this ExtraMembersGroupAccessor member - in our case we add (see code below)
 ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> * getCustomCellAttributeSteppableDataAccessorPtr(){return & customCellAttributeSteppableDataAccessor;}``

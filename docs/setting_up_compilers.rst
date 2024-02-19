@@ -1,5 +1,5 @@
 Setting up Windows computer for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
-================================================================================================
+===============================================================================================================
 If you want tot develop plugins and steppables under windows you will need to install free Visual Studio
 2015 Community Version. The installation of this package is straightforward but you need to make sure that you are
 installing C/C++ compilers when the installer gives you options to select which programming languages
@@ -11,14 +11,14 @@ will likely not work with other versions. Once you download and install Visual S
 compiling Developer Zone projects and develop your own CompuCell3D plugins and steppables in C++.
 
 Setting up Linux computer for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
-================================================================================================
+=============================================================================================================
 
 If you are using linux computer , most likely you do not need to do any compiler setup. CC3D on Linux comes prepackaged
 with all compilers and it does not matter if you installed CC3D using automated installer or installed directly using
 ``conda install`` command.
 
 Setting up your Mac for DeveloperZone compilation and developing new CC3D plugins and Steppables in C++
-================================================================================================
+=======================================================================================================
 
 Starting with CC3D 4.3.0 when you install CC3D it will come with most of the tools needed to compile C+++
 plugins and steppables. The only thing that you need in addition to this is to install ``xcode-select`` package
@@ -50,6 +50,7 @@ To compile CC3D on your Mac using conda-build system follow this procedure:
 
 1. Install ``xcode-select`` - see above
 2. install miniconda3 with Python 3.7 - https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-MacOSX-x86_64.sh .
+
 Once you install miniconda in the ``base`` environment of newly installed miniconda install ``conda-build`` package
 
 .. code-block:: console

@@ -359,6 +359,7 @@ For this example, I am working on new steppable plugin called MyModule. Each tim
 3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
 
     .. code-block:: bash
+
         echo "Step 1: Copy all .dll files from bin"
         cd d:\install_projects\bin\
         cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
