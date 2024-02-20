@@ -17,9 +17,9 @@ C++ extension modules for CompuCell3D
     :hidden:
     :caption: CC3D Core Objects
 
+    prerequisites_cpp
     potts
     simulator
-
 
 .. toctree::
     :maxdepth: 1
@@ -27,6 +27,15 @@ C++ extension modules for CompuCell3D
     :caption: Setting up compilers
 
     setting_up_compilers
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: C++ Module Development - Tutorials
+
+   intro_to_cc3d_c++_module_development
+   developing_simple_volume_tracker_plugin.rst
+
 
 .. toctree::
    :maxdepth: 1

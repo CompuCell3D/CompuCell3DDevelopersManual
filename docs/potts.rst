@@ -1,7 +1,19 @@
 Potts3D
 =======
 
-Potts3D module (``Potts3D/Potts3D.cpp``, ``Potts3D/Potts3D.h``) implements entire logic of the Potts algorithm. Moreover,
+Potts3D module (``Potts3D/Potts3D.cpp``, ``Potts3D/Potts3D.h``) implements entire logic of the Potts algorithm.
+In a nutshell Potts class contains implementation of a single Monte Carlo Step (MCS) of the Cellular Potts Model. The MCS works as follows:
+
+1. Pick a random pixel from the lattice sites (call it source pixel)
+2. Pick a neighboring pixel (based on user-defined neighborhood range)  - let's call it change pixel
+3. If the two pixels belong to different cells compute change in energy if we were to over change pixel with the cell currently occupying source pixel. This corresponds to the situation where the cell occupying change pixel would lose one pixel and cell occupying the source pixel would gain one pixel.
+4. Compute acceptance probability of the proposed pixel copy
+5. Perform pixel copy and update all cell attributes that change during such pixel copy. For example cell occupying source pixel increases its volume by 1 unit and cell occupying destination pixel decreases volume by one unit. Depending how you set up your simulation you would also update surface area of the tow cells, center of mass coordinates, intertia tensor etc.
+
+Section `Implementing Cellular Potts Model in C++`_ covers in details the code that performs the tasks outlined above
+
+
+Moreover,
 this module is responsible for creating cell lattice and ``Potts3D`` class has methods that facilitate creation and
 destruction of cells. It is worth pointing out that creation and destruction of cells is not limited to calling
 ``new`` or ``delete`` operators but it also involves several steps necessary to ensure that cells created have all the
@@ -188,7 +200,7 @@ one of the observer that will be called (we also refer to them as lattice monito
 The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will
 get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
 inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
-when change in the lattice takes place. Observers are called in teh order in which they were registered. Note, this may
+when change in the lattice takes place. Observers are called in the order in which they were registered. Note, this may
 or may not be the order in which they were declared in the CC3DCML. CC3D sometimes requires certain lattice monitors
 to be loaded and registered before others and this happens automatically in the CC3D code.
 Let's look at how ``WatchableField3D`` works in practice:
@@ -331,6 +343,11 @@ energy function in the ``energyFunctions`` vector will vary depending on what us
 
 Later we will present detailed information on how to implement energy function plugins.
 
+.. _Implementing Cellular Potts Model in C++:
+
+Implementing Cellular Potts Model in C++ - metropolisFast method
+----------------------------------------------------------------
+
 When we peek at the ``metropolisFast`` function of the ``Potts3D`` class we can see that the change of energy is calculated
 in a fairly straightforward way:
 
@@ -428,7 +445,7 @@ Next we pick a random pixel out of set of neighbors of pixel ``pt``:
 We use ``BoundaryStrategy`` object pointed by ``boundaryStrategy`` to carry out all operations related to pixel neighbor
 operations. we will cover it later. For now it is important to remember that tracking and operating on pixel neighbors is
 usually done via ``BoundaryStrategy`` and this helps greatly when we have to deal with periodic boundary conditions
-pixels residing close to the edge of teh lattice or classifying neighbor order of pixels.
+pixels residing close to the edge of the lattice or classifying neighbor order of pixels.
 In this example we use boundary strategy to pick a neighbor ``changePixel`` of the ``pt`` and verify that this neighbor is a
 legitimate neighbor - ``if (!n.distance)``. We next fetch cell that occupies ``changePixel``:
 
