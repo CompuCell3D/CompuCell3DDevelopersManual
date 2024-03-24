@@ -60,9 +60,10 @@ C++ extension modules for CompuCell3D
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Guides to Compiling CC3D From Source
+   :caption: Compiling CC3D From Source
 
-   building_core_cc3d_cpp_code
+   building_core_cc3d_cpp_code_windows
+   building_core_cc3d_cpp_code_mac
 
 .. toctree::
    :maxdepth: 1

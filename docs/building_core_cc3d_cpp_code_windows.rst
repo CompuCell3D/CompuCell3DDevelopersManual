@@ -1,11 +1,7 @@
-Building CompuCell3D C++ Code
-=======================================
-In this section we will show you how to set up compilation of CompuCell3D code on various platforms. We will start with windows
-
 .. _My target:
 
 Windows
-~~~~~~~~
+=======
 
 In order to compile entire CC3D code on Windows (not just the developer zone) you need to install Visual Studio 2015 Community Edition (free). Here is a reference page on how to find the relevant installation bundles. Make sure you use CommunityEdition: https://stackoverflow.com/questions/44290672/how-to-download-visual-studio-community-edition-2015-not-2017
 

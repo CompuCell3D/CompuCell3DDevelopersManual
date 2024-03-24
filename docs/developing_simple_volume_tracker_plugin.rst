@@ -1,7 +1,7 @@
 Simple Volume Tracker in C++
 ============================
 
-THe purpose of this tutorial is to show you a simplified version of the real Volume Tracker that is implemented in the CompuCell3D. We will guide you step by step how to develop the code. ANd later show you how to compile it and how to use it in a simulation.
+The purpose of this tutorial is to show you a simplified version of the real Volume Tracker that is implemented in the CompuCell3D. We will guide you step by step how to develop the code. ANd later show you how to compile it and how to use it in a simulation.
 Note that this will be rather a toy module because real VolumeTracker is loaded with every simulation we cannot have two modules incrementing and decrementing volumes . our version will only do printouts each time the cell's volume is incremented or decremented.  The reason we begin with this toy example is because it is probably the simples lattice monitor plugin one can write.
 
 We assume that you cloned CompuCell3D repository to ``~/src-cc3d/CompuCell3D``
@@ -55,13 +55,13 @@ Here is how we can modify it:
         if (newCell){
             cerr<<"Cell id "<<newCell->id<<" increases volume by 1"<<endl;
         }else{
-            cerr<<"Medium - cell overwrites another cell"<<endl;
+            cerr<<"Medium - source cell overwrites another cell's voxel"<<endl;
         }
 
         if (oldCell){
             cerr<<"Cell id "<<oldCell->id<<" decreases volume by 1"<<endl;
         }else{
-            cerr<<"Medium - cell gets overwritten by another cell"<<endl;
+            cerr<<"Medium - target cell's voxel gets overwritten by another cell"<<endl;
         }
     }
 
@@ -74,8 +74,9 @@ Here is how this code works:
 
 3) Since ``newCell`` is the cell that overwrites another cell - it is the cell whose volume increases. By analogy, oldCell is the one that is overwritten, hence loses one pixel.
 
-4) the else portion of the code handles situation where we are dealing with Medium. MEdium is representd in CC3D as a NUll pointer and hence we need to handle it as such
+4) the else portion of the code handles situation where we are dealing with Medium. Medium is representd in CC3D as a ``null`` pointer and hence we need to handle it as such
 
+After we compile this plugins (see materials on how to compile CC3D on your platform) we use it in our simulation:
 
 .. |svp_001| image:: images/simple_volume_tracker_001.png
 
