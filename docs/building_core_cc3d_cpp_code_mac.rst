@@ -88,6 +88,9 @@ Next, let's create file ``/Users/m/src-cc3d/environment.yaml`` with the followin
         - sphinx
         - pywin32 # [win]
 
+.. note::
+
+    To generate this environment.yaml file it is best to to start the conda build process of cc3d package and navigate to the ``work`` folder within conda-bld directory and then copy all packages from the ``metadata_conda_debug.yaml`` file e.g. in my case the file I used was ``/Users/m/miniconda3_arm64/conda-bld/cc3d_1711231453909/work/metadata_conda_debug.yaml``. The important thing is to copy this file away from this folder while the conda build still runs (otherwise after successful build this file will disappear) and to remove duplicates from the package list. We also added few packages that Player and Twedit++ use. They are not necessary to compile CompuCell3D but they will be useful later when we will run CompuCell3D via ``cc3d-player``
 
 Once we created ``environment.yaml`` let's ``cd`` to ``/Users/m/src-cc3d`` and create environment called ``cc3d_compile`` by running the following command:
 
@@ -228,6 +231,10 @@ At this point we we need to copy all ``dylib`` files from ``/Users/m/src-cc3d/Co
 .. code-block:: console
 
     cp /Users/m/src-cc3d/CompuCell3D_install/lib/*.dylib /Users/m/miniconda3_arm64/envs/cc3d_compile/lib
+
+.. warning::
+
+    The step where we copy .dylib libraries from ``/Users/m/src-cc3d/CompuCell3D_install/lib/`` is essential and if you for get it you might get cryptic errors that e.g. ``_CompuCell.so`` library cannot be loaded
 
 
 Assuming we are still in cc3d_compile conda environment (run ``conda activate cc3d_compile`` if you opened new terminal) we can run our first simulation using newly compiled CompuCell3D. We will run it without the player first and next we will show you how to get player and twedit++ working.
