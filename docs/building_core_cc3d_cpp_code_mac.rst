@@ -19,6 +19,10 @@ Next let's install ``mamba`` which give you much faster package dependency resol
 
     conda install -c conda-forge mamba
 
+.. note::
+
+    On my computer miniconda is installed to ``/Users/m/miniconda_arm64`` folder. It is likely that on yours it will be a different folder so please make a note of this because later wee will need the location of the miniconda to configure compilation of CompuCell3D
+
 
 Once you have those tools you are ready to create conda environment into which we will install all the libraries and compilers that are needed for CC3D compilation. There are multiple ways to handle the installation of those prerequisites but the easiest one is to use ``environment.yaml`` files where we list all needed packages and provide this file to conda which takes care of installing them.
 
@@ -97,7 +101,7 @@ Once we created ``environment.yaml`` let's ``cd`` to ``/Users/m/src-cc3d`` and c
 .. code-block:: console
 
     cd /Users/m/src-cc3d
-    mamba env create -f environment.yml --name cc3d_compile
+    mamba env create -f environment.ayml --name cc3d_compile
 
 The output of of the last command should look something like this
 
@@ -146,13 +150,13 @@ At this point we are ready to configure CompuCell3D for compilation. We will be 
 
 .. note::
 
-    It is important to replace ``/Users/m/src-cc3d`` with the directory into which you cloned the 3 CompuCell3D repositories repository
+    It is important to replace ``/Users/m/src-cc3d`` with the directory into which you cloned the three CompuCell3D repositories repository
 
 Let's run the following command:
 
 .. code-block:: console
 
-    cmake -S /Users/m/src-cc3d/CompuCell3D/CompuCell3D -B /Users/m/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=/Users/m/miniconda3_arm64/envs/cc3d_compile/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=ON -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/Users/m/src-cc3d/CompuCell3D_install
+    cmake -S /Users/m/src-cc3d/CompuCell3D/CompuCell3D -B /Users/m/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=/Users/m/miniconda3_arm64/envs/cc3d_compile/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/Users/m/src-cc3d/CompuCell3D_install
 
 Let's explain command line arguments we used when calling ``cmake`` command
 

@@ -64,6 +64,7 @@ C++ extension modules for CompuCell3D
 
    building_core_cc3d_cpp_code_windows
    building_core_cc3d_cpp_code_mac
+   building_core_cc3d_cpp_code_linux
 
 .. toctree::
    :maxdepth: 1
