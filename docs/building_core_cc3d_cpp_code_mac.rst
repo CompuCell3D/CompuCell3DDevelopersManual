@@ -101,7 +101,7 @@ Once we created ``environment.yaml`` let's ``cd`` to ``/Users/m/src-cc3d`` and c
 .. code-block:: console
 
     cd /Users/m/src-cc3d
-    mamba env create -f environment.ayml --name cc3d_compile
+    mamba env create -f environment.yaml --name cc3d_compile
 
 The output of of the last command should look something like this
 
