@@ -74,9 +74,108 @@ Here is how this code works:
 
 3) Since ``newCell`` is the cell that overwrites another cell - it is the cell whose volume increases. By analogy, oldCell is the one that is overwritten, hence loses one pixel.
 
-4) the else portion of the code handles situation where we are dealing with Medium. Medium is representd in CC3D as a ``null`` pointer and hence we need to handle it as such
+4) the else portion of the code handles situation where we are dealing with Medium. Medium is represented in CC3D as a ``null`` pointer and hence we need to handle it as such
 
-After we compile this plugins (see materials on how to compile CC3D on your platform) we use it in our simulation:
+Let us compile the project. Since we have already did our initial setup involving cmake all we need to do is to run ``make`` and  ``make install``
+
+.. code-block:: console
+
+    cd /Users/m/src-cc3d/CompuCell3D_build
+    make -j 8
+    make install
+
+This next step is only required if we modified core CC3D files like Potts.cpp or Simulator.cpp If we worked on plugin code only we can skip it
+
+.. code-block:: console
+
+    cp /Users/m/src-cc3d/CompuCell3D_install/lib/*.dylib /Users/m/miniconda3_arm64/envs/cc3d_compile/lib
+
+
+
+.. note::
+
+    Notice that if we did any modification to ``CMakeLists.txt`` files (and Twedit++ did ir for us during plugin code generation) the first thing that happens when we run ``make`` command is reconfiguration of the entire cmake Build system but fortunately thi sis done automatically. We only need to call cmake command once , when we first det up the compilation of CompuCell3D. The only downside on Mac is that this reconfiguration of the cmake build system for our compilation directory of CC3D will cause recompilation of the entire CompuCell3D. However, this will only happen if add new module or modify CmakeLists.txt files. If we change the C++ code for the plugin only the plugin should get compiled
+
+After we compile this plugin (see materials on how to compile CC3D on your platform) we can use it in our simulation. Insert the following
+
+.. code-block:: xml
+
+    <Plugin Name="SimpleVolumeTracker"/>
+
+inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/Simulation/cellsort_2D.xml``:
+
+.. code-block:: xml
+
+    <CompuCell3D>
+        <Potts>
+            <Dimensions x="100" y="100" z="1"/>
+            <Anneal>10</Anneal>
+            <Steps>10000</Steps>
+            <Temperature>10</Temperature>
+            <Flip2DimRatio>1</Flip2DimRatio>
+            <NeighborOrder>2</NeighborOrder>
+        </Potts>
+
+
+        <Plugin Name="Volume">
+            <TargetVolume>25</TargetVolume>
+            <LambdaVolume>2.0</LambdaVolume>
+        </Plugin>
+
+        <Plugin Name="CellType">
+            <CellType TypeName="Medium" TypeId="0"/>
+            <CellType TypeName="Condensing" TypeId="1"/>
+            <CellType TypeName="NonCondensing" TypeId="2"/>
+        </Plugin>
+
+        <Plugin Name="Contact">
+            <Energy Type1="Medium" Type2="Medium">0</Energy>
+            <Energy Type1="NonCondensing" Type2="NonCondensing">16</Energy>
+            <Energy Type1="Condensing" Type2="Condensing">2</Energy>
+            <Energy Type1="NonCondensing" Type2="Condensing">11</Energy>
+            <Energy Type1="NonCondensing" Type2="Medium">16</Energy>
+            <Energy Type1="Condensing" Type2="Medium">16</Energy>
+            <NeighborOrder>2</NeighborOrder>
+        </Plugin>
+
+        <Plugin Name="SimpleVolumeTracker"/>
+
+        <Steppable Type="BlobInitializer">
+
+            <Region>
+                <Center x="50" y="50" z="0"/>
+                <Radius>40</Radius>
+                <Gap>0</Gap>
+                <Width>5</Width>
+                <Types>Condensing,NonCondensing</Types>
+            </Region>
+        </Steppable>
+
+
+    </CompuCell3D>
+
+
+then run it using
+
+.. code-block::
+
+    python -m cc3d.run_script -i /Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
+
+
+and we should get printouts printouts that look as follows:
+
+.. code-block:: console
+
+    Cell id 148 decreases volume by 1
+    Cell id 149 increases volume by 1
+    Cell id 162 decreases volume by 1
+    Cell id 83 increases volume by 1
+    Cell id 82 decreases volume by 1
+    Cell id 189 increases volume by 1
+    Cell id 188 decreases volume by 1
+
+Congratulations. You have developed your first CompuCell3D plugins. Even though the SimpleVolumeTracker in its current form is not terribly useful it taught us the mechanics of adding new plugin, compiling cc3d and using new plugin with freshly compiled CC3D. In the next chapters we will develop more pragmatic examples
+
 
 .. |svp_001| image:: images/simple_volume_tracker_001.png
 
