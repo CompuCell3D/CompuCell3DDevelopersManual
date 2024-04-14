@@ -31,5 +31,15 @@ After we compile it and run it we will see that relatively quickly most of the c
 
 This tiny code change concludes our next example.
 
+
+Order in which plugins are called
+---------------------------------
+
+In general order in which plugins are called depends on the order in which they are listed in the XML. However certain plugins might require other plugins and in this case this order my get reshuffled. We ill come back to this issue later.
+
+One thing you should remember here though that changing cell type in a plugin might not be very safe because what if after our ``SimpleVolumeTracker`` there is another plugin that actually relies on the type information and before it had a chance to be called our plugin messed up cell type configuration for given instance of the simulation? Fortunately in our case we did not have such an issue but it is a good idea to be aware of such situations and in general adjustments of cell parameters such as cell type, ``targetVolume``, ``lambdaVolumes`` are best handled in the Steppables. In subsequenc chapters we will show you how to build Steppables in C++.
+
+There are more things to be are
+
 .. |svp_004a| image:: images/simple_volume_tracker_004a.png
 
