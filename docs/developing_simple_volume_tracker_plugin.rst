@@ -155,7 +155,7 @@ inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos
     </CompuCell3D>
 
 
-then run it using
+    then run it using
 
 .. code-block::
 
