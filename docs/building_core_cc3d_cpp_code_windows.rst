@@ -22,8 +22,8 @@ Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the mo
 
 .. note::
 
-    If you are just interested in building CompuCell3D and do not plan to contribution to CompuCell3D
-    code, you can simply clone CompuCell3D repository, bypassing teh forking step described below:
+    If you are just interested in building CompuCell3D and do not plan to contribute to CompuCell3D
+    code, you can simply clone CompuCell3D repository, bypassing the forking step described below. Simply run the following commands
 
     .. code-block:: console
 
