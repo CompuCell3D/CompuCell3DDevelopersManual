@@ -344,7 +344,7 @@ At this point your newly compiled CC3D shold be ready to use
 
 .. note::
 
-    The following steps apply to releases before ``4.6.0` , as of ``4.6.0`` you do not need to follow those steps.
+    The following steps apply to releases before ``4.6.0`` , as of ``4.6.0`` you do not need to follow those steps.
 
 
     After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
@@ -380,54 +380,70 @@ to clone those repos
 and copy ``d:\src\cc3d-player5\cc3d\player5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\player5\`` and similarly, compy
 ``d:\src\cc3d-twedit5\cc3d\twedit5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\twedit5\``
 
+
+Running Newly Compiled CC3D
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+At this point you can open Player or Twedit through Miniconda prompt (make sure you are still in the cc3d_4413_310 environment)
+
+.. code-block:: console
+
+    python -m cc3d.player5
+
+
+
 Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code  - :doc:`Running Player and Twedit++ from PyCharm <working_on_user_interface>`.
 
 
-Changing layout of installed CC3C C++ code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note::
 
-To Change the layout of the C++ code we could use ``-DBUILD_STANDALONE=ON`` option  and if we do that and repeat all the steps we showed in this writeup you will end up with the layout of the install directory that looks as follows:
+    This is legacy material that no longer applies to current version of CC3D but is relevant when users want to compile earlier CC3D versions
 
-|cc3d_cpp_012|
+    Changing layout of installed CC3C C++ code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see  ``site-packages``
+    To Change the layout of the C++ code we could use ``-DBUILD_STANDALONE=ON`` option  and if we do that and repeat all the steps we showed in this writeup you will end up with the layout of the install directory that looks as follows:
 
-|cc3d_cpp_012a|
+    |cc3d_cpp_012|
+
+    and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see  ``site-packages``
+
+    |cc3d_cpp_012a|
 
 
-so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
+    so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
 
 
-Example Batch Script for Loading Changes to C++ Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Example Batch Script for Loading Changes to C++ Code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For this example, I am working on new steppable plugin called MyModule. Each time you make changes to the code, do the following:
+    For this example, I am working on new steppable plugin called MyModule. Each time you make changes to the code, do the following:
 
-1. Right-click the module you edited in Visual Studio's Solution Explorer, click Project Only -> Build Only MyModule. If you modified core files, such as Potts, then you should use ALL_BUILD instead of Project Only.
-2. Right click INSTALL, then click Build in Solution Explorer.
-3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
+    1. Right-click the module you edited in Visual Studio's Solution Explorer, click Project Only -> Build Only MyModule. If you modified core files, such as Potts, then you should use ALL_BUILD instead of Project Only.
+    2. Right click INSTALL, then click Build in Solution Explorer.
+    3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
 
-    .. code-block:: bash
+        .. code-block:: bash
 
-        echo "Step 1: Copy all .dll files from bin"
-        cd d:\install_projects\bin\
-        cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
+            echo "Step 1: Copy all .dll files from bin"
+            cd d:\install_projects\bin\
+            cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
 
-        echo "Step 2: Copy site-packages"
-        mkdir c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
-        cp -r d:\install_projects\lib\site-packages\cc3d\* c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+            echo "Step 2: Copy site-packages"
+            mkdir c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+            cp -r d:\install_projects\lib\site-packages\cc3d\* c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
 
-        echo "Step 3: Copy .lib files"
-        cd d:\install_projects\lib\
-        cp *.lib c:\miniconda3\envs\cc3d_4413_310\Library\lib\
+            echo "Step 3: Copy .lib files"
+            cd d:\install_projects\lib\
+            cp *.lib c:\miniconda3\envs\cc3d_4413_310\Library\lib\
 
-        echo "Done"
-        pause
+            echo "Done"
+            pause
 
-4. Finally, open player or Twedit through Miniconda prompt with ``python -m cc3d.player5``.
+
 
 
 
