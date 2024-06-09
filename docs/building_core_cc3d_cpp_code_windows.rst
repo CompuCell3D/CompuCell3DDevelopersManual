@@ -339,22 +339,46 @@ and if you take a look at the output screen you will see that some files are ins
 |cc3d_cpp_010|
 
 
-After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
-
-|cc3d_cpp_010a|
-
-and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-packages`` because ``site-packages`` that contains ``cc3d` package has been installed directly into conda environment - hence no need to perform manual copy
-
-|cc3d_cpp_010b|
+At this point your newly compiled CC3D shold be ready to use
 
 
-The only thing that remains now is to copy dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
-See the section "Changing layout of installed CC3C C++ code" for more details.
+.. note::
 
-|cc3d_cpp_011|
+    The following steps apply to releases before ``4.6.0` , as of ``4.6.0`` you do not need to follow those steps.
 
 
-At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+    After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
+
+    |cc3d_cpp_010a|
+
+    and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-packages`` because ``site-packages`` that contains ``cc3d` package has been installed directly into conda environment - hence no need to perform manual copy
+
+    |cc3d_cpp_010b|
+
+
+    The only thing that remains now is to copy dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+    See the section "Changing layout of installed CC3C C++ code" for more details.
+
+    |cc3d_cpp_011|
+
+
+    At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+
+
+Manually installing Player and Twedit ++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you installed CC3D to miniconda environment ``cc3d_4413_310`` all that you need to get Player and Twedit working with yor new environment is
+to clone those repos
+
+.. code-block:: console
+
+    cd d:\src
+    git clone https://github.com/CompuCell3D/cc3d-player5.git
+    git clone https://github.com/CompuCell3D/cc3d-twedit5.git
+
+and copy ``d:\src\cc3d-player5\cc3d\player5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\player5\`` and similarly, compy
+``d:\src\cc3d-twedit5\cc3d\twedit5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\twedit5\``
 
 Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
