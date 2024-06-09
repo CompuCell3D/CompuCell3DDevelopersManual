@@ -20,6 +20,17 @@ Once you install the latest version of Miniconda for your operating system you s
 
 Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the most reliable repositories of conda packages.
 
+.. note::
+
+    If you are just interested in building CompuCell3D and do not plan to contribution to CompuCell3D
+    code, you can simply clone CompuCell3D repository, bypassing teh forking step described below:
+
+    .. code-block:: console
+
+        cd d:/src/
+        git clone https://github.com/CompuCell3D/CompuCell3D.git
+
+
 Next fork CompuCell3D core code repository from https://github.com/CompuCell3D/CompuCell3D. Simply log in to your github account, navigate to the CompuCell3D link and click Fork button in the upper right corner of the page:
 
 |cc3d_cpp_001|
@@ -38,6 +49,8 @@ Now we are ready to start configuring CompuCell3D build. The entire process of s
 .. note::
 
     I assumed that my forked repository was cloned to ``D:/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
+
+
 
 At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D. Those key packages that are required to compile CC3D are stored in the conda environment file below. Copy the content of this file ave it as env310.yaml. I saved mine to ``D:src\env310.yaml``
 
