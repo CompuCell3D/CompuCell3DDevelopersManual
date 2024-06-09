@@ -305,3 +305,22 @@ The output of the run should look something like this (remember to adjust all pa
                           Other Time:        0.08 ( 1.4%)
     -----------------------------------------------------------
 
+Using Player
+-------------
+
+To run the above simulation using player we need to make player code available to the Python interpreter from which we are running our simulation. In my case this will boil down to either copying directory ``/home/m/src-cc3d/cc3d-player5/cc3d/player5`` inside  ``/home/m/miniconda3_arm64/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5``
+
+or making a softlink. I prefer the softlink  and I run:
+
+.. code-block:: console
+
+    ln -s /home/m/src-cc3d/cc3d-player5/cc3d/player5   /home/m/miniconda3/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5
+
+
+After this step I am ready to run previous simulation using the Player:
+
+.. code-block::
+
+    python -m cc3d.player5
+
+and then we would use ``File->Open...`` menu to select our ``.cc3d`` project ``/home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d``

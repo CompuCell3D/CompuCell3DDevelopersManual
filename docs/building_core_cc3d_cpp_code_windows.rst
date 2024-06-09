@@ -54,7 +54,7 @@ At this point we need to prepare conda environment that has all dependencies nee
       - eigen
       - tbb-devel=2021
       - boost=1.78
-      - cmake>=3.21
+      - cmake>=3.28
       - swig=4
       - psutil
       - deprecated
@@ -131,6 +131,25 @@ For Visual Studio 2019 you would use
     cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
 
 the difference is for the ``-G`` option. Let's see below what each option means
+
+**GPU Solvers**
+
+
+If you would like to enable GPU solvers we recommend that you use Visual Studio 2019 and the cmake command would look as follows
+
+.. code-block:: batch
+
+    cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
+
+The only difference here is the ``-DNO_OPENCL=OFF`` option that tells Cmake system to include OpenCL modules.
+
+
+.. note::
+
+    In order for GPU solvers to work you need to have a computer with a GPU and install GPU Toolkit. For example if you have a computer with NVidia RTX 30x0 or 40x0 card you would install Nvidia CUDA toolkit and this would be sufficient to get your GPU solvers compiled and running on your machine
+
+
+If you want to enable GPU diffusion solvers you would
 
 Let us explain what each setting/flag means.
 

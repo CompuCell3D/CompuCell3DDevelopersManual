@@ -34,7 +34,8 @@ C++ extension modules for CompuCell3D
    :caption: C++ Module Development - Tutorials
 
    intro_to_cc3d_c++_module_development
-   developing_simple_volume_tracker_plugin.rst
+   developing_simple_volume_tracker_plugin
+   developing_simple_volume_tracker_plugin_part_2
 
 
 .. toctree::
