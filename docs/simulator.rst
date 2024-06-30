@@ -1,10 +1,12 @@
 Simulator
----------
+=========
 
 ``Simulator`` is the key C++ module that sits at the root of each simulation run by CC3D. This is essentially a single class
 ``Simulator`` and it is responsible for orchestrating the flow of each CC3D simulation. Simulator object creates and
 manages other key objects such as ``Potts3D`` and ensures the integrity of the entire simulation.
-The code for the object is stored in ``CompuCell3D\Simulator.h`` and ``CompuCell3D\Simulator.cpp``
+The code for the object is stored in ``CompuCell3D\Simulator.h`` and ``CompuCell3D\Simulator.cpp``.
+If there is one thing to remember about the Simulator object is that it interchangeably calls function
+from Potts that implements MOnt Carlo Step (e.g. ``metropolisFast`` function) followed by call to all steppables (modules that are called after each Monte Carlo Step)
 
 Let us look at the header file of the ``Simulator`` to examine the responsibilities that ``Simulator`` when running CC3D
 simulations
@@ -200,17 +202,14 @@ functions:
     virtual void step(const unsigned int currentStep);
     virtual void finish();
 
-- ``void initializeCC3D()`` initializes ``Potts3D`` object based on the CC3DML content , as well as loadable modules such as
-Plugins and Steppables and it is the first Simulator function that is called after parsing of the CC3DML is complete
+- ``void initializeCC3D()`` initializes ``Potts3D`` object based on the CC3DML content , as well as loadable modules such as Plugins and Steppables and it is the first Simulator function that is called after parsing of the CC3DML is complete
 
-- ``void extraInit()`` is typically executed next and it calls ``extraInit`` method that is a member of every CompuCel3D
-plugin. Think of this function as a way of performing a second round of initialization but in the situation where
-all necessary objects (plugins) are instantiated and properly located inside overseeing objects (``Simulator`` / ``Potts3D``)
+- ``void extraInit()`` is typically executed next and it calls ``extraInit`` method that is a member of every CompuCel3D plugin. Think of this function as a way of performing a second round of initialization but in the situation where all necessary objects (plugins) are instantiated and properly located inside overseeing objects (``Simulator`` / ``Potts3D``)
+
 
 - ``void start()`` function calls ``start`` method for all Steppables that were requested by current simulation.
 
-- ``void step(const unsigned int currentStep)`` method executes a single Monte Carlo Step (**MCS**) by calling
-``metropolis`` method from Potts3D;
+- ``void step(const unsigned int currentStep)`` method executes a single Monte Carlo Step (**MCS**) by calling ``metropolis`` method from Potts3D;
 
 .. code-block:: cpp
 
@@ -259,13 +258,10 @@ extra functionality that simplify code calls from parent objects (*e.g.* from ``
       };
     };
 
-- Finally the ``void finish()`` method is responsible finishing the simulation. This seemingly simple task involves
-few critical steps: running few Monte Carlo Steps (of metropolis algorithm) with zero temperature - users specify
-number of those steps in the CC3DML code (in ``<Anneal>`` element), calling ``finish`` function of every steppable,
-unloading dynamically loaded modules (Plugins and Steppables) to ensure that subsequent simulations can run without
-restarting CC3D.
+- Finally the ``void finish()`` method is responsible finishing the simulation. This seemingly simple task involves few critical steps: running few Monte Carlo Steps (of metropolis algorithm) with zero temperature - users specify number of those steps in the CC3DML code (in ``<Anneal>`` element), calling ``finish`` function of every steppable, unloading dynamically loaded modules (Plugins and Steppables) to ensure that subsequent simulations can run without restarting CC3D.
 
-There are clearly more methods in the Simulator objects bu the ones described perform most of the work.
+There are clearly more methods in the Simulator objects but the ones described perform most of the work.
+
 
 
 

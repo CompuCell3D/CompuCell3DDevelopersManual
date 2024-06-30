@@ -1,11 +1,7 @@
-Building CompuCell3D C++ Code
-=======================================
-In this section we will show you how to set up compilation of CompuCell3D code on various platforms. We will start with windows
-
 .. _My target:
 
 Windows
-~~~~~~~~
+=======
 
 In order to compile entire CC3D code on Windows (not just the developer zone) you need to install Visual Studio 2015 Community Edition (free). Here is a reference page on how to find the relevant installation bundles. Make sure you use CommunityEdition: https://stackoverflow.com/questions/44290672/how-to-download-visual-studio-community-edition-2015-not-2017
 
@@ -23,6 +19,17 @@ Once you install the latest version of Miniconda for your operating system you s
     conda install -c conda-forge mamba
 
 Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the most reliable repositories of conda packages.
+
+.. note::
+
+    If you are just interested in building CompuCell3D and do not plan to contribute to CompuCell3D
+    code, you can simply clone CompuCell3D repository, bypassing the forking step described below. Simply run the following commands
+
+    .. code-block:: console
+
+        cd d:/src/
+        git clone https://github.com/CompuCell3D/CompuCell3D.git
+
 
 Next fork CompuCell3D core code repository from https://github.com/CompuCell3D/CompuCell3D. Simply log in to your github account, navigate to the CompuCell3D link and click Fork button in the upper right corner of the page:
 
@@ -43,6 +50,8 @@ Now we are ready to start configuring CompuCell3D build. The entire process of s
 
     I assumed that my forked repository was cloned to ``D:/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
 
+
+
 At this point we need to prepare conda environment that has all dependencies needed to compile CC3D. The main ones include Python and the VTK library, but there are many others so instead of listing them all here, let's leverage conda packages that we use to distribute CompuCell3D. Those key packages that are required to compile CC3D are stored in the conda environment file below. Copy the content of this file ave it as env310.yaml. I saved mine to ``D:src\env310.yaml``
 
 .. code-block:: yaml
@@ -58,7 +67,7 @@ At this point we need to prepare conda environment that has all dependencies nee
       - eigen
       - tbb-devel=2021
       - boost=1.78
-      - cmake>=3.21
+      - cmake>=3.28
       - swig=4
       - psutil
       - deprecated
@@ -135,6 +144,25 @@ For Visual Studio 2019 you would use
     cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
 
 the difference is for the ``-G`` option. Let's see below what each option means
+
+**GPU Solvers**
+
+
+If you would like to enable GPU solvers we recommend that you use Visual Studio 2019 and the cmake command would look as follows
+
+.. code-block:: batch
+
+    cmake -S d:\src\CompuCell3D\CompuCell3D -B d:\src\CompuCell3D_build -DPython3_EXECUTABLE=c:\miniconda3\envs\cc3d_4413_310\python.exe -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=D:\install_projects\cc3d_4413_310
+
+The only difference here is the ``-DNO_OPENCL=OFF`` option that tells Cmake system to include OpenCL modules.
+
+
+.. note::
+
+    In order for GPU solvers to work you need to have a computer with a GPU and install GPU Toolkit. For example if you have a computer with NVidia RTX 30x0 or 40x0 card you would install Nvidia CUDA toolkit and this would be sufficient to get your GPU solvers compiled and running on your machine
+
+
+If you want to enable GPU diffusion solvers you would
 
 Let us explain what each setting/flag means.
 
@@ -311,22 +339,58 @@ and if you take a look at the output screen you will see that some files are ins
 |cc3d_cpp_010|
 
 
-After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
-
-|cc3d_cpp_010a|
-
-and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-packages`` because ``site-packages`` that contains ``cc3d` package has been installed directly into conda environment - hence no need to perform manual copy
-
-|cc3d_cpp_010b|
+At this point your newly compiled CC3D shold be ready to use
 
 
-The only thing that remains now is to copy dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
-See the section "Changing layout of installed CC3C C++ code" for more details.
+.. note::
 
-|cc3d_cpp_011|
+    The following steps apply to releases before ``4.6.0`` , as of ``4.6.0`` you do not need to follow those steps.
 
 
-At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+    After installation step the ``d:\install_projects\cc3d_4413_310\`` directory will look something like
+
+    |cc3d_cpp_010a|
+
+    and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we see no ``site-packages`` because ``site-packages`` that contains ``cc3d` package has been installed directly into conda environment - hence no need to perform manual copy
+
+    |cc3d_cpp_010b|
+
+
+    The only thing that remains now is to copy dlls from ``d:\install_projects\cc3d_4413_310\bin\`` to ``c:\miniconda3\envs\cc3d_4413_310\Library\bin\``
+    See the section "Changing layout of installed CC3C C++ code" for more details.
+
+    |cc3d_cpp_011|
+
+
+    At this point your conda environment will contain binaries that are coming from your compiled version of CompuCell3D.
+
+
+Manually installing Player and Twedit ++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you installed CC3D to miniconda environment ``cc3d_4413_310`` all that you need to get Player and Twedit working with yor new environment is
+to clone those repos
+
+.. code-block:: console
+
+    cd d:\src
+    git clone https://github.com/CompuCell3D/cc3d-player5.git
+    git clone https://github.com/CompuCell3D/cc3d-twedit5.git
+
+and copy ``d:\src\cc3d-player5\cc3d\player5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\player5\`` and similarly, compy
+``d:\src\cc3d-twedit5\cc3d\twedit5`` folder to ``c:\miniconda3\envs\cc3d_4413_310_develop\Lib\site-packages\cc3d\twedit5\``
+
+
+Running Newly Compiled CC3D
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+At this point you can open Player or Twedit through Miniconda prompt (make sure you are still in the cc3d_4413_310 environment)
+
+.. code-block:: console
+
+    python -m cc3d.player5
+
+
 
 Using newly compiled binaries with the UI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -334,48 +398,52 @@ Using newly compiled binaries with the UI
 Follow this guide to setup PyCharm to run the Player and use your newly compiled C++ code  - :doc:`Running Player and Twedit++ from PyCharm <working_on_user_interface>`.
 
 
-Changing layout of installed CC3C C++ code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note::
 
-To Change the layout of the C++ code we could use ``-DBUILD_STANDALONE=ON`` option  and if we do that and repeat all the steps we showed in this writeup you will end up with the layout of the install directory that looks as follows:
+    This is legacy material that no longer applies to current version of CC3D but is relevant when users want to compile earlier CC3D versions
 
-|cc3d_cpp_012|
+    Changing layout of installed CC3C C++ code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see  ``site-packages``
+    To Change the layout of the C++ code we could use ``-DBUILD_STANDALONE=ON`` option  and if we do that and repeat all the steps we showed in this writeup you will end up with the layout of the install directory that looks as follows:
 
-|cc3d_cpp_012a|
+    |cc3d_cpp_012|
+
+    and if we look into ``d:\install_projects\cc3d_4413_310\lib`` we actually we see  ``site-packages``
+
+    |cc3d_cpp_012a|
 
 
-so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
+    so in this case we need copy ``d:\install_projects\cc3d_4413_310\lib\site-packages`` into ``c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\``
 
 
-Example Batch Script for Loading Changes to C++ Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Example Batch Script for Loading Changes to C++ Code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For this example, I am working on new steppable plugin called MyModule. Each time you make changes to the code, do the following:
+    For this example, I am working on new steppable plugin called MyModule. Each time you make changes to the code, do the following:
 
-1. Right-click the module you edited in Visual Studio's Solution Explorer, click Project Only -> Build Only MyModule. If you modified core files, such as Potts, then you should use ALL_BUILD instead of Project Only.
-2. Right click INSTALL, then click Build in Solution Explorer.
-3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
+    1. Right-click the module you edited in Visual Studio's Solution Explorer, click Project Only -> Build Only MyModule. If you modified core files, such as Potts, then you should use ALL_BUILD instead of Project Only.
+    2. Right click INSTALL, then click Build in Solution Explorer.
+    3. Edit the below batch script for your machine's directories. Additionally, if you had set ``-DBUILD_STANDALONE=ON``, then you may skip Step 2.
 
-    .. code-block:: bash
-    
-        echo "Step 1: Copy all .dll files from bin"
-        cd d:\install_projects\bin\
-        cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
+        .. code-block:: bash
 
-        echo "Step 2: Copy site-packages"
-        mkdir c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
-        cp -r d:\install_projects\lib\site-packages\cc3d\* c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+            echo "Step 1: Copy all .dll files from bin"
+            cd d:\install_projects\bin\
+            cp *.dll c:\miniconda3\envs\cc3d_4413_310\Library\bin\
 
-        echo "Step 3: Copy .lib files"
-        cd d:\install_projects\lib\
-        cp *.lib c:\miniconda3\envs\cc3d_4413_310\Library\lib\
+            echo "Step 2: Copy site-packages"
+            mkdir c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
+            cp -r d:\install_projects\lib\site-packages\cc3d\* c:\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d
 
-        echo "Done"
-        pause
+            echo "Step 3: Copy .lib files"
+            cd d:\install_projects\lib\
+            cp *.lib c:\miniconda3\envs\cc3d_4413_310\Library\lib\
 
-4. Finally, open player or Twedit through Miniconda prompt with ``python -m cc3d.player5``.
+            echo "Done"
+            pause
+
+
 
 
 
