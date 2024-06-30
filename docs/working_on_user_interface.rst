@@ -165,6 +165,42 @@ Twedit++ should open up:
 
 At this point you are ready to do UI development using PyCharm
 
+Making Changes
+--------------------------------
+
+Your local Player repository and your Miniconda version of Player can either remain two separate directories, or you can soft-link the files you would change.
+We focus on Windows here since it requires a small workaround. 
+
+On Windows, you can copy over the changes each time you need to test Player. 
+If you edited files in the ``Configuration`` directory, for instance, run this command to test that.
+Be careful about where you copy to. 
+It may be wise to create a backup of your Miniconda CC3D Player directory if you are not sure.  
+
+.. console::
+
+   cp -fr C:\Users\Me\cc3d\cc3d-player5\cc3d\player5\Configuration\* C:\ProgramData\miniconda3\envs\name-of-your-environment\Lib\site-packages\cc3d\player5\Configuration\ && python -m cc3d.player5
+
+Other commands besides ``cp`` should work, too, like ``robocopy`` or ``rsync`` if you prefer. 
+
+**How to Edit .ui (PyQt) Files**:
+
+   #. First, install Qt Designer. 
+
+   #. Next, open the ``.ui`` file you want to edit from the command line. Adjust the path as necessary. ``designer C:\Users\Me\cc3d\player5\Configuration\cc3D_prefs.ui``
+
+   #. Nearly every PyQt component we use is inside of a layout. If you can't move something right away, select it or its parent component and use the 'Break Layout 🚫' button. When you have things roughly well-positioned, select everything that lacks a layout and assign it one (usually either Horizontal Layout or Vertical Layout) to align the components. 
+
+   #. After you saving your changes, you should use the following command to translate the ``.ui`` file into a ``.py`` file. Since these Python files need to be auto-generated each time we make changes in Designer, you should never edit them manually. Note that we use a ``cp`` command before the ``pyuic`` command if we're on Windows since the local repository and Miniconda files need to be synched. Again, adjust the directory name if you are editing something outside of ``player5\Configuration``.
+
+.. code-block:: console
+
+   cp -fr C:\Users\Me\cc3d\cc3d-player5\cc3d\player5\Configuration\* C:\ProgramData\miniconda3\envs\name-of-your-environment\Lib\site-packages\cc3d\player5\Configuration\ && pyuic5 c:\ProgramData\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\player5\Configuration\cc3D_prefs.ui -o c:\ProgramData\miniconda3\envs\cc3d_4413_310\Lib\site-packages\cc3d\player5\Configuration\ui_configurationdlg.py 
+
+
+Finally, view your changes with ``python -m cc3d.player5``.
+Commit and push both the ``.ui`` and ``.py`` files to the Player5 repos.
+
+
 
 .. |ui_development_001| image:: images/ui_development_001.png
    :width: 8.5in
