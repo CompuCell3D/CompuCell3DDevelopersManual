@@ -159,10 +159,18 @@ The only difference here is the ``-DNO_OPENCL=OFF`` option that tells Cmake syst
 
 .. note::
 
-    In order for GPU solvers to work you need to have a computer with a GPU and install GPU Toolkit. For example if you have a computer with NVidia RTX 30x0 or 40x0 card you would install Nvidia CUDA toolkit and this would be sufficient to get your GPU solvers compiled and running on your machine
+    In order for GPU solvers to work you need to have a computer with a GPU and install GPU Toolkit.
+    For example if you have a computer with NVidia RTX 30x0 or 40x0 card you would install Nvidia CUDA toolkit
+    and this would be sufficient to get your GPU solvers compiled and running on your machine. Simply navigate to
+    https://developer.nvidia.com/cuda-downloads:
 
+    |gpu_001|
 
-If you want to enable GPU diffusion solvers you would
+    select Windows and fill the details for Architecture, Version and Installer Type of your Windows -
+    in our case we selected windows, x86_64, 11, exe (local) and follow the instruction given on the download page
+
+    |gpu_002|
+
 
 Let us explain what each setting/flag means.
 
@@ -497,3 +505,10 @@ Follow this guide to setup PyCharm to run the Player and use your newly compiled
 
 .. |cc3d_cpp_012a| image:: images/cc3d_cpp_012a.png
     :scale: 50%
+
+.. |gpu_001| image:: images/gpu_001.png
+    :scale: 50%
+
+.. |gpu_002| image:: images/gpu_002.png
+    :scale: 50%
+
