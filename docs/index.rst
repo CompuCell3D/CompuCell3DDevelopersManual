@@ -31,13 +31,6 @@ C++ extension modules for CompuCell3D
     simulator
 
 .. toctree::
-    :maxdepth: 1
-    :hidden:
-    :caption: Setting up compilers
-
-    setting_up_compilers
-
-.. toctree::
    :maxdepth: 1
    :hidden:
    :caption: C++ Module Development - Tutorials
@@ -45,6 +38,13 @@ C++ extension modules for CompuCell3D
    intro_to_cc3d_c++_module_development
    developing_simple_volume_tracker_plugin
    developing_simple_volume_tracker_plugin_part_2
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+    :caption: Setting up compilers
+
+    setting_up_compilers
 
 
 .. toctree::
