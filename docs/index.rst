@@ -13,6 +13,15 @@ C++ extension modules for CompuCell3D
    funding
 
 .. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Compiling CC3D From Source
+
+   building_core_cc3d_cpp_code_windows
+   building_core_cc3d_cpp_code_mac
+   building_core_cc3d_cpp_code_linux
+
+.. toctree::
     :maxdepth: 1
     :hidden:
     :caption: CC3D Core Objects
@@ -56,16 +65,6 @@ C++ extension modules for CompuCell3D
    :caption: Debugging Techniques
 
    debugging_cc3d_using_gdb
-
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Compiling CC3D From Source
-
-   building_core_cc3d_cpp_code_windows
-   building_core_cc3d_cpp_code_mac
-   building_core_cc3d_cpp_code_linux
 
 .. toctree::
    :maxdepth: 1
