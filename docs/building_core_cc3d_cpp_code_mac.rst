@@ -21,30 +21,37 @@ Next let's install ``mamba`` which give you much faster package dependency resol
 
 .. note::
 
-    On my computer miniconda is installed to ``/Users/m/miniconda_arm64`` folder. It is likely that on yours it will be a different folder so please make a note of this because later wee will need the location of the miniconda to configure compilation of CompuCell3D
+    We will use ``~`` to denote home directory. This is standard Linux/Unix/OSX convention
+    On my computer miniconda is installed to ``~/miniconda_arm64`` folder.
+    It is likely that on yours it will be a different folder so please make a note of this because later we
+    will need the location of the miniconda to configure compilation of CompuCell3D
 
 
-Once you have those tools you are ready to create conda environment into which we will install all the libraries and compilers that are needed for CC3D compilation. There are multiple ways to handle the installation of those prerequisites but the easiest one is to use ``environment.yaml`` files where we list all needed packages and provide this file to conda which takes care of installing them.
+Once you have those tools you are ready to create conda environment into which we will install
+all the libraries and compilers that are needed for CC3D compilation.
+There are multiple ways to handle the installation of those prerequisites but the easiest one is to
+use ``environment.yaml`` files where we list all needed packages and provide this file to
+conda which takes care of installing them.
 
 .. note::
 
-    From now on I will assume that all git repositories and files have been saved to ``/Users/m/src-cc3d`` . You may want to adjust this path so that it corresponds to working folder that exists on your file system. In all commands below you would replace ``/Users/m/src-cc3d`` with the folder of your choice.
+    From now on I will assume that all git repositories and files have been saved to ``~/src-cc3d``, that is to ``src-cc3d`` folder placed inside your home directory (``~``)
 
 
 
-First, let's clone CompuCell3D, cc3d-player5 and cc3d-twedit5 git repositories to ``/Users/m/src-cc3d``
+First, let's clone CompuCell3D, cc3d-player5 and cc3d-twedit5 git repositories to ``!/src-cc3d``
 
 .. code-block:: console
 
-    mkdir -p /Users/m/src-cc3d
-    cd /Users/m/src-cc3d
+    mkdir -p ~/src-cc3d
+    cd ~/src-cc3d
     git clone https://github.com/CompuCell3D/CompuCell3D.git
     git clone https://github.com/CompuCell3D/cc3d-player5.git
     git clone https://github.com/CompuCell3D/cc3d-twedit5.git
 
 
 
-Next, let's create file ``/Users/m/src-cc3d/environment.yaml`` with the following content:
+Next, let's create file ``~/src-cc3d/environment.yaml`` with the following content:
 
 .. code-block:: yaml
 
@@ -55,21 +62,18 @@ Next, let's create file ``/Users/m/src-cc3d/environment.yaml`` with the followin
     # compile dependencies
         - cmake=3.21
         - swig>=4
-        - numpy=1.24
+        - numpy=2.2.6
         - clang_osx-arm64
         - clangxx_osx-arm64
         - llvm-openmp
-        - python 3.10
-        - numpy=1.24
+        - python=3.12
         - vtk=9.2
         - eigen
         - tbb-devel=2021
-        - boost=1.84
-        - cmake=3.21
-        - swig>=4
+        - boost=1.85
         - psutil
         - deprecated
-        - cc3d-network-solvers>=0.3.0
+        - cc3d-network-solvers>=0.3.1
     # cc3d run dependencies
         - simservice
         - notebook
@@ -94,13 +98,21 @@ Next, let's create file ``/Users/m/src-cc3d/environment.yaml`` with the followin
 
 .. note::
 
-    To generate this environment.yaml file it is best to to start the conda build process of cc3d package and navigate to the ``work`` folder within conda-bld directory and then copy all packages from the ``metadata_conda_debug.yaml`` file e.g. in my case the file I used was ``/Users/m/miniconda3_arm64/conda-bld/cc3d_1711231453909/work/metadata_conda_debug.yaml``. The important thing is to copy this file away from this folder while the conda build still runs (otherwise after successful build this file will disappear) and to remove duplicates from the package list. We also added few packages that Player and Twedit++ use. They are not necessary to compile CompuCell3D but they will be useful later when we will run CompuCell3D via ``cc3d-player``
+    To generate this environment.yaml file it is best to to start the conda build
+    process of cc3d package and navigate to the ``work`` folder within conda-bld directory and then copy
+    all packages from the ``metadata_conda_debug.yaml`` file e.g.
+    in my case the file I used was ``~/miniconda3_arm64/conda-bld/cc3d_1711231453909/work/metadata_conda_debug.yaml``.
+    The important thing is to copy this file away from this folder while the conda build still runs
+    (otherwise after successful build this file will disappear) and to remove duplicates from the package list.
+    We also added few packages that Player and Twedit++ use. They are not necessary to compile CompuCell3D but
+    they will be useful later when we will run CompuCell3D via ``cc3d-player``
 
-Once we created ``environment.yaml`` let's ``cd`` to ``/Users/m/src-cc3d`` and create environment called ``cc3d_compile`` by running the following command:
+Once we created ``environment.yaml`` let's ``cd`` to ``~/src-cc3d`` and create environment called ``cc3d_compile``
+by running the following command:
 
 .. code-block:: console
 
-    cd /Users/m/src-cc3d
+    cd ~/src-cc3d
     mamba env create -f environment.yaml --name cc3d_compile
 
 The output of of the last command should look something like this
@@ -148,27 +160,24 @@ After environment in installed let's activate this environment - as suggested bu
 
 At this point we are ready to configure CompuCell3D for compilation. We will be using CMake.
 
-.. note::
-
-    It is important to replace ``/Users/m/src-cc3d`` with the directory into which you cloned the three CompuCell3D repositories repository
 
 Let's run the following command:
 
 .. code-block:: console
 
-    cmake -S /Users/m/src-cc3d/CompuCell3D/CompuCell3D -B /Users/m/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=/Users/m/miniconda3_arm64/envs/cc3d_compile/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/Users/m/src-cc3d/CompuCell3D_install
+    cmake -S ~/src-cc3d/CompuCell3D/CompuCell3D -B ~/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=$CONDA_PREFIX/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=~/src-cc3d/CompuCell3D_install
 
 Let's explain command line arguments we used when calling ``cmake`` command
 
-``-S`` - specifies location of the CompUCdl3D source code and the actual C++ code resides indeed  in ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D``
+``-S`` - specifies location of the CompUCdl3D source code and the actual C++ code resides indeed  in ``~/src-cc3d/CompuCell3D/CompuCell3D``
 
 ``-B`` specifies the location of the temporary compilation files
 
-``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter. Notice that it points to the conda environment we creates (``/envs/cc3d_compile/bin/python``). **Important:** depending where you installed your miniconda you may need to replace ``/Users/m/miniconda3_arm64`` with the path you miniconda installation on your machine
+``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter. Notice that it points to the conda environment we creates (``/envs/cc3d_compile/bin/python``). **Important:** We used ``$CONDA_PREFIX`` env var to point to the conda environment we have just activated. In my case it points to ``/Users/m/miniconda3_arm64/envs/cc3d_compile``. In your case it will be different but ouu can always check by executing ``echo $CONDA_PREFIX`` from the terminal where you activate ``cc3d_compile`` environment
 
 ``-DNO_OPENCL=ON `` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
 
-``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``/Users/m/miniconda3_arm64/envs/cc3d_compile``
+``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``$CONDA_PREFIX`` (e.g. ``/Users/m/miniconda3_arm64/envs/cc3d_compile``)
 
 ``-DCMAKE_INSTALL_PREFIX=`` specifies location of installed CompuCell3D binaries
 
@@ -208,7 +217,7 @@ At this point we are ready to compile CC3D:
 
 .. code-block:: console
 
-    cd /Users/m/src-cc3d/CompuCell3D_build
+    cd ~/src-cc3d/CompuCell3D_build
     make -j 8
 
 We are changing to the "build directory" where or cmake, Makefile, and transient compilation files are stored and we are running ``make`` command with 8 parallel compilation threads to speed up the compilation process. The successful compilation printout should look something like that:
@@ -228,34 +237,24 @@ After the compilation is done we will call ```make install`
 
     make install
 
-The installed files will be placed in ``/Users/m/src-cc3d/CompuCell3D_install`` , exactly as we specified in the ``cmake`` command - ``-DCMAKE_INSTALL_PREFIX=/Users/m/src-cc3d/CompuCell3D_install``
-
-At this point we we need to copy all ``dylib`` files from ``/Users/m/src-cc3d/CompuCell3D_install/lib`` to ``/Users/m/miniconda3_arm64/envs/cc3d_compile/lib``
-
-.. code-block:: console
-
-    cp /Users/m/src-cc3d/CompuCell3D_install/lib/*.dylib /Users/m/miniconda3_arm64/envs/cc3d_compile/lib
-
-.. warning::
-
-    The step where we copy .dylib libraries from ``/Users/m/src-cc3d/CompuCell3D_install/lib/`` is essential and if you for get it you might get cryptic errors that e.g. ``_CompuCell.so`` library cannot be loaded
+The installed files will be placed in ``~/src-cc3d/CompuCell3D_install`` , exactly as we specified in the ``cmake`` command - ``-DCMAKE_INSTALL_PREFIX=~/src-cc3d/CompuCell3D_install``
 
 
 Assuming we are still in cc3d_compile conda environment (run ``conda activate cc3d_compile`` if you opened new terminal) we can run our first simulation using newly compiled CompuCell3D. We will run it without the player first and next we will show you how to get player and twedit++ working.
 
 .. code-block::
 
-    python -m cc3d.run_script -i /Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
+    python -m cc3d.run_script -i ~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
 
 .. note::
 
     First time you execute run command on OSX it takes a while to load all the libraries. Subsequent runs start much faster
 
-The output of the run should look something like this (remember to adjust all paths that start with ``/Users/m/src-cc3d`` to you file system folders):
+The output of the run should look something like this
 
 .. code-block:: console
 
-    (cc3d_compile) m@Maciejs-MacBook-Pro CompuCell3D_build % python -m cc3d.run_script -i /Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
+    (cc3d_compile) m@Maciejs-MacBook-Pro CompuCell3D_build % python -m cc3d.run_script -i ~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
     #################################################
     # CompuCell3D Version: 4.5.0 Revision: 2
      Commit Label: f8ddda9
@@ -282,13 +281,13 @@ The output of the run should look something like this (remember to adjust all pa
 Using Player
 -------------
 
-To run the above simulation using player we need to make player code available to the Python interpreter from which we are running our simulation. In my case this will boil down to either copying directory ``/Users/m/src-cc3d/cc3d-player5/cc3d/player5`` inside  ``/Users/m/miniconda3_arm64/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5``
+To run the above simulation using player we need to make player code available to the Python interpreter from which we are running our simulation. In my case this will boil down to either copying directory ``~/src-cc3d/cc3d-player5/cc3d/player5`` inside  ``$CONDA_PREFIX/lib/python3.1/site-packages/cc3d/player5``
 
 or making a softlink. I prefer the softlink  and I run:
 
 .. code-block:: console
 
-    ln -s /Users/m/src-cc3d/cc3d-player5/cc3d/player5   /Users/m/miniconda3_arm64/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5
+    ln -s ~/src-cc3d/cc3d-player5/cc3d/player5   $CONDA_PREFIX/lib/python3.1/site-packages/cc3d/player5
 
 
 After this step I am ready to run previous simulation using the Player:
@@ -297,4 +296,4 @@ After this step I am ready to run previous simulation using the Player:
 
     python -m cc3d.player5
 
-and then we would use ``File->Open...`` menu to select our ``.cc3d`` project ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d``
+and then we would use ``File->Open...`` menu to select our ``.cc3d`` project ``~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d``
