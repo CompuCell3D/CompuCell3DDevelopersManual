@@ -1,5 +1,5 @@
 ###################################################
-CompuCell3D Reference Manual - 4.4.1
+CompuCell3D Reference Manual - 4.6.0
 ###################################################
 
 The focus of this manual is to explain internals of C++ code and provide all information you need start writing your own
@@ -13,6 +13,15 @@ C++ extension modules for CompuCell3D
    funding
 
 .. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Compiling CC3D From Source
+
+   building_core_cc3d_cpp_code_windows
+   building_core_cc3d_cpp_code_mac
+   building_core_cc3d_cpp_code_linux
+
+.. toctree::
     :maxdepth: 1
     :hidden:
     :caption: CC3D Core Objects
@@ -22,13 +31,6 @@ C++ extension modules for CompuCell3D
     simulator
 
 .. toctree::
-    :maxdepth: 1
-    :hidden:
-    :caption: Setting up compilers
-
-    setting_up_compilers
-
-.. toctree::
    :maxdepth: 1
    :hidden:
    :caption: C++ Module Development - Tutorials
@@ -36,6 +38,13 @@ C++ extension modules for CompuCell3D
    intro_to_cc3d_c++_module_development
    developing_simple_volume_tracker_plugin
    developing_simple_volume_tracker_plugin_part_2
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+    :caption: Setting up compilers
+
+    setting_up_compilers
 
 
 .. toctree::
@@ -56,16 +65,6 @@ C++ extension modules for CompuCell3D
    :caption: Debugging Techniques
 
    debugging_cc3d_using_gdb
-
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Compiling CC3D From Source
-
-   building_core_cc3d_cpp_code_windows
-   building_core_cc3d_cpp_code_mac
-   building_core_cc3d_cpp_code_linux
 
 .. toctree::
    :maxdepth: 1

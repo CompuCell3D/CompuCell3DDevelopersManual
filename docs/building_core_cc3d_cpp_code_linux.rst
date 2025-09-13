@@ -53,7 +53,7 @@ Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following
       - vtk=9.2
       - eigen
       - tbb-devel=2021
-      - boost=1.84
+      - boost=1.85
     # libxcrypt dependency was discovered during actual compilation - searched pkgs sub-folders for all occurrences of crypt.h
       - libxcrypt
       - psutil
@@ -324,3 +324,269 @@ After this step I am ready to run previous simulation using the Player:
     python -m cc3d.player5
 
 and then we would use ``File->Open...`` menu to select our ``.cc3d`` project ``/home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d``
+
+Enabling GPU Solvers
+--------------------
+
+To enable GPU Solvers on your linux installation of CC3D you need to first make sure you have the right hardware on your machine.
+So far, we have tested CC3D with NVidia cards and the instructions we present here assume that you also have one of the
+NVidia GPUs. We have used Ubuntu Linux 22.04 to perform all installations but if you are using different version of Linux the
+compilation steps should be very simular if not identical
+
+Prerequisite
+^^^^^^^^^^^^
+
+Ensure you have correct OpenCL drivers installed. Because we have NVidia hardware we used https://developer.nvidia.com/cuda-downloads
+to initiate the downloads for all required NVidia software that also includes OpenCL drivers.
+
+.. note::
+
+    While Ubuntu has packages that provide CUDA and openCL support we prefer to use the latest versions of NVidia software
+    and therefore we are downloading packages from NVidia site
+
+
+After you navigate to https://developer.nvidia.com/cuda-downloads choose linux
+
+|gpu_001|
+
+Next, select architecture, Distribution , Version and Installer Type as appropriate - in our case we selected Linux, x86_64, Ubuntu, 22.04,  deb (local)
+and follow the instruction as shown below:
+
+|gpu_002|
+
+At this point you should have all NVidia CUDA and OpenCL drivers installed. To make sure CUDA Toolkit is operational you may run
+
+.. code-block:: console
+
+    nvidia-smi
+
+and you should see the output displaying status of your GPU device:
+
+.. code-block:: console
+
+    -----------------------------------------------------------------------------------------+
+    | NVIDIA-SMI 555.42.02              Driver Version: 555.42.02      CUDA Version: 12.5     |
+    |-----------------------------------------+------------------------+----------------------+
+    | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+    | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+    |                                         |                        |               MIG M. |
+    |=========================================+========================+======================|
+    |   0  NVIDIA GeForce RTX 3070 ...    Off |   00000000:01:00.0  On |                  N/A |
+    | N/A   51C    P8             19W /   80W |     632MiB /   8192MiB |      4%      Default |
+    |                                         |                        |                  N/A |
+    +-----------------------------------------+------------------------+----------------------+
+
+    +-----------------------------------------------------------------------------------------+
+    | Processes:                                                                              |
+    |  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+    |        ID   ID                                                               Usage      |
+    |=========================================================================================|
+
+
+At this point we are ready to compile CompuCell3D with the GPU solvers. This process is very similar to the "regular" CC3D compilation
+but we need to do one tiny hack to make sure that the correct OpenCL library gets discovered by CMake build system during the build process
+
+Let's first create conda environment we will use for compilation - see beginning of this section for the content of the ``environment.yaml``
+
+.. code-block:: console
+
+    cd /home/m/src-cc3d
+    mamba env create -f environment.yaml --name cc3d_gpu_compile
+
+After the environment gets created we have to manually rename all files  in ``~/miniconda3/envs/cc3d_gpu_compile/lib``
+that start with ``libOpenCL`` to start with ``libopenCL-x``
+
+.. code-block:: console
+
+    cd ~/miniconda3/envs/cc3d_gpu_compile/lib
+    mv libOpenCL.so libOpenCL-x.so
+    mv libOpenCL.so.1 libOpenCL-x.so.1
+    mv libOpenCL.so.1.0.0 libOpenCL-x.so.1.0.0
+
+This will ensure that CMake will discover OpenCL libraries that we installed using NVidia CUDA tToolkit rather than those bundled
+with the miniconda
+
+Then let's activate newly prepared conda environment:
+
+.. code-block:: console
+
+    conda activate cc3d_gpu_compile
+
+And let's run ``cmake`` to initiate build process
+
+.. code-block:: console
+
+    cmake -S /home/m/src-cc3d/CompuCell3D/CompuCell3D -B /home/m/src-cc3d/CompuCell3D_gpu_build -DPython3_EXECUTABLE=/home/m/miniconda3/envs/cc3d_gpu_compile/bin/python -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/home/m/src-cc3d/CompuCell3D_gpu_install
+
+Here is the output of this command:
+
+.. code-block:: console
+
+    (cc3d_gpu_compile) m@m-lap:~/src-cc3d$ cmake -S /home/m/src-cc3d/CompuCell3D/CompuCell3D -B /home/m/src-cc3d/CompuCell3D_gpu_build -DPython3_EXECUTABLE=/home/m/miniconda3/envs/cc3d_gpu_compile/bin/python -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/home/m/src-cc3d/CompuCell3D_gpu_install -DOpenCL_LIBRARIES=/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.1
+    openmp c flags -fopenmp
+    openmp cxx flags -fopenmp
+    -- Found Python3: /home/m/miniconda3/envs/cc3d_gpu_compile/bin/python (found version "3.10.0") found components: Interpreter Development NumPy Development.Module Development.Embed
+    Python3_FOUND: TRUE
+    Python3_Interpreter_FOUND: TRUE
+    Python3_VERSION: 3.10.0
+    Python3_Development_FOUND: TRUE
+    Python3_EXECUTABLE: /home/m/miniconda3/envs/cc3d_gpu_compile/bin/python
+    Python3_Development_FOUND: TRUE
+    Python3_INCLUDE_DIRS: /home/m/miniconda3/envs/cc3d_gpu_compile/include/python3.10
+    Python3_LIBRARIES: /home/m/miniconda3/envs/cc3d_gpu_compile/lib/libpython3.10.so
+    Python3_LIBRARY_RELEASE: /home/m/miniconda3/envs/cc3d_gpu_compile/lib/libpython3.10.so
+    Python3_LIBRARY_DIRS: /home/m/miniconda3/envs/cc3d_gpu_compile/lib
+    Python3_RUNTIME_LIBRARY_DIRS: /home/m/miniconda3/envs/cc3d_gpu_compile/lib
+    Python3_NumPy_INCLUDE_DIRS: /home/m/miniconda3/envs/cc3d_gpu_compile/lib/python3.10/site-packages/numpy/core/include
+    Python3_LIBRARY_DIRS /home/m/miniconda3/envs/cc3d_gpu_compile/lib
+    Python3_SABI_LIBRARY_DIRS
+    Python3_SITEARCH /home/m/miniconda3/envs/cc3d_gpu_compile/lib/python3.10/site-packages
+    PYTHON_BASE_DIR/home/m/miniconda3/envs/cc3d_gpu_compile
+     THIS IS COMPUCELL3D_BUILD_VERSION 0
+    COMPUCELL3D_C_BUILD_VERSION is 0
+    GOT VERSION AS 4.6.0
+     PUBLIC UTILS OPEN MP FLAG-fopenmp
+    expat library local /home/m/miniconda3/envs/cc3d_gpu_compile/lib/libexpat.so
+    -- /home/m/src-cc3d/CompuCell3D/CompuCell3D
+    CMake Warning (dev) at core/CompuCell3D/steppables/PDESolvers/FindEigen3.cmake:73:
+      Syntax Warning in cmake code at column 35
+
+      Argument not separated from preceding token by whitespace.
+    Call Stack (most recent call first):
+      core/CompuCell3D/steppables/PDESolvers/CMakeLists.txt:15 (find_package)
+    This warning is for project developers.  Use -Wno-dev to suppress it.
+
+    -- /home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Eigen
+    -- Looking for OpenCL...
+    FOUND OPEN CL
+    -- OpenCL headers found at /home/m/miniconda3/envs/cc3d_gpu_compile/include
+    -- OpenCL library: /usr/local/cuda/lib64/libOpenCL.so
+    OPENMP FLAGS -fopenmp
+    -- Found Python3: /home/m/miniconda3/envs/cc3d_gpu_compile/bin/python (found suitable version "3.10.0", minimum required is "3.10") found components: Interpreter Development.Module Development.Embed
+    VTK_MAJOR_VERSION=9
+    NUMPY_INCLUDE_DIR
+    VTK_LIB_DIRS
+    THIS IS cc3d_py_source_dir: /home/m/src-cc3d/CompuCell3D/CompuCell3D/../cc3d
+    USING EXTERNAL PYTHON
+    -- Configuring done
+    CMake Warning (dev) at compucell3d_cmake_macros.cmake:200 (ADD_LIBRARY):
+      Policy CMP0115 is not set: Source file extensions must be explicit.  Run
+      "cmake --help-policy CMP0115" for policy details.  Use the cmake_policy
+      command to set the policy and suppress this warning.
+
+      File:
+
+        /home/m/src-cc3d/CompuCell3D/CompuCell3D/core/CompuCell3D/steppables/PDESolvers/hpppdesolvers.h
+    Call Stack (most recent call first):
+      core/CompuCell3D/steppables/PDESolvers/CMakeLists.txt:187 (ADD_COMPUCELL3D_STEPPABLE)
+    This warning is for project developers.  Use -Wno-dev to suppress it.
+
+    -- Generating done
+    -- Build files have been written to: /home/m/src-cc3d/CompuCell3D_gpu_build
+
+
+.. note::
+
+    It may happen that during cmake run command you may get an error about version of the Boost library (which VTK needs).
+    In this case you should make a not of the Boost version that is suggested and install it int your environment. For example,
+    if cmake output suggests to install boost version ``1.85`` we run the following
+
+    .. code-block:: console
+
+        conda activate cc3d_gpu_compile
+        conda install -c conda-forge boost=1.85
+
+
+    and then repeat ``cmake`` command above.
+
+If we look at the OpenCL section of the output:
+
+.. code-block:: console
+
+    FOUND OPEN CL
+    -- OpenCL headers found at /home/m/miniconda3/envs/cc3d_gpu_compile/include
+    -- OpenCL library: /usr/local/cuda/lib64/libOpenCL.so
+
+
+We see that the correct OpenCL library was identified ``/usr/local/cuda/lib64/libOpenCL.so``. If we look closed the ``/usr/local/cuda/lib64/libOpenCL.so`` is a soft-link to ``/usr/local/cuda/lib64/libOpenCL.so``
+
+
+.. code-block:: console
+
+    (cc3d_gpu_compile) m@m-lap:~/src-cc3d$ ls -la /usr/local/cuda/lib64/libOpenCL.so
+    lrwxrwxrwx 1 root root 14 Apr 15 20:57 /usr/local/cuda/lib64/libOpenCL.so -> libOpenCL.so.1
+
+
+Once cmake prepares CC3D build we go to ``/home/m/src-cc3d/CompuCell3D_gpu_build`` - see last line of the cmake output:
+
+.. code-block:: console
+
+    -- Generating done
+    -- Build files have been written to: /home/m/src-cc3d/CompuCell3D_gpu_build
+
+and run make and make install commands:
+
+.. code-block:: console
+
+    cd /home/m/src-cc3d/CompuCell3D_gpu_build
+    make -j 8
+    make install
+
+at this point CC3D ith GPU solvers should be ready and if you want player just run
+
+.. code-block:: console
+
+    ln -s /home/m/src-cc3d/cc3d-player5/cc3d/player5   /home/m/miniconda3/envs/cc3d_gpu_compile/lib/python3.10/site-packages/cc3d/player5
+
+.. code-block::
+
+    python -m cc3d.player
+
+
+Benchmarking
+^^^^^^^^^^^^
+
+When we run ``SteppableDemos/DiffusionSolverFE_OpenCL/DiffusionSolverFE_OpenCL_3D/DiffusionSolverFE_OpenCL_3D.cc3d`` project
+that uses GPU diffusion solver for 100 MCS here is the benchmarking report
+
+.. code-block:: console
+
+                Total Steppable Time:        0.00 ( 0.0%)
+    Compiled Code (C++) Run Time:        1.44 (70.3%)
+                      Other Time:        0.61 (29.6%)
+
+Running the same simulation but without GPU acceleration gives the following runtime:
+
+.. code-block:: console
+
+            Total Steppable Time:        0.00 ( 0.0%)
+    Compiled Code (C++) Run Time:       28.84 (98.0%)
+                      Other Time:        0.60 ( 2.0%
+
+As we can see we get approx 20x speedup for the diffusion constant of ``1.0`` . the speedups are greater for larger diffusion constants but in general the larger diffusion constant the longer the solver will run regardless if it is GPU or CPU solver
+
+Even if we try using CPU multiprocessign by adding the following stub to ``SteppableDemos/DiffusionSolverFE_OpenCL/DiffusionSolverFE_OpenCL_3D/DiffusionSolverFE_OpenCL_3D/DiffusionSolverFE_OpenCL_3D.xml``
+
+.. code-block:: xml
+
+     <Metadata>
+       <NumberOfProcessors>16</NumberOfProcessors>
+       <NonParallelModule Name="Potts"/>
+    </Metadata>
+
+We still are getting slower performance that with the GPU but significantly faster than with just a single CPU:
+
+.. code-block:: console
+
+            Total Steppable Time:        0.00 ( 0.0%)
+    Compiled Code (C++) Run Time:        6.39 (91.4%)
+                      Other Time:        0.60 ( 8.6%)
+
+
+In general, when benchmarking it is a good idea to keep those comparisons as fair as possible. We know that the power of GPU comes from many computational cores so, in that spirit, it seems fair to compare massively-multi-core GPU with multi-CPU implementation of a given algorithm - in this case the diffusion solver. As we have shown above, while GPU results in much shorter run-times than CPU, the performance gap can be narrowed by using multiple CPUs.
+
+.. |gpu_001| image:: linux_compilation/gpu_001.png
+    :scale: 50%
+
+.. |gpu_002| image:: linux_compilation/gpu_002.png
+    :scale: 50%
