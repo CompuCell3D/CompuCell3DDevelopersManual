@@ -28,40 +28,42 @@ Note, ``-c conda-forge`` points to ``conda-forge`` channel that is one of the mo
 
         ren "C:\CompuCell3D" "CompuCell3D_1"
 
-.. note::
 
-    If you are just interested in building CompuCell3D and do not plan to contribute to CompuCell3D
-    code, you can simply clone CompuCell3D repository, bypassing the forking step described below. Simply run the following commands
 
-    .. code-block:: console
-
-        cd %USERPROFILE%
-        mkdir src
-        cd src
-        git clone https://github.com/CompuCell3D/CompuCell3D.git
-
-At this point you should have the entire CompuCell3D repository stored inside ``src`` directory located in your home folder - we use standard windows environment variable to refer to home folder``%USERPROFILE%``
-
-Next fork CompuCell3D core code repository from https://github.com/CompuCell3D/CompuCell3D. Simply log in to your github account, navigate to the CompuCell3D link and click Fork button in the upper right corner of the page:
-
-|cc3d_cpp_001|
-
-Once you forked the code, go ahead and clone it from your repository (not from CompuCell3D repository).
-
-To clone repository you follow command pattern below:
+Let's start by cloning CompuCell3D repository. To do so, we run the following commands
 
 .. code-block:: console
 
     cd %USERPROFILE%
     mkdir src
     cd src
-    git clone git@github.com:<your_github_name>/CompuCell3D.git
+    git clone https://github.com/CompuCell3D/CompuCell3D.git
 
-Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of ``%USERPROFILE%/src/CompuCell3D/conda-recipes/`` directory , in particular at the ``%USERPROFILE%/src/CompuCell3D/conda-recipes/bld.bat`` file. We will leverage content of this file to construct invocation of the ``cmake`` command that will set up compilation of CompuCell3D in Visual Studio 2015.
+At this point you should have the entire CompuCell3D repository stored inside ``src`` directory located in your home folder - we use standard windows environment variable to refer to home folder ``%USERPROFILE%``
 
 .. note::
 
-    I assumed that my forked repository was cloned to ``%USERPROFILE%/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
+    If you would like to develop custom CompuCell3D module that you would like to contribute to CompuCell3D repository, you might want to fork CompuCell3D repository to your github account and do all the work there. Once you are done, you would open pull request from your fork of CompuCell3D repository to official CompuCell3d repository hosted by us.
+    To fork CompuCell3D core code repository from https://github.com/CompuCell3D/CompuCell3D,  simply log in to your github account, navigate to the CompuCell3D link and click Fork button in the upper right corner of the page:
+
+    |cc3d_cpp_001|
+
+    Once you forked the code, go ahead and clone it from your repository (not from CompuCell3D repository).
+
+    To clone repository you follow command pattern below:
+
+    .. code-block:: console
+
+        cd %USERPROFILE%
+        mkdir src
+        cd src
+        git clone git@github.com:<your_github_name>/CompuCell3D.git
+
+Now we are ready to start configuring CompuCell3D build. The entire process of setting up code build for CC3D is based on conda-recipe that we use to build conda packages. It might be worth looking at the content of ``%USERPROFILE%/src/CompuCell3D/conda-recipes/`` directory , in particular at the ``%USERPROFILE%/src/CompuCell3D/conda-recipes/bld.bat`` file. We will leverage content of this file to construct invocation of the ``cmake`` command that will set up compilation of CompuCell3D in Visual Studio 2019.
+
+.. note::
+
+    I assume that CompuCell3D repository was cloned to ``%USERPROFILE%/src/CompuCell3D``. If you cloned it to a different folder you will need to adjust paths accordingly
 
 
 
@@ -105,7 +107,7 @@ At this point we need to prepare conda environment that has all dependencies nee
 
 
 
-Notice the first line ``name: cc3d-compile`` specifies the name oft the conda environment this file will create - it will be called ``cc3d-compile``
+Notice, the first line ``name: cc3d-compile`` specifies the name oft the conda environment this file will create - it will be called ``cc3d-compile``
 
 Next two lines specify conda channels (repositories) from which the packages listed in the file will be downloaded from
 
@@ -115,7 +117,7 @@ Next two lines specify conda channels (repositories) from which the packages lis
       - conda-forge
       - compucell3d
 
-Here we list conda packages repositories. conda-forge is by far the most popular and package-rich conda package repository and compucell3d is the repository that stores dependencies needed to install or build compucell3d. The ``dependencies`` section lists all packages needed to build core C++ Compucell3D code. NOtice we specify particular Python version ``3.12``%%. It is important to know which version of python you are building packages for otjherwise you may see unexpected runtime surprises so always pay attention to nuances like this.
+Here we list conda packages repositories. conda-forge is by far the most popular and package-rich conda package repository and compucell3d is the repository that stores dependencies needed to install or build compucell3d. The ``dependencies`` section lists all packages needed to build core C++ Compucell3D code. Notice, we specify particular Python version ``3.12`` . It is important to know which version of Python you are building packages for otherwise you may see unexpected runtime surprises so always pay attention to nuances like this.
 
 Let's use this file to actually create conda environment. Open miniconda console and run the following command:
 
@@ -193,7 +195,7 @@ Let us explain what each setting/flag means.
 
 ``-B`` option specifies where the build files are written to. The build files include intermediate compiler outputs but also Visual Studio project that we will open in the Visual Studio IDE.
 
-`-G` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying ``Visual Studio 14 2015 Win64`` so that CMake can generate VS 2015 project for Win64. For Visual Studio 2019 you use ``Visual Studio 16 2019`` . To get the list of all available Cmake generators type the following: 
+``-G`` specifies Cmake generator. CMake can generate project files for multiple IDEs and build system. Here we are specifying ``Visual Studio 14 2015 Win64`` so that CMake can generate VS 2015 project for Win64. For Visual Studio 2019 you use ``Visual Studio 16 2019`` . To get the list of all available Cmake generators type the following:
 
 .. code-block:: console
 
@@ -331,8 +333,6 @@ After we execute the above command (with paths adjusted to your file system layo
     -- Generating done (1.6s)
     -- Build files have been written to: C:/Users/m/src/CompuCell3D_build
 
-.. note::
-    If your output does not look like this, ensure that you are using the same environment for the entire tutorial, including every instance in your CMake command and every place that you copy compiled files to
 
 The line ``-- Generating done`` shows ``-- Build files have been written to:  C:/Users/m/src/CompuCell3D_build``.
 
@@ -396,8 +396,9 @@ and copy ``%USERPROFILE%\src\cc3d-player5\cc3d\player5`` folder to ``c:\minicond
 
 
 To copy, run those commands
-.. code-block:: console
 
+.. code-block:: console
+fixes
     xcopy "%USERPROFILE%\src\cc3d-player5\cc3d\player5" "C:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\player5" /E /I /Y
 
     xcopy "%USERPROFILE%\src\cc3d-twedit5\cc3d\twedit5" "C:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\twedit5" /E /I /Y
