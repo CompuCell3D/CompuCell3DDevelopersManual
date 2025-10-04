@@ -346,10 +346,8 @@ and navigate to where VS 2015 files are generated and pick ``ALL_BUILD.vcxproj``
 
 |cc3d_cpp_004|
 
-Once the project is loaded we set compile configration (we choose RelWithDebInfo from the pull-down menu)
+Once the project is loaded we set compile configration (we choose ``Release`` from the pull-down menu). ``RelWithDebInfo`` may work as well but occasionally you may get compilation or run-time errors.
 
-.. note::
-    If you have compilation errors, you may try again with Release mode instead of RelWithDebInfo.
 
 |cc3d_cpp_006|
 
@@ -391,6 +389,7 @@ to clone those repos
     git clone https://github.com/CompuCell3D/cc3d-player5.git
     git clone https://github.com/CompuCell3D/cc3d-twedit5.git
 
+and copy ``%USERPROFILE%\src\cc3d-player5\cc3d\player5`` folder to ``c:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\player5\``. Similarly, copy
 and copy ``%USERPROFILE%\src\cc3d-player5\cc3d\player5`` folder to ``c:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\player5\``. Similarly, copy
 ``%USERPROFILE%\src\cc3d-twedit5\cc3d\twedit5`` folder to ``c:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\twedit5\``
 
