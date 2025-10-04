@@ -173,7 +173,7 @@ Let's explain command line arguments we used when calling ``cmake`` command
 ``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter that points to Python executable inside the conda environment we created (``$HOME/miniconda3/envs/cc3d-compile/bin/python``). Notice, that we had to use ``$HOME/miniconda3/envs/cc3d-compile/bin/python`` because ``~`` would not work in this context
 
 
-``-DNO_OPENCL=ON `` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
+``-DNO_OPENCL=ON`` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
 
 ``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``~/miniconda3/envs/cc3d-compile``
 
