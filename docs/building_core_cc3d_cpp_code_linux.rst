@@ -63,6 +63,7 @@ Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following
       - scipy
       - pandas
       - jinja2
+      - lxml
       - deprecated
       - psutil
       - simservice
