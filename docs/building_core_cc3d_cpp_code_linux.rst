@@ -8,6 +8,10 @@ In order to compile entire CC3D code on Linux (not just the developer zone) you 
 Follow instructions from Miniconda website:
 https://docs.anaconda.com/free/miniconda/
 
+or if you prefer to stay fully open-source you can use Miniforge distribution from :
+
+https://conda-forge.org/download/
+
 Next let's install ``mamba`` which give you much faster package dependency resolution. Open new terminal and tun the following:
 
 .. code-block:: console
@@ -19,23 +23,26 @@ Once you have those tools you are ready to create conda environment into which w
 
 .. note::
 
-    From now on I will assume that all git repositories and files have been saved to ``/home/m/src-cc3d`` . You may want to adjust this path so that it corresponds to working folder that exists on your file system. In all commands below you would replace ``/home/m/src-cc3d`` with the folder of your choice.
+    We will use ``~`` to denote home directory - in my case it resolves to ``/home/m`` but in your case it will most likely be a different folder, however because we are using an universal home folder identified - ``~`` the presented instructions will work on every linux system. We can also refer to home directory using standard linux environment variable $HOME and we will do it ine one of the commands because ``~`` will not always work in all contexts
+    This is standard Linux/Unix/OSX convention
+    On my computer conda is installed to ``~/miniconda3`` folder but if you are using Miniforge, it will likely be ``~/miniforge3``.
+    We will place all git repositories in ``~/src-cc3d``.
 
 
 
-First, let's clone CompuCell3D, cc3d-player5 and cc3d-twedit5 git repositories to ``/home/m/src-cc3d``
+First, let's clone CompuCell3D, cc3d-player5 and cc3d-twedit5 git repositories to ``~/src-cc3d``
 
 .. code-block:: console
 
-    mkdir -p /home/m/src-cc3d
-    cd /home/m/src-cc3d
+    mkdir -p ~/src-cc3d
+    cd ~/src-cc3d
     git clone https://github.com/CompuCell3D/CompuCell3D.git
     git clone https://github.com/CompuCell3D/cc3d-player5.git
     git clone https://github.com/CompuCell3D/cc3d-twedit5.git
 
 
 
-Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following content:
+Next, let's create file ``~/src-cc3d/environment.yaml`` with the following content:
 
 .. code-block:: yaml
 
@@ -46,10 +53,10 @@ Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following
      # compile dependencies
       - cmake=3.21
       - swig>=4
-      - numpy=1.24
+      - numpy=2.2.6
       - gcc_linux-64
       - gxx_linux-64
-      - python 3.10
+      - python=3.12
       - vtk=9.2
       - eigen
       - tbb-devel=2021
@@ -58,7 +65,7 @@ Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following
       - libxcrypt
       - psutil
       - deprecated
-      - cc3d-network-solvers>=0.3.0
+      - cc3d-network-solvers>=0.3.1
     # cc3d run dependencies
       - scipy
       - pandas
@@ -86,45 +93,42 @@ Next, let's create file ``/home/m/src-cc3d/environment.yaml`` with the following
 
 
 
-
-Once we created ``environment.yaml`` let's ``cd`` to ``/home/m/src-cc3d`` and create environment called ``cc3d_compile`` by running the following command:
+Once we created ``environment.yaml`` let's ``cd`` to ``~/src-cc3d`` and create environment called ``cc3d-compile`` by running the following command:
 
 .. code-block:: console
 
-    cd /home/m/src-cc3d
-    mamba env create -f environment.yaml --name cc3d_compile
+    cd ~/src-cc3d
+    mamba env create -f environment.yaml --name cc3d-compile
 
 The output of of the last command should look something like this
 
 .. code-block:: console
 
       ...
-      + xorg-xproto                                   7.0.31  h7f98852_1007          conda-forge/linux-64     Cached
-      + xz                                             5.2.6  h166bdaf_0             conda-forge/linux-64     Cached
-      + yaml                                           0.2.5  h7f98852_2             conda-forge/linux-64     Cached
-      + yarl                                           1.9.4  py310h2372a71_0        conda-forge/linux-64     Cached
-      + zeromq                                         4.3.5  h59595ed_1             conda-forge/linux-64     Cached
-      + zipp                                          3.17.0  pyhd8ed1ab_0           conda-forge/noarch       Cached
-      + zlib                                          1.2.13  hd590300_5             conda-forge/linux-64     Cached
-      + zstd                                           1.5.5  hfc55251_0             conda-forge/linux-64     Cached
+      + xorg-xf86vidmodeproto                          2.3.1  hb9d3cd8_1005          conda-forge       26kB
+      + xorg-xproto                                   7.0.31  hb9d3cd8_1008          conda-forge       73kB
+      + xz                                             5.8.1  hbcc6ac9_2             conda-forge       24kB
+      + xz-gpl-tools                                   5.8.1  hbcc6ac9_2             conda-forge       34kB
+      + xz-tools                                       5.8.1  hb9d3cd8_2             conda-forge       96kB
+      + yaml                                           0.2.5  h280c20c_3             conda-forge       85kB
+      + yarl                                          1.20.1  py312h178313f_0        conda-forge      149kB
+      + zeromq                                         4.3.5  h387f397_9             conda-forge      311kB
+      + zipp                                          3.23.0  pyhd8ed1ab_0           conda-forge       23kB
+      + zlib                                          1.2.13  h4ab18f5_6             conda-forge       93kB
+      + zstandard                                     0.23.0  py312h4c3975b_3        conda-forge      489kB
+      + zstd                                           1.5.6  ha6fb4c9_0             conda-forge      555kB
 
       Summary:
 
-      Install: 375 packages
+      Install: 400 packages
 
-      Total download: 49MB
+      Total download: 761MB
 
-    ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 
-    libxslt                                            254.3kB @   1.5MB/s  0.2s
-    ipywidgets                                         113.6kB @ 671.0kB/s  0.2s
-    widgetsnbextension                                 886.4kB @   2.3MB/s  0.4s
-    jupyterlab_widgets                                 187.1kB @ 479.9kB/s  0.4s
-    pywin32                                              8.2kB @  14.4kB/s  0.4s
-    pyqtgraph                                          695.0kB @ 983.5kB/s  0.3s
-    qtwebkit                                            15.6MB @   3.9MB/s  3.8s
-    python                                              31.3MB @   4.4MB/s  7.0s
+    Confirm changes: [Y/n]
+
 
     Downloading and Extracting Packages
 
@@ -148,32 +152,31 @@ After environment in installed let's activate this environment - as suggested bu
 
 .. code-block:: console
 
-    conda activate cc3d_compile
+    conda activate cc3d-compile
 
 
 At this point we are ready to configure CompuCell3D for compilation. We will be using CMake.
 
-.. note::
-
-    It is important to replace ``/home/m/src-cc3d`` with the directory into which you cloned the three CompuCell3D repositories repository
 
 Let's run the following command:
 
 .. code-block:: console
 
-    cmake -S /home/m/src-cc3d/CompuCell3D/CompuCell3D -B /home/m/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=/home/m/miniconda3/envs/cc3d_compile/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/home/m/src-cc3d/CompuCell3D_install
+    cmake -S ~/src-cc3d/CompuCell3D/CompuCell3D -B ~/src-cc3d/CompuCell3D_build -DPython3_EXECUTABLE=$HOME/miniconda3/envs/cc3d-compile/bin/python -DNO_OPENCL=ON  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=~/src-cc3d/CompuCell3D_install
 
 Let's explain command line arguments we used when calling ``cmake`` command
 
-``-S`` - specifies location of the CompUCdl3D source code and the actual C++ code resides indeed  in ``/home/m/src-cc3d/CompuCell3D/CompuCell3D``
+
+``-S`` - specifies location of the CompUCdl3D source code and the actual C++ code resides indeed  in ``~/src-cc3d/CompuCell3D/CompuCell3D``
 
 ``-B`` specifies the location of the temporary compilation files
 
-``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter. Notice that it points to the conda environment we creates (``/envs/cc3d_compile/bin/python``). **Important:** depending where you installed your miniconda you may need to replace ``/home/m/miniconda3`` with the path you miniconda installation on your machine
+``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter that points to Python executable inside the conda environment we created (``$HOME/miniconda3/envs/cc3d-compile/bin/python``). Notice, that we had to use ``$HOME/miniconda3/envs/cc3d-compile/bin/python`` because ``~`` would not work in this context
 
-``-DNO_OPENCL=ON `` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
 
-``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``/home/m/miniconda3/envs/cc3d_compile``
+``-DNO_OPENCL=ON`` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
+
+``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``~/miniconda3/envs/cc3d-compile``
 
 ``-DCMAKE_INSTALL_PREFIX=`` - specifies location of installed CompuCell3D binaries
 
@@ -193,9 +196,9 @@ After running the las t command the output should look as follows:
 .. code-block:: console
 
     ...
-    -- Found X11: /home/m/miniconda3/envs/cc3d_compile/include
-    -- Looking for XOpenDisplay in /home/m/miniconda3/envs/cc3d_compile/lib/libX11.so;/home/m/miniconda3/envs/cc3d_compile/lib/libXext.so
-    -- Looking for XOpenDisplay in /home/m/miniconda3/envs/cc3d_compile/lib/libX11.so;/home/m/miniconda3/envs/cc3d_compile/lib/libXext.so - found
+    -- Found X11: /home/m/miniconda3/envs/cc3d-compile/include
+    -- Looking for XOpenDisplay in /home/m/miniconda3/envs/cc3d-compile/lib/libX11.so;/home/m/miniconda3/envs/cc3d-compile/lib/libXext.so
+    -- Looking for XOpenDisplay in /home/m/miniconda3/envs/cc3d-compile/lib/libX11.so;/home/m/miniconda3/envs/cc3d-compile/lib/libXext.so - found
     -- Looking for gethostbyname
     -- Looking for gethostbyname - found
     -- Looking for connect
@@ -206,13 +209,13 @@ After running the las t command the output should look as follows:
     -- Looking for shmat - found
     -- Looking for IceConnectionNumber in ICE
     -- Looking for IceConnectionNumber in ICE - found
-    -- Found EXPAT: /home/m/miniconda3/envs/cc3d_compile/lib/libexpat.so (found version "2.5.0")
-    -- Found double-conversion: /home/m/miniconda3/envs/cc3d_compile/lib/libdouble-conversion.so
-    -- Found LZ4: /home/m/miniconda3/envs/cc3d_compile/lib/liblz4.so (found version "1.9.4")
-    -- Found LZMA: /home/m/miniconda3/envs/cc3d_compile/lib/liblzma.so (found version "5.2.6")
-    -- Found JPEG: /home/m/miniconda3/envs/cc3d_compile/lib/libjpeg.so (found version "80")
-    -- Found TIFF: /home/m/miniconda3/envs/cc3d_compile/lib/libtiff.so (found version "4.6.0")
-    -- Found Freetype: /home/m/miniconda3/envs/cc3d_compile/lib/libfreetype.so (found version "2.12.1")
+    -- Found EXPAT: /home/m/miniconda3/envs/cc3d-compile/lib/libexpat.so (found version "2.5.0")
+    -- Found double-conversion: /home/m/miniconda3/envs/cc3d-compile/lib/libdouble-conversion.so
+    -- Found LZ4: /home/m/miniconda3/envs/cc3d-compile/lib/liblz4.so (found version "1.9.4")
+    -- Found LZMA: /home/m/miniconda3/envs/cc3d-compile/lib/liblzma.so (found version "5.2.6")
+    -- Found JPEG: /home/m/miniconda3/envs/cc3d-compile/lib/libjpeg.so (found version "80")
+    -- Found TIFF: /home/m/miniconda3/envs/cc3d-compile/lib/libtiff.so (found version "4.6.0")
+    -- Found Freetype: /home/m/miniconda3/envs/cc3d-compile/lib/libfreetype.so (found version "2.12.1")
     VTK_MAJOR_VERSION=9
     NUMPY_INCLUDE_DIR
     VTK_LIB_DIRS
@@ -234,12 +237,13 @@ After running the las t command the output should look as follows:
     -- Generating done
     -- Build files have been written to: /home/m/src-cc3d/CompuCell3D_build
 
+In your case the paths will look slightly different but once you see `` -- Generating done`` it means you are ready to compile CC3D
 
 At this point we are ready to compile CC3D:
 
 .. code-block:: console
 
-    cd /home/m/src-cc3d/CompuCell3D_build
+    cd ~/src-cc3d/CompuCell3D_build
     make -j 8
 
 We are changing to the "build directory" where or cmake, Makefile, and transient compilation files are stored and we are running ``make`` command with 8 parallel compilation threads to speed up the compilation process. The successful compilation printout should look something like that:
@@ -259,63 +263,22 @@ After the compilation is done we will call ```make install`
 
     make install
 
-The installed files will be placed in ``/home/m/src-cc3d/CompuCell3D_install`` , exactly as we specified in the ``cmake`` command - ``-DCMAKE_INSTALL_PREFIX=/home/m/src-cc3d/CompuCell3D_install``
-
-At this point we we need to copy all ``.so`` files from ``/home/m/src-cc3d/CompuCell3D_install/lib`` to ``/home/m/miniconda3/envs/cc3d_compile/lib``
-
-.. code-block:: console
-
-    cp /home/m/src-cc3d/CompuCell3D_install/lib/*.so /home/m/miniconda3/envs/cc3d_compile/lib
+The installed files will be placed in ``~/src-cc3d/CompuCell3D_install`` , exactly as we specified in the ``cmake`` command - ``-DCMAKE_INSTALL_PREFIX=~/src-cc3d/CompuCell3D_install``
 
 
-Assuming we are still in cc3d_compile conda environment (run ``conda activate cc3d_compile`` if you opened new terminal) we can run our first simulation using newly compiled CompuCell3D. We will run it without the player first and next we will show you how to get player and twedit++ working.
 
-.. code-block::
-
-    python -m cc3d.run_script -i /home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
-
-.. note::
-
-    First time you execute run command on OSX it takes a while to load all the libraries. Subsequent runs start much faster
-
-The output of the run should look something like this (remember to adjust all paths that start with ``/home/m/src-cc3d`` to you file system folders):
-
-.. code-block:: console
-
-    (cc3d_compile) m@tuf:~/src-cc3d/CompuCell3D_build$ python -m cc3d.run_script -i /home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
-    #################################################
-    # CompuCell3D Version: 4.5.0 Revision: 2
-     Commit Label: f8ddda9
-    #################################################
-    <cc3d.core.CC3DSimulationDataHandler.CC3DSimulationData object at 0x7f0cfd2316f0>
-    Random number generator: MersenneTwister
-    WILL RUN SIMULATION FROM BEGINNING
-    CALLING FINISH
-
-
-    ------------------PERFORMANCE REPORT:----------------------
-    -----------------------------------------------------------
-    TOTAL RUNTIME 5 s : 688 ms = 5.688 s
-    -----------------------------------------------------------
-    -----------------------------------------------------------
-    PYTHON STEPPABLE RUNTIMES
-                cellsort_2DSteppable:        0.01 ( 0.2%)
-    -----------------------------------------------------------
-                Total Steppable Time:        0.01 ( 0.2%)
-        Compiled Code (C++) Run Time:        5.60 (98.5%)
-                          Other Time:        0.08 ( 1.4%)
-    -----------------------------------------------------------
 
 Using Player
 -------------
 
-To run the above simulation using player we need to make player code available to the Python interpreter from which we are running our simulation. In my case this will boil down to either copying directory ``/home/m/src-cc3d/cc3d-player5/cc3d/player5`` inside  ``/home/m/miniconda3_arm64/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5``
+NOw that the compilation is complete all we need to do is to enable the Player by creating a softlink from the cc3d-player5 repository that we cloned earlier to the ``site-packages/cc3d`` folder inside ``cc3d-compile`` conda environment:
+  ``~/miniconda3/envs/cc3d-compile/lib/python3.12/site-packages/cc3d/player5``
 
-or making a softlink. I prefer the softlink  and I run:
+Simply run the following:
 
 .. code-block:: console
 
-    ln -s /home/m/src-cc3d/cc3d-player5/cc3d/player5   /home/m/miniconda3/envs/cc3d_compile/lib/python3.10/site-packages/cc3d/player5
+    ln -s ~/src-cc3d/cc3d-player5/cc3d/player5   ~/miniconda3/envs/cc3d-compile/lib/python3.12/site-packages/cc3d/player5
 
 
 After this step I am ready to run previous simulation using the Player:
@@ -324,7 +287,7 @@ After this step I am ready to run previous simulation using the Player:
 
     python -m cc3d.player5
 
-and then we would use ``File->Open...`` menu to select our ``.cc3d`` project ``/home/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d``
+and then we  ``File->Open...`` menu to select any ``.cc3d`` project from the ``Demos`` directory: ``~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos``
 
 Enabling GPU Solvers
 --------------------
@@ -391,7 +354,7 @@ Let's first create conda environment we will use for compilation - see beginning
 
 .. code-block:: console
 
-    cd /home/m/src-cc3d
+    cd ~/src-cc3d
     mamba env create -f environment.yaml --name cc3d_gpu_compile
 
 After the environment gets created we have to manually rename all files  in ``~/miniconda3/envs/cc3d_gpu_compile/lib``
@@ -417,7 +380,7 @@ And let's run ``cmake`` to initiate build process
 
 .. code-block:: console
 
-    cmake -S /home/m/src-cc3d/CompuCell3D/CompuCell3D -B /home/m/src-cc3d/CompuCell3D_gpu_build -DPython3_EXECUTABLE=/home/m/miniconda3/envs/cc3d_gpu_compile/bin/python -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/home/m/src-cc3d/CompuCell3D_gpu_install
+    cmake -S ~/src-cc3d/CompuCell3D/CompuCell3D -B ~/src-cc3d/CompuCell3D_gpu_build -DPython3_EXECUTABLE=$HOME/miniconda3/envs/cc3d_gpu_compile/bin/python -DNO_OPENCL=OFF  -DBUILD_STANDALONE=OFF -DOPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so -DOPENGL_glx_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLX.so -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=~/src-cc3d/CompuCell3D_gpu_install
 
 Here is the output of this command:
 
@@ -518,7 +481,7 @@ We see that the correct OpenCL library was identified ``/usr/local/cuda/lib64/li
     lrwxrwxrwx 1 root root 14 Apr 15 20:57 /usr/local/cuda/lib64/libOpenCL.so -> libOpenCL.so.1
 
 
-Once cmake prepares CC3D build we go to ``/home/m/src-cc3d/CompuCell3D_gpu_build`` - see last line of the cmake output:
+Once cmake prepares CC3D build we go to ``~/src-cc3d/CompuCell3D_gpu_build`` - see last line of the cmake output:
 
 .. code-block:: console
 
@@ -529,7 +492,7 @@ and run make and make install commands:
 
 .. code-block:: console
 
-    cd /home/m/src-cc3d/CompuCell3D_gpu_build
+    cd ~/src-cc3d/CompuCell3D_gpu_build
     make -j 8
     make install
 
@@ -537,7 +500,7 @@ at this point CC3D ith GPU solvers should be ready and if you want player just r
 
 .. code-block:: console
 
-    ln -s /home/m/src-cc3d/cc3d-player5/cc3d/player5   /home/m/miniconda3/envs/cc3d_gpu_compile/lib/python3.10/site-packages/cc3d/player5
+    ln -s ~/src-cc3d/cc3d-player5/cc3d/player5   ~/miniconda3/envs/cc3d_gpu_compile/lib/python3.12/site-packages/cc3d/player5
 
 .. code-block::
 

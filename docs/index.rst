@@ -1,5 +1,5 @@
 ###################################################
-CompuCell3D Reference Manual - 4.6.0
+CompuCell3D Developers Manual - 4.7.0
 ###################################################
 
 The focus of this manual is to explain internals of C++ code and provide all information you need start writing your own
