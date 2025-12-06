@@ -90,6 +90,7 @@ At this point we need to prepare conda environment that has all dependencies nee
       - scipy
       - pandas
       - jinja2
+      - lxml
       - simservice
       - notebook
       - ipywidgets

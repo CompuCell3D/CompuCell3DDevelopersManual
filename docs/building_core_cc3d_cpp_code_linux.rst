@@ -70,6 +70,7 @@ Next, let's create file ``~/src-cc3d/environment.yaml`` with the following conte
       - scipy
       - pandas
       - jinja2
+      - lxml
       - deprecated
       - psutil
       - simservice
