@@ -122,6 +122,7 @@ Here we list conda packages repositories. conda-forge is by far the most popular
 Let's use this file to actually create conda environment. Open miniconda console and run the following command:
 
 .. code-block:: console
+
     cd %USERPROFILE%/src
     mamba env create -f %USERPROFILE%/src/env-cc3d.yaml
 
