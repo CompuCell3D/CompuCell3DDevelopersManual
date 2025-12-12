@@ -15,7 +15,9 @@ First, run CompuCell3D Player from the command prompt of your choice, such as Mi
 
     python -m cc3d.player5
 
-Run Visual Studio as Administrator. From the navigation menu, select Debug -> Attach to Process...
+Run Visual Studio as Administrator. Select the COMPUCELL3D.sln file from your CompuCell3D_build folder. 
+
+From the navigation menu, select Debug -> Attach to Process...
 
 In the window that appears, search for python.exe:
 
