@@ -141,7 +141,8 @@ and after everything is installed we will get the prompt to activate newly creat
 
 
 
-Let's activate newly created conda environment (from now on you should be able to use regular console , not the one that runs in the Administrator mode)
+Let's activate the newly created conda environment (from now on you should be able to use regular console, not the one that runs in the Administrator mode). 
+This works best if you run from a Visual Studio developer command prompt such as *x64 Native Tools Command Prompt for VS 2019* as opposed to the Miniforge or Miniconda prompt. 
 
 
 .. code-block:: console
@@ -404,6 +405,7 @@ To copy, run those commands
 
     xcopy "%USERPROFILE%\src\cc3d-twedit5\cc3d\twedit5" "C:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\twedit5" /E /I /Y
 
+.. _running-newly-compiled-cc3d:
 
 Running Newly Compiled CC3D
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

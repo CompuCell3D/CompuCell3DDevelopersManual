@@ -65,6 +65,7 @@ C++ extension modules for CompuCell3D
    :caption: Debugging Techniques
 
    debugging_cc3d_using_gdb
+   debugging_cc3d_using_visual_studio
 
 .. toctree::
    :maxdepth: 1
