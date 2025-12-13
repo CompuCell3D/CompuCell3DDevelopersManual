@@ -7,17 +7,23 @@ This demonstrates how to debug compiled C++ code. It assumes that you have compi
 
     This doc was written with Windows in mind. It might still work on other operating systems. 
 
-First, run CompuCell3D Player from the command prompt of your choice, such as Miniforge Prompt. 
+For debugging purposes, it is often best to launch a CC3D simulation and either pause it immediately or step through the simulation incrementally. This allows you to attach a debugger, inspect internal state, and verify execution flow early in the run.
+
+First, start the CompuCell3D Player from a command prompt of your choice, such as the Miniforge Prompt or ``cmd.exe``.
 
 .. code-block:: console
 
     conda activate your-cc3d-env
-
     python -m cc3d.player5
+
+See also :ref:`How to run CC3D from the command line <running-newly-compiled-cc3d>`.
+
 
 Run Visual Studio as Administrator. Select the COMPUCELL3D.sln file from your CompuCell3D_build folder. 
 
 From the navigation menu, select Debug -> Attach to Process...
+
+
 
 In the window that appears, search for python.exe:
 

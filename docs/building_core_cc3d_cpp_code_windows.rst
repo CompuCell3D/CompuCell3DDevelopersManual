@@ -405,6 +405,7 @@ To copy, run those commands
 
     xcopy "%USERPROFILE%\src\cc3d-twedit5\cc3d\twedit5" "C:\miniconda3\envs\cc3d-compile\Lib\site-packages\cc3d\twedit5" /E /I /Y
 
+.. _running-newly-compiled-cc3d:
 
 Running Newly Compiled CC3D
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
