@@ -1,7 +1,7 @@
 Debugging CC3D using Visual Studio
 ==============================================
 
-This demonstrates how to debug compiled C++ code. 
+This demonstrates how to debug compiled C++ code. It assumes that you have compiled with RelWithDebInfo mode in Visual Studio. 
 
 .. note::
 
@@ -23,13 +23,12 @@ In the window that appears, search for python.exe:
 
 |debug_vs_attach_to_process|
 
-
 .. |debug_vs_attach_to_process| image:: images/debug_vs_attach_to_process.png
    :width: 3.6in
    :height: 2.4in
 
 Click "Attach." This should start debugging mode. 
-If you have trouble finding the process, try checking the box for "Show processes for all users."
+If you have trouble finding the process, try checking the box for "Show processes for all users." Then, click Refresh. 
 
 Add a breakpoint in Potts3D.cpp. At the time of writing, there is a line that is run every MCS that will be a good target for your first breakpoint. 
 
@@ -45,3 +44,9 @@ Add a breakpoint in Potts3D.cpp. At the time of writing, there is a line that is
     }
 
 Run a simulation in Player and ensure that the breakpoint is hit. 
+
+Troubleshooting
+******************
+
+- The debugger should be attached using the same software that you used to build CompuCell3D. For example, if you compiled using VS 2019, then you cannot debug using VS 2022. 
+- Building CompuCell3D with Debug mode in Visual Studio may produce errors. RelWithDebInfo mode is preferred. 
