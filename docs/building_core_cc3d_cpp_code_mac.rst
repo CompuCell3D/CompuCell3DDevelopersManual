@@ -68,7 +68,7 @@ Next, let's create file ``~/src-cc3d/environment.yaml`` with the following conte
         - llvm-openmp
         - python=3.12
         - vtk=9.2
-        - eigen
+        - eigen>=3.4,<3.5
         - tbb-devel=2021
         - boost=1.85
         - psutil

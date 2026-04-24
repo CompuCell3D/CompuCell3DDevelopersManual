@@ -79,7 +79,7 @@ At this point we need to prepare conda environment that has all dependencies nee
       - python=3.12
       - numpy=2.2.6
       - vtk=9.2
-      - eigen
+      - eigen>=3.4,<3.5
       - tbb-devel=2021
       - boost=1.85
       - cmake=3.28
