@@ -12,6 +12,14 @@ or if you prefer to stay fully open-source you can use Miniforge distribution fr
 
 https://conda-forge.org/download/
 
+.. note::
+
+    If you compile CC3D on Ubuntu Linux running under WSL2 for Windows,
+    we recommend using Ubuntu 24.04.
+    We experienced configuration issues with Ubuntu 20.04 and 22.04 under WSL2,
+    and those distributions had trouble running a simple VTK test program.
+    This might be related to the VTK 9.2 package, but Ubuntu 24.04 worked much better in our WSL2 tests.
+
 Next let's install ``mamba`` which give you much faster package dependency resolution. Open new terminal and tun the following:
 
 .. code-block:: console
