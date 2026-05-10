@@ -66,7 +66,7 @@ Next, let's create file ``~/src-cc3d/environment.yaml`` with the following conte
       - gxx_linux-64
       - python=3.12
       - vtk=9.2
-      - eigen
+      - eigen>=3.4,<3.5
       - tbb-devel=2021
       - boost=1.85
     # libxcrypt dependency was discovered during actual compilation - searched pkgs sub-folders for all occurrences of crypt.h
