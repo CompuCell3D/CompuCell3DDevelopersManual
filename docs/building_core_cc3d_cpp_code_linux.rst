@@ -268,26 +268,45 @@ The installed files will be placed in ``~/src-cc3d/CompuCell3D_install`` , exact
 
 
 
-Using Player
--------------
+Installing Player and Twedit++ into the compiled environment
+------------------------------------------------------------
 
-NOw that the compilation is complete all we need to do is to enable the Player by creating a softlink from the cc3d-player5 repository that we cloned earlier to the ``site-packages/cc3d`` folder inside ``cc3d-compile`` conda environment:
-  ``~/miniconda3/envs/cc3d-compile/lib/python3.12/site-packages/cc3d/player5``
+After successful compilation and ``make install``, the newly compiled CompuCell3D Python package is installed into the active conda environment. To run the Player and Twedit++ from the same environment, we need to make the ``cc3d-player5`` and ``cc3d-twedit5`` repositories available inside that environment's ``site-packages/cc3d`` folder.
 
-Simply run the following:
+Make sure you are still in the ``cc3d-compile`` environment:
 
 .. code-block:: console
 
-    ln -s ~/src-cc3d/cc3d-player5/cc3d/player5   ~/miniconda3/envs/cc3d-compile/lib/python3.12/site-packages/cc3d/player5
+    conda activate cc3d-compile
 
+On Linux with conda, ``site-packages`` is typically located under a path such as ``~/miniconda3/envs/cc3d-compile/lib/python3.12/site-packages`` or ``~/miniforge3/envs/cc3d-compile/lib/python3.12/site-packages``. To avoid hard-coding the Python version or the exact Miniconda/Miniforge installation path, we can ask Python where ``site-packages`` is located:
 
-After this step I am ready to run previous simulation using the Player:
+.. code-block:: console
 
-.. code-block::
+    SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
+
+The easiest development setup is to create symbolic links from your cloned repositories into the compiled environment:
+
+.. code-block:: console
+
+    ln -s ~/src-cc3d/cc3d-player5/cc3d/player5 "$SITE_PACKAGES/cc3d/player5"
+    ln -s ~/src-cc3d/cc3d-twedit5/cc3d/twedit5 "$SITE_PACKAGES/cc3d/twedit5"
+
+If you prefer a copied installation instead of symbolic links, use:
+
+.. code-block:: console
+
+    cp -R ~/src-cc3d/cc3d-player5/cc3d/player5 "$SITE_PACKAGES/cc3d/player5"
+    cp -R ~/src-cc3d/cc3d-twedit5/cc3d/twedit5 "$SITE_PACKAGES/cc3d/twedit5"
+
+After this step you can run Player or Twedit++ using the newly compiled CompuCell3D binaries:
+
+.. code-block:: console
 
     python -m cc3d.player5
+    python -m cc3d.twedit5
 
-and then we  ``File->Open...`` menu to select any ``.cc3d`` project from the ``Demos`` directory: ``~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos``
+In Player, use ``File->Open...`` to select any ``.cc3d`` project from the ``Demos`` directory: ``~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos``.
 
 Enabling GPU Solvers
 --------------------
