@@ -1,130 +1,172 @@
 Configuring DeveloperZone Projects for compilation
 ==================================================
 
-From technical viewpoint ``DeveloperZone`` is a folder that contains source code for additional plugins and steppables
-written in C++. Depending on your needs, sometimes, you want to write high-performance CC3D module that runs much faster
-than equivalent Python code. Up until version 4.3.0 of CC3D developing C++ modules was a little bit involved because
-it required users to install and configure appropriate compilers that will work with provided binaries, performing
-CMake configuration - the challenge here was to make sure that all Cmake variables point to appropriate directories,
-that Python version identified by Cmake matches the one with which CC#D was compiled etc... In practice this process was
-often perceived as quite error-prone.
+``DeveloperZone`` is a source tree for additional C++ plugins, steppables, and
+Python bindings that extend CompuCell3D. Because DeveloperZone builds compiled
+C++ code, the safest workflow is to compile CompuCell3D first and then build
+DeveloperZone with the same compiler, Python, CMake, VTK, SWIG, and conda
+environment. This keeps the C++ ABI, Python version, library paths, and Visual
+Studio or Unix compiler setup consistent between the core CompuCell3D build and
+your extension modules.
 
-Starting with version 4.3.0 of CC3D we provide one-click configurator for "DeveloperZone" All that is required from
-the user is one time setup of compiler (on Windows you will install Visual Studio 2015 Community Edition, and on Mac
-you need to install xcode-select package - all described in sections above. On linux you will likely not need any
-additional setup).
+Prerequisite: compile CompuCell3D first
+---------------------------------------
 
-Once you set up compilers (and install binaries for CC3D) open Twedit++ and go to ``CC3D C++ -> DeveloperZone ...`` .
-This will open the following dialog:
+Before configuring DeveloperZone, complete the full CompuCell3D compilation
+workflow for your platform:
+
+* Linux: :doc:`building_core_cc3d_cpp_code_linux`
+* macOS: :doc:`building_core_cc3d_cpp_code_mac`
+* Windows: :doc:`building_core_cc3d_cpp_code_windows`
+
+Those pages also describe how to clone the repositories. In this section we
+assume the source code is under the same location used by the compilation
+instructions:
+
+* Linux and macOS: ``$HOME/src-cc3d``
+* Windows: ``%USERPROFILE%\src-cc3d``
+
+Launch Twedit++ from the compile environment
+--------------------------------------------
+
+For all platforms, start Twedit++ from a command line where the same conda
+environment used to compile CompuCell3D is active. Do not start Twedit++ from a
+different Python environment or from an unrelated desktop shortcut.
+
+If your compile environment is named ``cc3d-compile``, use:
+
+.. code-block:: console
+
+    conda activate cc3d-compile
+    python -m cc3d.twedit5
+
+Some older Linux and macOS instructions use the environment name
+``cc3d_compile`` instead. If that is the environment you used to compile
+CompuCell3D, activate that exact environment:
+
+.. code-block:: console
+
+    conda activate cc3d_compile
+    python -m cc3d.twedit5
+
+Windows Visual Studio tools
+---------------------------
+
+On Windows, Visual Studio compiler tools must be active in the same console
+session before launching Twedit++. Start from a regular ``cmd.exe`` console,
+activate the x64 Visual Studio tools for the version you used to compile
+CompuCell3D, then activate the conda environment and run Twedit++.
+
+For Visual Studio 2015 x64:
+
+.. code-block:: bat
+
+    call "%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
+    conda activate cc3d-compile
+    python -m cc3d.twedit5
+
+For Visual Studio 2019 x64:
+
+.. code-block:: bat
+
+    call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+    conda activate cc3d-compile
+    python -m cc3d.twedit5
+
+For Visual Studio 2026 x64:
+
+.. code-block:: bat
+
+    call "%ProgramFiles%\Microsoft Visual Studio\2026\Community\VC\Auxiliary\Build\vcvars64.bat"
+    conda activate cc3d-compile
+    python -m cc3d.twedit5
+
+If you installed a different Visual Studio edition, such as ``Professional``,
+``Enterprise``, or ``BuildTools``, adjust the edition folder in the path.
+
+Configure DeveloperZone in Twedit++
+-----------------------------------
+
+In Twedit++ choose ``CC3D C++ -> DeveloperZone ...``. This opens the
+DeveloperZone configuration dialog:
 
 |dz_001|
 
-Before going any further, make sure you you have a working copy of the CC3D source code. The best way is to clone CC3D
-source code repository. If you have git installed on your system you are ready to go. If not you can easily do it
-by running ``conda-shell`` script from CC3D installation folder. Assuming your CC3D is installed
-into ``c:\CompuCell3D`` (on Windows) you would run the following:
+Set the fields as follows:
+
+* ``CC3D GIT Repository Dir``: the CompuCell3D repository root.
+* ``Build Dir.``: a new empty directory where CMake will generate build files - this will be prepopulated automatically but you can override it
+* ``Windows CMake generator``: on Windows, select the Visual Studio generator
+  matching the Visual Studio version used to compile CompuCell3D.
+
+Example paths:
 
 .. code-block:: console
 
-    cd c:\
-    c:\CompuCell3D\conda-shell.bat
+    # Linux and macOS
+    CC3D GIT Repository Dir: $HOME/src-cc3d/CompuCell3D
+    Build Dir.:              $HOME/src-cc3d/CompuCell3D_dev_zone_build
 
-then :
+.. code-block:: bat
 
-.. code-block:: console
+    rem Windows
+    CC3D GIT Repository Dir: %USERPROFILE%\src-cc3d\CompuCell3D
+    Build Dir.:              %USERPROFILE%\src-cc3d\CompuCell3D_dev_zone_build
 
-    conda install -c conda-forge git
+The build directory must be empty when DeveloperZone is configured. If you need
+to reconfigure from scratch, remove the old build directory or choose a new one.
 
-At this point you should have ``git`` installed within base environment of the miniconda distribution that
-is bundled with CC3D. In general to make use of any conda tools you would first need to run ``conda-shell`` each time
-you open new terminal.
+After filling in the dialog, click ``Configure``. Twedit++ runs CMake using the
+active conda environment and writes the generated project files to the build
+directory.
 
-Let's clone CC3D source code now. In the terminal where you previously ran ``conda-shell.bat``, do the following
+Build DeveloperZone on Linux and macOS
+--------------------------------------
 
-.. code-block:: console
-
-    cd c:\cc3d_source
-    git clone https://github.com/CompuCell3D/CompuCell3D.git .
-
-This will clone (download) CC3D source code and place it in ``c:\cc3d_source``
-
-Now let's make build directory. This is a directory where compilers will place temporary compilation objects:
-
-.. code-block:: console
-
-    cd c:\
-    mkdir cc3d_source_build
-
-.. warning::
-
-    It is important to create a fresh (empty) build directory before you can configure DeveloperZone configuration. CC3D cannot use build directory that is non empty
-
-
-Now, fill in full path to CC3D repository (``c:\cc3d_source``) and to build folder (``c:\cc3d_source_build``) and  click
-``Configure`` button in the bottom right corner of the dialog. Configuration process will start. After it is done
-the dialog should display summary of what to do next:
-
-|dz_002|
-
-On Windows, we are asked to open a terminal (ideally Visual Studio 2015 64bit shell - search for VS2015 x64 native tools
-in main search menu of Windows operating system, or simply open any terminal on windows) and run the
+After configuration completes, build and install from the same conda
+environment:
 
 .. code-block:: console
 
-    c:\CompuCell3D\conda-shell.ba
+    conda activate cc3d-compile
+    cd $HOME/src-cc3d/CompuCell3D_dev_zone_build
+    make
+    make install
 
-This, in addition to activating base miniconda environment will "preconfigure" the terminal for compilation using
-Visual Studio 2015 Tools. You only need to run this ``conda=shell.bat`` command for "regular" terminal. If you opened
-Visual Studio Terminal you may skip this step
+If your compile environment is named ``cc3d_compile``, activate
+``cc3d_compile`` instead.
 
-Then you run the following:
+Build DeveloperZone on Windows
+------------------------------
 
-.. code-block:: console
+On Windows, use Visual Studio in ``Release`` mode.
 
-    cd C:\cc3d_source_build
+Open the generated solution from the DeveloperZone build directory, for example:
 
-    nmake
-    nmake install
+.. code-block:: bat
 
-First command changes directory to the directory that we designated for storing temporary compilation files. This is
-where the Makefile were generated to.
-Next, we run windows version of ``make`` called ``nmake``.
+    %USERPROFILE%\src-cc3d\CompuCell3D_dev_zone_build\DeveloperZone.sln or ``ALL_BUILD``
 
-|dz_003|
+In Visual Studio:
 
-Once compilation finishes
+* Select the ``Release`` configuration.
+* Select the ``x64`` platform.
+* Build ``ALL_BUILD``.
+* Build ``INSTALL``.
 
-|dz_004|
+You can also build from the same Visual Studio-enabled command prompt:
 
-we install the compiled modules.
+.. code-block:: bat
 
-|dz_005|
+    cd %USERPROFILE%\src-cc3d\CompuCell3D_dev_zone_build
+    cmake --build . --config Release --target ALL_BUILD
+    cmake --build . --config Release --target INSTALL
 
-If you look carefully at the output screen you will see that the modules we compiled will get installed into subfolders
-of ``c:\CompuCell3D\Miniconda3`` which is Miniconda distribution that is part of CC3D installation.
-This is exactly what we want. In other words, with one click and few simple command line commands we were able to
-compile a set of demo extensions modules written in C++. This is significant because this simple procedure allows you
-to easily add new C++ modules and significantly speedup your simulation. From now on you can focus on
-coding rather than figuring out of how to set up compilation
-
-
+The installed DeveloperZone modules are copied into the same conda environment
+used for the core CompuCell3D build. This is the intended result: the extension
+modules are compiled and installed against the same CompuCell3D libraries and
+Python package that were produced by the main build.
 
 .. |dz_001| image:: images/dz_001.png
    :width: 3.725in
    :height: 1.8in
-
-.. |dz_002| image:: images/dz_002.png
-   :width: 3.725in
-   :height: 1.8in
-
-.. |dz_003| image:: images/dz_003.png
-   :width: 1.6in
-   :height: 0.4in
-
-.. |dz_004| image:: images/dz_004.png
-   :width: 5in
-   :height: 3in
-
-.. |dz_005| image:: images/dz_005.png
-   :width: 5in
-   :height: 3in
