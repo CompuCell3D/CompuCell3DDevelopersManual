@@ -1,108 +1,224 @@
 Simple Volume Tracker in C++
 ============================
 
-The purpose of this tutorial is to show you a simplified version of the real Volume Tracker that is implemented in the CompuCell3D. We will guide you step by step how to develop the code. ANd later show you how to compile it and how to use it in a simulation.
-Note that this will be rather a toy module because real VolumeTracker is loaded with every simulation we cannot have two modules incrementing and decrementing volumes . our version will only do printouts each time the cell's volume is incremented or decremented.  The reason we begin with this toy example is because it is probably the simples lattice monitor plugin one can write.
+This tutorial builds a deliberately small C++ plugin that reacts to
+accepted Potts pixel copies. It is modeled after CC3D's real
+``VolumeTracker`` plugin, but it does not replace it. The real
+``VolumeTracker`` is loaded automatically by volume-related plugins and
+is responsible for keeping ``CellG::volume`` correct. Loading a second
+plugin that also changes volume would corrupt the simulation state.
 
-We assume that you cloned CompuCell3D repository to ``~/src-cc3d/CompuCell3D``
+For that reason, the first version of ``SimpleVolumeTracker`` only prints
+what would happen to volume when a lattice site changes. This keeps the
+example safe while introducing the most important plugin mechanism:
+registering a lattice monitor with ``Potts3D``.
 
-To begin, lets launch Twedit++. Then from CC3D C++ Menu lets select ``Generate New Module...`` and you should see the dialog:
+In this tutorial we generate the plugin directly inside the main CC3D
+source tree, not in DeveloperZone. This keeps the example close to the
+core plugin layout and makes it easier to compare with the built-in
+``VolumeTracker`` plugin. DeveloperZone configuration is covered
+separately in :doc:`configuring_developer_zone`.
+
+What This Plugin Demonstrates
+-----------------------------
+
+A lattice monitor is a plugin that receives a callback whenever the cell
+field changes. In CC3D, the cell field is a ``WatchableField3D<CellG*>``.
+When ``Potts3D`` accepts a pixel copy, it calls ``cellFieldG->set(...)``.
+The field then notifies registered watchers by calling their
+``field3DChange`` method.
+
+For an accepted pixel copy, the callback arguments have the following meaning:
+
+* ``pt`` is the target lattice point of the copy.
+* ``oldCell`` is the cell pointer currently occupying ``pt`` before the
+  copy is applied.
+* ``newCell`` is the cell pointer that will occupy ``pt`` after the
+  accepted copy is applied.
+
+If ``newCell`` is not ``nullptr``, that cell gains one pixel as the copy
+is applied. If ``oldCell`` is not ``nullptr``, that cell loses one pixel.
+A ``nullptr`` cell pointer represents Medium.
+
+The real ``VolumeTracker`` uses the same idea:
+
+.. code-block:: cpp
+
+    void VolumeTrackerPlugin::field3DChange(
+        const Point3D &pt,
+        CellG *newCell,
+        CellG *oldCell
+    ) {
+        if (newCell)
+            newCell->volume++;
+
+        if (oldCell)
+            if ((--oldCell->volume) == 0)
+                deadCellVec[pUtils->getCurrentWorkNodeNumber()] = oldCell;
+    }
+
+Our first version will observe the same event but will not mutate volume.
+
+Tutorial Prerequisites
+----------------------
+
+This tutorial assumes that:
+
+* you have cloned the CompuCell3D repository, for example to
+  ``~/src-cc3d/CompuCell3D``;
+* you can build CompuCell3D from source on your platform;
+* you can launch Twedit++ from the same environment used for the build.
+
+If you have not completed the build setup yet, follow the platform build
+instructions first:
+
+* Windows: :doc:`building_core_cc3d_cpp_code_windows`
+* macOS: :doc:`building_core_cc3d_cpp_code_mac`
+* Linux: :doc:`building_core_cc3d_cpp_code_linux`
+
+Generate the Plugin Skeleton
+----------------------------
+
+Launch Twedit++. From the ``CC3D C++`` menu, select
+``Generate New Module...``. Twedit++ opens the new-module dialog:
 
 |svp_001|
 
-We need to fill module name, point to the directory where the code should be generated and select if the code should be
-generated in Developer Zone or in the main code layout. We will pick main layout, call module ``SimpleVolumeTracker``
-and pick ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/CompuCell3D/plugins`` as a module directory. The Module Type is ``Plugin`` and we pick ``LatticeMonitor`` as a Plugin functionality
+Fill in the dialog as follows:
+
+* ``Module Name``: ``SimpleVolumeTracker``
+* ``Module Type``: ``Plugin``
+* ``Plugin Functionality``: ``LatticeMonitor``
+* ``Module Directory``: the CC3D plugin source directory, for example
+  ``~/src-cc3d/CompuCell3D/CompuCell3D/core/CompuCell3D/plugins``
+
+For this tutorial, choose the main CC3D source layout, not DeveloperZone.
+DeveloperZone is often a better place for extension modules in normal
+development, but here we intentionally work in the main source tree so the
+example mirrors the built-in plugin layout.
 
 |svp_002|
 
-After, we click ``OK`` Twedit++ will generate code template that compiles out-of-the-box but does nothing interesting. The important thing is that Twedit++ generates a lot of boiler-plate code that we would need to write manually. This is a very tedious task and by using Twedit++ we saved ourselves a lot of work.
+After you click ``OK``, Twedit++ generates boilerplate source files and
+updates the build files. The generated code should compile, but it does
+not yet implement useful behavior.
 
 |svp_003|
 
-It is our task to make this code useful. We will do it now. Here is the template of the core function (``field3DChange``) that Each Lattice Monitor needs to implement.
+The Important Generated Pieces
+------------------------------
+
+For a lattice-monitor plugin, the generated class should inherit from
+``Plugin`` and ``CellGChangeWatcher``. The important method is:
 
 .. code-block:: cpp
 
-    void SimpleVolumeTrackerPlugin::field3DChange(const Point3D &pt, CellG *newCell, CellG *oldCell)
+    void SimpleVolumeTrackerPlugin::field3DChange(
+        const Point3D &pt,
+        CellG *newCell,
+        CellG *oldCell
+    );
 
-    {
-        //This function will be called after each successful pixel copy - field3DChange does usual housekeeping tasks to make sure state of cells, and state of the lattice is update
-
-        if (newCell){
-            //PUT YOUR CODE HERE
-        }else{
-            //PUT YOUR CODE HERE
-        }
-
-        if (oldCell){
-            //PUT YOUR CODE HERE
-        }else{
-            //PUT YOUR CODE HERE
-        }
-    }
-
-
-Here is how we can modify it:
+The plugin also needs to register itself with ``Potts3D`` during
+``init``. The generated code should contain logic equivalent to this:
 
 .. code-block:: cpp
 
-    void SimpleVolumeTrackerPlugin::field3DChange(const Point3D &pt, CellG *newCell, CellG *oldCell)
+    void SimpleVolumeTrackerPlugin::init(
+        Simulator *simulator,
+        CC3DXMLElement *_xmlData
+    ) {
+        potts = simulator->getPotts();
+        potts->registerCellGChangeWatcher(this);
+    }
 
-    {
-        //This function will be called after each successful pixel copy - field3DChange does usual housekeeping tasks to make sure state of cells, and state of the lattice is update
+This registration is what connects the plugin to lattice changes. Without
+it, ``field3DChange`` will never be called.
 
-        if (newCell){
-            cerr<<"Cell id "<<newCell->id<<" increases volume by 1"<<endl;
-        }else{
-            cerr<<"Medium - source cell overwrites another cell's voxel"<<endl;
+Implement field3DChange
+-----------------------
+
+Replace the generated ``field3DChange`` body with a simple observer. This
+version prints which cell gains a pixel and which cell loses a pixel:
+
+.. code-block:: cpp
+
+    void SimpleVolumeTrackerPlugin::field3DChange(
+        const Point3D &pt,
+        CellG *newCell,
+        CellG *oldCell
+    ) {
+        if (newCell) {
+            cerr << "Cell id " << newCell->id
+                 << " gains one pixel at " << pt << endl;
+        } else {
+            cerr << "Medium gains one pixel at " << pt << endl;
         }
 
-        if (oldCell){
-            cerr<<"Cell id "<<oldCell->id<<" decreases volume by 1"<<endl;
-        }else{
-            cerr<<"Medium - target cell's voxel gets overwritten by another cell"<<endl;
+        if (oldCell) {
+            cerr << "Cell id " << oldCell->id
+                 << " loses one pixel at " << pt << endl;
+        } else {
+            cerr << "Medium loses one pixel at " << pt << endl;
         }
     }
 
+This code checks both pointers before accessing ``id``. That check is not
+optional. Medium is represented as a null pointer, so code such as
+``oldCell->id`` is valid only when ``oldCell`` is not ``nullptr``.
 
-Here is how this code works:
+What the Callback Means
+-----------------------
 
-1) ``field3DChange`` will be called after ``newCell`` overwrites pixel occupied by the ``oldCell``. This call is triggered automatically from the ``metropolisFast`` function. How does metropolisFast know which lattice monitory to call - we will cover it soon.
+The callback is part of applying an accepted lattice assignment. The
+meaning is:
 
-2) It may happen that pointer to ``newCell`` or ``oldCell`` may be NULL which corresponds to situation where either of these cells is Medium. We need to handle this case so that we do not attempt to access ``id`` or ``volume`` attribute of the NULL pointer.
+* ``pt`` is the target lattice site for the copy.
+* ``oldCell`` is the cell currently occupying ``pt`` before the copy.
+* ``newCell`` is the cell that will occupy ``pt`` after the accepted copy
+  is applied.
+* ``newCell`` gains one lattice site, unless it is Medium.
+* ``oldCell`` loses one lattice site, unless it is Medium.
 
-3) Since ``newCell`` is the cell that overwrites another cell - it is the cell whose volume increases. By analogy, oldCell is the one that is overwritten, hence loses one pixel.
+This callback is not called for rejected pixel-copy attempts because the
+cell field does not change when a copy is rejected.
 
-4) the else portion of the code handles situation where we are dealing with Medium. Medium is represented in CC3D as a ``null`` pointer and hence we need to handle it as such
+Build the Plugin
+----------------
 
-Let us compile the project. Since we have already did our initial setup involving cmake all we need to do is to run ``make`` and  ``make install``
+If the plugin was generated in the core source tree, rebuild and install
+CompuCell3D from your existing build directory. On Linux and macOS this
+usually looks like:
 
 .. code-block:: console
 
-    cd /Users/m/src-cc3d/CompuCell3D_build
+    cd ~/src-cc3d/CompuCell3D_build
     make -j 8
     make install
 
-This next step is only required if we modified core CC3D files like Potts.cpp or Simulator.cpp If we worked on plugin code only we can skip it
+If Twedit++ updated a ``CMakeLists.txt`` file while generating the
+module, CMake may reconfigure automatically at the beginning of the next
+build. That is expected. After the plugin has been added to the build
+system, later edits to only the plugin ``.cpp`` or ``.h`` files should
+rebuild just the affected target and its dependencies.
 
-.. code-block:: console
+Some older macOS development workflows copied installed shared libraries
+from the CC3D install directory into the active conda environment. Do
+that only if it is part of the build workflow you used for your platform.
+For normal plugin-only changes, rebuilding and installing the plugin is
+the important step.
 
-    cp /Users/m/src-cc3d/CompuCell3D_install/lib/*.dylib /Users/m/miniconda3_arm64/envs/cc3d_compile/lib
+Use the Plugin in a Simulation
+------------------------------
 
-
-
-.. note::
-
-    Notice that if we did any modification to ``CMakeLists.txt`` files (and Twedit++ did ir for us during plugin code generation) the first thing that happens when we run ``make`` command is reconfiguration of the entire cmake Build system but fortunately thi sis done automatically. We only need to call cmake command once , when we first det up the compilation of CompuCell3D. The only downside on Mac is that this reconfiguration of the cmake build system for our compilation directory of CC3D will cause recompilation of the entire CompuCell3D. However, this will only happen if add new module or modify CmakeLists.txt files. If we change the C++ code for the plugin only the plugin should get compiled
-
-After we compile this plugin (see materials on how to compile CC3D on your platform) we can use it in our simulation. Insert the following
+To load the plugin, add it to the simulation XML:
 
 .. code-block:: xml
 
     <Plugin Name="SimpleVolumeTracker"/>
 
-inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/Simulation/cellsort_2D.xml``:
+For example, in a simple cell-sorting simulation the plugin can be listed
+with the other plugins:
 
 .. code-block:: xml
 
@@ -115,7 +231,6 @@ inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos
             <Flip2DimRatio>1</Flip2DimRatio>
             <NeighborOrder>2</NeighborOrder>
         </Potts>
-
 
         <Plugin Name="Volume">
             <TargetVolume>25</TargetVolume>
@@ -141,7 +256,6 @@ inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos
         <Plugin Name="SimpleVolumeTracker"/>
 
         <Steppable Type="BlobInitializer">
-
             <Region>
                 <Center x="50" y="50" z="0"/>
                 <Radius>40</Radius>
@@ -150,32 +264,43 @@ inside XML  - in my case  ``/Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos
                 <Types>Condensing,NonCondensing</Types>
             </Region>
         </Steppable>
-
-
     </CompuCell3D>
 
-
-    then run it using
-
-.. code-block::
-
-    python -m cc3d.run_script -i /Users/m/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
-
-
-and we should get printouts printouts that look as follows:
+Then run the simulation from the environment where your newly built CC3D
+is installed:
 
 .. code-block:: console
 
-    Cell id 148 decreases volume by 1
-    Cell id 149 increases volume by 1
-    Cell id 162 decreases volume by 1
-    Cell id 83 increases volume by 1
-    Cell id 82 decreases volume by 1
-    Cell id 189 increases volume by 1
-    Cell id 188 decreases volume by 1
+    python -m cc3d.run_script -i ~/src-cc3d/CompuCell3D/CompuCell3D/core/Demos/Models/cellsort/cellsort_2D/cellsort_2D.cc3d
 
-Congratulations. You have developed your first CompuCell3D plugins. Even though the SimpleVolumeTracker in its current form is not terribly useful it taught us the mechanics of adding new plugin, compiling cc3d and using new plugin with freshly compiled CC3D. In the next chapters we will develop more pragmatic examples
+You should see output similar to:
 
+.. code-block:: console
+
+    Cell id 148 loses one pixel at (42, 57, 0)
+    Cell id 149 gains one pixel at (42, 57, 0)
+    Cell id 162 loses one pixel at (61, 44, 0)
+    Cell id 83 gains one pixel at (61, 44, 0)
+
+The exact cell ids and points will differ because Potts copy attempts are
+stochastic.
+
+What You Have Built
+-------------------
+
+This first version demonstrates the mechanics of a lattice-monitor
+plugin:
+
+* Twedit++ generated the plugin skeleton and build-system entries.
+* The plugin registered itself with ``Potts3D`` as a
+  ``CellGChangeWatcher``.
+* ``Potts3D`` called ``field3DChange`` after accepted lattice changes.
+* The plugin handled Medium safely by checking for null cell pointers.
+
+In the next part, we will make the plugin more active by changing cell
+state from inside ``field3DChange``. That is useful for learning, but it
+also introduces ordering and correctness issues that plugin authors must
+understand.
 
 .. |svp_001| image:: images/simple_volume_tracker_001.png
 

@@ -1,7 +1,7 @@
 Attaching Custom Attributes To Cells
 ====================================
 
-Cells in CompuCell3D are represented by ``CellG`` class - see ``CompuCell3D/core/CompuCell3D/Potts3D/Cell.h``
+Cells in CompuCell3D are represented by the ``CellG`` class. The class is defined in ``CompuCell3D/core/CompuCell3D/Potts3D/Cell.h``:
 
 .. code-block:: c++
 
@@ -105,14 +105,11 @@ Cells in CompuCell3D are represented by ``CellG`` class - see ``CompuCell3D/core
     };
     #endif
 
-As you can see CellG has a number of "standard" attributes. But very often you would like to add new attributes. For
-example you would like to keep last 50 center of mass positions of each cell to be able to plot recent cell trajectory.
-How would you do this? A simple approach would be to attach *e.g.* ``std::queue`` to the ``CellG`` class. This is a
-valid approach but it has one major disadvantage. It will require you to recompile almost entire C++ code because
-``CellG`` class is a core class that is used by virtually every single CompuCell3D module. Also, if you would like to
-share the code with your colleague he would also need to recompile his or her copy of CC3D. Hence while this simple
-approach would certainly work it it is not the most convenient way of adding attributes.
-What about Python then? Yes, adding new attribute in Python is very simple:
+``CellG`` already contains many standard attributes, but simulations often need additional per-cell data. For example, you may want to store the last 50 center-of-mass positions for each cell so that you can plot recent trajectories.
+
+One possible approach is to add a member such as ``std::queue`` directly to ``CellG``. That works technically, but it is usually the wrong extension point: ``CellG`` is a core class used by nearly every CC3D module, so changing it forces a broad core rebuild and makes your code harder to share.
+
+In Python, adding cell-specific data is simple:
 
 .. code-block:: python
 
@@ -125,18 +122,12 @@ initialized them to be 0.0 hence the code ``[0.0]*50``. In Python when you multi
 a list that is contains multiple copies of the list you originally multiplied (in our case we will get a list
 with 50 zeros).
 
-Python approach would certainly work, but what if, for efficiency reasons, you want to stay in C++ world. There is a
-solution for this that scales nicely i.e. it does not require recompilation of entire code and it allows to attach
-any C++ class as a cell attribute. This is what we will teaching you next.
+The Python approach is convenient and often sufficient. When the data must remain in C++ for performance or integration reasons, use CC3D's extra-member accessor mechanism. It attaches an instance of your own C++ class to each cell without modifying ``CellG`` itself.
 
-Constructing Steppable with Custom Class Attached to Each Cell
---------------------------------------------------------------
+Constructing A Steppable With A Custom Per-Cell Class
+------------------------------------------------------
 
-We begin the usual way - open Twedit++, fo to ``CC3D C++`` menu and choose ``Generate New Module...``` from the
-menu. There, as before we fill out steppable (we call it ``CustomCellAttributeSteppable``) details -
-making sure to check ``Developer Zone`` radio button, but in addition to this we also check ``Attach Cell Attribute``
-check box. This ensures that the code that Twedit++ generates contains code that will inform CC3D cell factory
-object to attach additional cell attribute.
+Begin in Twedit++ by choosing ``CC3D C++`` -> ``Generate New Module...``. Create a DeveloperZone steppable named ``CustomCellAttributeSteppable`` and check ``Attach Cell Attribute``. This tells Twedit++ to generate the code that registers a custom C++ data object with the CC3D cell factory.
 
 |custom_attrs_01|
 
@@ -145,9 +136,7 @@ will get generated and the code will open in Twedit++ tabs:
 
 |custom_attrs_02|
 
-The class shown in the editor window will be used during cell construction to create object of this class
-and attach it to each cell. In other words, once the steppable we have just created gets loaded it will tell CC3D
-to attach to each cell an object of class ``CustomCellAttributeSteppableData``
+The generated data class is the object that will be attached to each cell. Once the steppable is loaded and initialized, CC3D creates one ``CustomCellAttributeSteppableData`` object per cell.
 
 .. code-block:: c++
 
@@ -206,14 +195,12 @@ This line is responsible for telling cell factory object that each new cell shou
 
     }
 
-How do we know that ``CustomCellAttributeSteppableData`` is the class whose objects will get attached to
-each cell? We look into steppable header file and see the following line:
-``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;``.
+The steppable header identifies the attached data type through this accessor member: ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;``.
 
-This line creates special accessor object that given a pointer to a cell it will fetch attached object of
+This line creates an accessor object. Given a cell pointer, the accessor fetches the attached object of
 type ``CustomCellAttributeSteppableData``. The exact details of how this is done are beyond the scope of this
 manual but if you follow the pattern you will be able to attach arbitrary C++ objects to cc3d cells.
-The pattern is as follows:
+The pattern is:
 
 1. Add ExtraMembersGroupAccessor member to your module - steppable or a plugin - ``ExtraMembersGroupAccessor<ClassYouWantToAttach>``.
 In our case we add ``ExtraMembersGroupAccessor<CustomCellAttributeSteppableData> customCellAttributeSteppableDataAccessor;``.
@@ -304,11 +291,7 @@ see full ``init`` function above:
 
     #endif
 
-Now that we know basic rules of adding custom attributes to cells. Let's write a little bit of code that makes use
-use of this functionality. First we will cleanup function that parses XML (we do not need any XML parsing in our)
-example and then we will modify ``step`` function to store a product of cell ``id`` and current MCS in the variable
-``x`` ``CustomCellAttributeSteppableData`` object (remember objects of this class will be attached to cell). We
-will also store x-coordinates of 5 last center of mass positions of each cell.
+Now that the registration pattern is clear, we can use the attached data. This example does not need XML parameters, so we will simplify ``update`` and then modify ``step`` to store two values in each cell's ``CustomCellAttributeSteppableData`` object: the product of cell ``id`` and current MCS in ``x``, and the last five x-coordinates of the cell center of mass.
 
 Here is implementation of the ``update`` function where we remove XML parsing code since we are not doing
 any XML parsing in this particular case:
@@ -390,7 +373,7 @@ The implementation of step function is a bit more involved but not by much:
 Lines ``7-11`` should be familiar. We iterate over all cells in the simulation and fetch a cell pointer from
 inventory and store it in local variable ``cell``.
 
-In line ``13`` we make use of out accessor object. Here we are actually fetching object of type
+In line ``13`` we make use of our accessor object. Here we are actually fetching object of type
 ``CustomCellAttributeSteppableData`` that is attached to each cell. Note that
 ``customCellAttributeSteppableDataAccessor.get`` function takes as an input special pointer that is a member of
 every cell object ``cell->extraAttribPtr`` and returns a pointer to the object that accessor is associated with
@@ -417,11 +400,10 @@ makes it much easier to remove and add elements  to and from the beginning and e
 
 The full code for this example can be found in ``CompuCell3D/DeveloperZone/Demos/CustomCellAttributesCpp`` directory
 
-Using Python scripting to modify custom C++ attributes
-------------------------------------------------------
+Using Python To Modify Custom C++ Attributes
+---------------------------------------------
 
-Sometimes you may end up in situation where in addition to modifying custom attributes in C++ you may want to modify
-them also in Python. In this part of the tutorial we will show you how to do it. If all we want to do is to access ``x``
+Sometimes you want the same attached C++ data to be visible from Python. This is useful when C++ maintains the data efficiently, but Python steppables need to inspect or adjust selected values. If all we want to do is to access ``x``
 variable from ``CustomCellAttributeSteppableData`` we should be "pre-wired". Well, almost. You see that when we
 access objects of ``CustomCellAttributeSteppableData`` class from within C++ steppable where we declared the accessor
 object we simply type:
@@ -431,15 +413,15 @@ object we simply type:
     CustomCellAttributeSteppableData * customCellAttrData = customCellAttributeSteppableDataAccessor.get(cell->extraAttribPtr)
 
 However, note that ``customCellAttributeSteppableDataAccessor`` is declared in the "private" section of
-``CustomCellAttributeSteppable``. Therefore,  it is not "visible" from outsides of C++ ``CustomCellAttributeSteppable``
+``CustomCellAttributeSteppable``. Therefore,  it is not "visible" from outside the C++ ``CustomCellAttributeSteppable``
 class. At this point we have three potential solutions:
 
 1. Make the accessor public - not ideal , this is a low-level object that should remain hidden
 
-2. Make a a public function that returns a pointer to accessor - again, not ideal because then in Python or in other
+2. Make a public function that returns a pointer to accessor - again, not ideal because then in Python or in other
 C++ module we would need to perform a fairly complex fetching of the ``CustomCellAttributeSteppableData``
 
-3. Declare a a public function that takes a pointer to a cell object and returns attached ``CustomCellAttributeSteppableData``
+3. Declare a public function that takes a pointer to a cell object and returns attached ``CustomCellAttributeSteppableData``
 object. This solution seems like the cleanest of all three options
 
 Let's modify a code and add the function that returns pointer to ``CustomCellAttributeSteppableData`` object. We first
@@ -455,7 +437,7 @@ modify header file for the steppable class:
 
     Simulator * sim;
 
-    // ... we skipped par t fo the code here for brevity
+    // ... we skipped part of the code here for brevity
   public:
 
     CustomCellAttributeSteppable ();
@@ -472,7 +454,7 @@ modify header file for the steppable class:
 
     CustomCellAttributeSteppableData * getCustomCellAttribute(CellG * cell);
 
-    // ... we skipped par t fo the code here for brevity
+    // ... we skipped part of the code here for brevity
 
     };
 
@@ -528,7 +510,7 @@ class. Let us now add Python steppable where we can access ``CustomCellAttribute
 In line ``12`` we get access to C++ steppable object and store it in it a class variable
 ``self.custom_attr_steppable_cpp``. In case you are wondering where ``getCustomCellAttributeSteppable()`` comes
 from, look into ``CompuCell3D\DeveloperZone\pyinterface\CompuCellExtraModules\CompuCellExtraModules.i``. This SWIG
-wrapper file declares this function and it returns C++ steppabe object. This function is generated automatically
+wrapper file declares this function and it returns C++ steppable object. This function is generated automatically
 by Twedit++:
 
 .. code-block:: c++
@@ -541,7 +523,7 @@ by Twedit++:
 
        }
 
-Coming back to out Python code we see that inside for loop we print to the screen the
+Returning to our Python code we see that inside for loop we print to the screen the
 ``CustomCellAttributeSteppableData`` object (line ``20``) and also print `x` member of this object. Later we
 modify and print to the screen the `x` variable of the object and we only do it for the first cell we encounter
 during iteration over all cells to make output more concise (see ``break`` statement at the end of the loop)
@@ -611,10 +593,10 @@ Here is the output:
 
 |custom_attrs_04|
 
-Adding a complex type to attached attribute and accessing it from Python
+Adding A Complex Attached Attribute Type And Accessing It From Python
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-So far things worked as a charm. We were able to access simple type variables (`x`), STL vectors ``array``. So,
+So far simple values worked well. We were able to access simple type variables (`x`), STL vectors ``array``. So,
 perhaps we can try adding something more complex to the ``CustomCellAttributeSteppableData``, for example
 let us add ``std::map<long int, std::vector<int> >`` which is C++ dictionary (map) that uses long integers as
 keys and stores vectors of type integer:
@@ -710,7 +692,7 @@ we will get an error when we try to get number of elements stored in the map (sh
 
 Why the error? Simply put we did not tell SWIG about the complex types we are using for member ``simple_map``.
 You may ask how come before when we had ``std::vector<int> array;`` things worked. They worked because elsewhere
-in the CompuCell3D main python wrapper we told SWIG about template ``std::vector<int>``. However now that we are
+in the CompuCell3D main Python wrapper we told SWIG about template ``std::vector<int>``. However now that we are
 dealing with ``std::map<long int, std::vector<int> > simple_map;`` we need to tell SWIG how to make those object
 available. It is actually quite easy to do. We add the following lines to ``CompuCellExtraModules.i``:
 
@@ -781,17 +763,16 @@ code that puts something in the map:
 In line ``37`` we create a C++ vector of integers using `` CompuCellExtraModules.vector_int()`` call.
 Remember, ``vector_int`` is precisely template identifier we added in SWIG ``CompuCellExtraModules.i`` file.
 Now we are simply invoking constructor for this type. In the next two lines ``38-39`` we push back two integers
-to the newly created vector and finally in line ``40`` we store this vector in the map that is part fo the object
+to the newly created vector and finally in line ``40`` we store this vector in the map that is part of the object
 that is attached to a cell. To check if we can retrieve the stored vector we use code from line ``42``. The output
 is as follows:
 
 |custom_attrs_06|
 
-Summary
--------
+Custom Cell Attribute Summary
+-----------------------------
 
-In this section we learned how to attache C++ attribute to each cell, how to modify it from C++ and how to
-interact with complex types that are part of the attached attribute at the Python level.
+This section showed how to attach a C++ data object to each cell, update that object from C++, expose it through a Python wrapper, and handle more complex STL types by adding explicit SWIG templates.
 
 .. |custom_attrs_01| image:: images/custom_attrs_01.png
    :width: 2.4in

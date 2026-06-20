@@ -1,495 +1,346 @@
 Potts3D
 =======
 
-Potts3D module (``Potts3D/Potts3D.cpp``, ``Potts3D/Potts3D.h``) implements entire logic of the Potts algorithm.
-In a nutshell Potts class contains implementation of a single Monte Carlo Step (MCS) of the Cellular Potts Model. The MCS works as follows:
+``Potts3D`` is the C++ object that performs the Cellular Potts
+Model part of a CompuCell3D simulation. The implementation is in
+``CompuCell3D/Potts3D/Potts3D.h`` and ``CompuCell3D/Potts3D/Potts3D.cpp``.
 
-1. Pick a random pixel from the lattice sites (call it source pixel)
-2. Pick a neighboring pixel (based on user-defined neighborhood range)  - let's call it change pixel
-3. If the two pixels belong to different cells compute change in energy if we were to over change pixel with the cell currently occupying source pixel. This corresponds to the situation where the cell occupying change pixel would lose one pixel and cell occupying the source pixel would gain one pixel.
-4. Compute acceptance probability of the proposed pixel copy
-5. Perform pixel copy and update all cell attributes that change during such pixel copy. For example cell occupying source pixel increases its volume by 1 unit and cell occupying destination pixel decreases volume by one unit. Depending how you set up your simulation you would also update surface area of the tow cells, center of mass coordinates, intertia tensor etc.
+At a high level, ``Potts3D`` owns the cell lattice, owns the objects
+that evaluate pixel-copy energy changes, and executes the Metropolis
+copy attempts that make up each Monte Carlo Step (MCS). It does not own
+the entire simulation. The ``Simulator`` owns the simulation lifecycle
+and calls ``Potts3D`` once per MCS.
 
-Section `Implementing Cellular Potts Model in C++`_ covers in details the code that performs the tasks outlined above
+The most important idea is that ``Potts3D`` works with pointers to
+cells, not cell objects stored directly in the lattice. A lattice site
+contains either ``nullptr`` for medium or a ``CellG*`` pointing to the
+cell occupying that site. A single biological cell usually occupies many
+lattice sites, but all of those sites point to the same ``CellG`` object.
 
+Main Responsibilities
+---------------------
 
-Moreover,
-this module is responsible for creating cell lattice and ``Potts3D`` class has methods that facilitate creation and
-destruction of cells. It is worth pointing out that creation and destruction of cells is not limited to calling
-``new`` or ``delete`` operators but it also involves several steps necessary to ensure that cells created have all the
-attributes needed by requested by the user plugins. In CC3D cells' attributes are added dynamically
-and CC3D cells by default have only a small subset of attributes hard-coded. This is a design decision that has this nice
-consequence that when developing new plugin one does not have to modify ``CellG`` class but rather program the addition
-of cell's attributes entirely in the plugins code. We will cover this in detail in later section.
+``Potts3D`` is responsible for the following tasks:
 
-Let's examine the content of the ``Potts3D`` class (**Note:** we removed some of the code and are presenting only
-code snippets most relevant to current discussion. You are encouraged to look at the original code though as you go over
-the material presented here):
+* Creating and resizing the cell field.
+* Creating and destroying ``CellG`` objects.
+* Maintaining the cell inventory.
+* Registering objects that react to cell-field changes.
+* Registering energy functions used during pixel-copy attempts.
+* Running Metropolis copy attempts.
+* Applying accepted pixel copies to the lattice.
+* Calling low-level Potts steppers after copy attempts.
 
-.. code-block:: cpp
-
-	class Potts3D :public SteerableObject {
-		WatchableField3D<CellG *> *cellFieldG;
-		AttributeAdder * attrAdder;
-		EnergyFunctionCalculator * energyCalculator;
-
-		BasicClassGroupFactory cellFactoryGroup; 	//creates aggregate of objects associated with cell
-
-
-		/// An array of energy functions to be evaluated to determine energy costs.
-		std::vector<EnergyFunction *> energyFunctions;
-		EnergyFunction * connectivityConstraint;
-
-		std::map<std::string, EnergyFunction *> nameToEnergyFuctionMap;
-
-        ...
-
-		std::vector<BasicRandomNumberGeneratorNonStatic> randNSVec;
-
-		/// An array of potts steppers.  These are called after each potts step.
-		std::vector<Stepper *> steppers;
-
-		std::vector<FixedStepper *> fixedSteppers;
-		/// The automaton to use.  Assuming one automaton per simulation.
-		Automaton* automaton;
-
-        ...
-
-		FluctuationAmplitudeFunction * fluctAmplFcn;
-
-		/// The current total energy of the system.
-		double energy;
-
-		std::string boundary_x; // boundary condition for x axiz
-		std::string boundary_y; // boundary condition for y axis
-		std::string boundary_z; // boundary condition for z axis
-
-		/// This object keeps track of all cells available in the simulations. It allows for simple iteration over all the cells
-		/// It becomes useful whenever one has to visit all the cells. Without inventory one would need to go pixel-by-pixel - very inefficient
-		CellInventory cellInventory;
-
-		Point3D flipNeighbor;
-		std::vector<Point3D> flipNeighborVec; //for parallel access
-
-		double depth;
-		//int maxNeighborOrder;
-		std::vector<Point3D> neighbors;
-		std::vector<unsigned char> frozenTypeVec;///lists types which will remain frozen throughout the simulation
-		unsigned int sizeFrozenTypeVec;
-
-		ParallelUtilsOpenMP *pUtils;
-
-	public:
-
-		Potts3D();
-		Potts3D(const Dim3D dim);
-		virtual ~Potts3D();
-
-		void createCellField(const Dim3D dim);
-		void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());
-
-		double getTemperature() const { return temperature; }
-
-		void registerConnectivityConstraint(EnergyFunction * _connectivityConstraint);
-		EnergyFunction * getConnectivityConstraint();
-
-		bool checkIfFrozen(unsigned char _type);
-
-        ...
-
-		void initializeCellTypeMotility(std::vector<CellTypeMotilityData> & _cellTypeMotilityVector);
-		void setCellTypeMotilityVec(std::vector<float> & _cellTypeMotilityVec);
-		const std::vector<float> & getCellTypeMotilityVec() const { return cellTypeMotilityVec; }
-
-		void setDebugOutputFrequency(unsigned int _freq) { debugOutputFrequency = _freq; }
-		void setSimulator(Simulator *_sim) { sim = _sim; }
-
-        ...
-
-		Point3D getFlipNeighbor();
-
-        ...
-
-		virtual void createEnergyFunction(std::string _energyFunctionType);
-		EnergyFunctionCalculator * getEnergyFunctionCalculator() { return energyCalculator; }
-
-		CellInventory &getCellInventory() { return cellInventory; }
-
-		void clean_cell_field(bool reset_cell_inventory = true);
-
-		virtual void registerAttributeAdder(AttributeAdder * _attrAdder);
-		virtual void registerEnergyFunction(EnergyFunction *function);
-		virtual void registerEnergyFunctionWithName(EnergyFunction *_function, std::string _functionName);
-		virtual void unregisterEnergyFunction(std::string _functionName);
-
-		/// Add the automaton.
-		virtual void registerAutomaton(Automaton* autom);
-
-		/// Return the automaton for this simulation.
-		virtual Automaton* getAutomaton();
-		void setParallelUtils(ParallelUtilsOpenMP *_pUtils) { pUtils = _pUtils; }
-
-		virtual void setFluctuationAmplitudeFunctionByName(std::string _fluctuationAmplitudeFunctionName);
-		/// Add a cell field update watcher.
-
-		/// registration of the BCG watcher
-		virtual void registerCellGChangeWatcher(CellGChangeWatcher *_watcher);
-
-		/// Register accessor to a class with a cellGroupFactory. Accessor will access a class which is a mamber of a BasicClassGroup
-		virtual void registerClassAccessor(BasicClassAccessorBase *_accessor);
-
-		/// Add a potts stepper to be called after each potts step.
-		virtual void registerStepper(Stepper *stepper);
-		virtual void registerFixedStepper(FixedStepper *fixedStepper, bool _front = false);
-		virtual void unregisterFixedStepper(FixedStepper *fixedStepper);
-
-		double getEnergy();
-
-		virtual CellG *createCellG(const Point3D pt, long _clusterId = -1);
-		virtual CellG *createCellGSpecifiedIds(const Point3D pt, long _cellId, long _clusterId = -1);
-		virtual CellG *createCell(long _clusterId = -1);
-		virtual CellG *createCellSpecifiedIds(long _cellId, long _clusterId = -1);
-
-		virtual void destroyCellG(CellG * cell, bool _removeFromInventory = true);
-
-		BasicClassGroupFactory * getCellFactoryGroupPtr() { return &cellFactoryGroup; };
-
-		virtual unsigned int getNumCells() { return cellInventory.getCellInventorySize(); }
-
-		virtual double changeEnergy(Point3D pt, const CellG *newCell,const CellG *oldCell);
-
-		virtual unsigned int metropolis(const unsigned int steps,const double temp);
-
-		typedef unsigned int (Potts3D::*metropolisFcnPtr_t)(const unsigned int, const double);
-
-		metropolisFcnPtr_t metropolisFcnPtr;
-
-		unsigned int metropolisList(const unsigned int steps, const double temp);
-
-		unsigned int metropolisFast(const unsigned int steps, const double temp);
-		unsigned int metropolisBoundaryWalker(const unsigned int steps, const double temp);
-		void setMetropolisAlgorithm(std::string _algName);
-
-		virtual Field3D<CellG *> *getCellFieldG() { return (Field3D<CellG *> *)cellFieldG; }
-		virtual Field3DImpl<CellG *> *getCellFieldGImpl() { return (Field3DImpl<CellG *> *)cellFieldG; }
-
-		//SteerableObject interface
-		virtual void update(CC3DXMLElement *_xmlData, bool _fullInitFlag = false);
-		virtual std::string steerableName();
-		virtual void runSteppers();
-		long getRecentlyCreatedClusterId() { return recentlyCreatedClusterId; }
-		long getRecentlyCreatedCellId() { return recentlyCreatedCellId; }
-
-	};
-
-
-Starting from the top of the file we notice that cell lattice (``WatchableField3D<CellG *> *cellFieldG;``) is owned
-by ``Potts3D`` and created by (``void createCellField(const Dim3D dim);``,
-``void resizeCellField(const Dim3D dim, Dim3D shiftVec = Dim3D());``) .
-
-The cell lattice is an instance of the ``WatchableField3D`` class (which strictly speaking is a template class).
-The cell lattice stores **pointers** to cell objects (type ``CellG*``).
-This means that when a single cell single occupies several lattice sites we create one ``CellG`` object but store
-pointer to this object in all locations of ``cellFieldG`` that are assigned to this particular instance of ``CellG`` object.
-This way ``CellG`` objects do not get repeated for every pixel (this would cost too much memory)
-but rather are referenced from the cell lattice via pointers.
-The reason cell lattice field is called "Watchable" is because this class implements the observer design pattern.
-This means that any manipulation of the cell lattice (e.g. assigning cell to a given pixel) triggers calls to multiple registered
-observer objects that react to such change. For example, if I am extending a cell by assigning its pointer to the new lattice site
-one of the observer that will be called (we also refer to them as lattice monitors) is a module that tracks cell volume
-The cell that gains new pixel will get its ``volume`` attribute increased by 1 and the cell that loses one pixel will
-get its volume decreased by 1. Similarly we could have another observer that updates center of mass coordinates, or one that monitors
-inertia tensor. The nice thing about using ``WatchableField3D`` template is that all those observers are called automatically
-when change in the lattice takes place. Observers are called in the order in which they were registered. Note, this may
-or may not be the order in which they were declared in the CC3DCML. CC3D sometimes requires certain lattice monitors
-to be loaded and registered before others and this happens automatically in the CC3D code.
-Let's look at how ``WatchableField3D`` works in practice:
-
-WatchableField3D
-~~~~~~~~~~~~~~~~
+The main members that support these responsibilities are:
 
 .. code-block:: cpp
 
-    #ifndef WATCHABLEFIELD3D_H
-    #define WATCHABLEFIELD3D_H
+    WatchableField3D<CellG *> *cellFieldG;
+    EnergyFunctionCalculator *energyCalculator;
+    CellInventory cellInventory;
+    BasicClassGroupFactory cellFactoryGroup;
+    std::vector<Stepper *> steppers;
+    std::vector<FixedStepper *> fixedSteppers;
+    Automaton *automaton;
+    FluctuationAmplitudeFunction *fluctAmplFcn;
 
-    #include <vector>
+These members show the main design of the Potts layer. The lattice is a
+``WatchableField3D<CellG*>``. Energy terms are not hard-coded into
+``Potts3D``; they are registered as ``EnergyFunction`` objects and
+summed by ``EnergyFunctionCalculator``. Cell attributes can be extended
+without changing ``CellG`` by registering accessors with
+``cellFactoryGroup`` and by using ``AttributeAdder`` objects.
 
-    #include "Field3DImpl.h"
-    #include "Field3DChangeWatcher.h"
+The Cell Field
+--------------
 
-    #include <CompuCell3D/CC3DExceptions.h>
-
-    namespace CompuCell3D {
-
-        template<class T>
-        class Field3DImpl;
-
-        template<class T>
-        class WatchableField3D : public Field3DImpl<T> {
-            std::vector<Field3DChangeWatcher<T> *> changeWatchers;
-
-        public:
-            /**
-             * @param dim The field dimensions
-             * @param initialValue The initial value of all data elements in the field.
-             */
-            WatchableField3D(const Dim3D dim, const T &initialValue) :
-                    Field3DImpl<T>(dim, initialValue) {}
-
-            virtual ~WatchableField3D() {}
-
-            virtual void addChangeWatcher(Field3DChangeWatcher<T> *watcher) {
-                if (!watcher) throw CC3DException("addChangeWatcher() watcher cannot be NULL!");
-                changeWatchers.push_back(watcher);
-            }
-
-            virtual void set(const Point3D &pt, const T value) {
-                T oldValue = Field3DImpl<T>::get(pt);
-                Field3DImpl<T>::set(pt, value);
-
-                for (unsigned int i = 0; i < changeWatchers.size(); i++)
-                    changeWatchers[i]->field3DChange(pt, value, oldValue);
-            }
-
-            virtual void set(const Point3D &pt, const Point3D &addPt, const T value) {
-                T oldValue = Field3DImpl<T>::get(pt);
-                Field3DImpl<T>::set(pt, value);
-
-                for (unsigned int i = 0; i < changeWatchers.size(); i++) {
-                    changeWatchers[i]->field3DChange(pt, value, oldValue);
-                    changeWatchers[i]->field3DChange(pt, addPt, value, oldValue);
-                }
-            }
-        };
-    };
-    #endif
-
-The ``WatchableField3D<T>`` template class inherits from ``Field3DImpl<T>`` template. The actual memory allocation takes
-place in the ``Field3DImpl<T>`` but we will not worry about it here. It is sufficient to mention that ``Field3DImpl<T>``
-is tha class that manages cell lattice memory. The important thing is to understand how this automatic calling
-of lattice monitors is implemented. The ``WatchableField3D<T>`` class has a container
-``std::vector<Field3DChangeWatcher<T> *> changeWatchers;`` that stores pointers to lattice monitors. The lattice monitor object
-is a class that inherits ``Field3DChangeWatcher<T>`` class. In CC3D case ``T`` is set to ``CellG*``. The  ``BasicArray``
-is a thin wrapper around ``std::vector`` class and it is one of the legacies of the early CC3D implementations. So
-``WatchableField3D<T>`` class has a collection of objects that react to the changes in the cell lattice. How do they react?
-If we look at the implementation of ``virtual void set(const Point3D &pt, const T value)`` function that modifies the lattice
-we can see that this function fetches old value stored in the lattice at location indicated by ``Point3D pt`` - in the case of
-cell lattice this will be pointers currently stored at this location. It then assigns new value to the field (new ``CellG`` pointer)
-and then it calls all registered lattice monitors:
+The cell field is created in ``Potts3D::createCellField``:
 
 .. code-block:: cpp
 
-      for (unsigned int i = 0; i < changeWatchers.getSize(); i++)
+    void Potts3D::createCellField(const Dim3D dim) {
+        if (cellFieldG)
+            throw CC3DException("createCellField() cell field G already created!");
+        cellFieldG = new WatchableField3D<CellG *>(dim, 0);
+    }
+
+The type is important: ``WatchableField3D<CellG*>`` stores pointers to
+``CellG`` objects. Assigning a new value to a lattice site changes only
+the pointer stored at that site. It does not copy the cell object.
+
+This is why a cell can occupy many pixels efficiently. The field stores
+many references to one ``CellG`` instance instead of duplicating that
+cell's data at every pixel.
+
+WatchableField3D and Lattice Monitors
+-------------------------------------
+
+``WatchableField3D`` extends ``Field3DImpl`` by adding change watchers.
+Whenever code calls ``set`` on the field, the field stores the new value
+and then notifies every registered watcher:
+
+.. code-block:: cpp
+
+    virtual void set(const Point3D &pt, const T value) {
+        T oldValue = Field3DImpl<T>::get(pt);
+        Field3DImpl<T>::set(pt, value);
+
+        for (unsigned int i = 0; i < changeWatchers.size(); i++)
             changeWatchers[i]->field3DChange(pt, value, oldValue);
-
-In particular each lattice monitor (here referred to as ``changeWatcher``) must define function called ``field3DChange``
-that takes 3 arguments - location of the change ``pt``, new value we assign to the field (e.g. new pointer to ``CellG`` object)
-and old value that was stored in the field before the assignment (e.g. pointer to the cell whose pixel gets overwritten).
-
-This way the process of updating attributes of ``CellG`` object can be handled by appropriate ``changeWatchers``. We will
-cover in detail examples of change watchers and things will become clearer then.
-
-Energy Functions
-~~~~~~~~~~~~~~~~
-
-Few lines below declaration of ``cellField``, which as we know is an instance of  ``WatchableField3D<CellG *>``
-we find the declaration of containers associated with Energy function calculations. At this point we remind that the essence
-of Cellular Potts Model is in calculating **change of energy of the system due to randomly chosen lattice perturbation**
-(change of the single pixel). Pointers to energy functions objects are stored inside ``Potts3D`` object as follows:
-
-.. code-block:: cpp
-
-    /// An array of energy functions to be evaluated to determine energy costs.
-    std::vector<EnergyFunction *> energyFunctions;
-    EnergyFunction * connectivityConstraint;
-
-    std::map<std::string, EnergyFunction *> nameToEnergyFuctionMap;
-
-All energy functions are actually objects and they all inherit base class ``EnergyFunction``. ``EnergyFunction`` is defined
-inside ``Potts3D/EnergyFunction.h`` header file:
-
-.. code-block:: cpp
-
-	class EnergyFunction {
-
-	public:
-		EnergyFunction() {}
-		virtual ~EnergyFunction() {}
-
-		virtual double localEnergy(const Point3D &pt){return 0.0;};
-
-		virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)
-		{
-			if(1!=1);return 0.0;
-		}
-		virtual std::string toString()
-		{
-			return std::string("EnergyFunction");
-		}
-	};
-
-Each class that is responsible for calculating a **change in the overall system energy due to a proposed pixel copy** has to
-inherit ``EnergyFunction``. The key function that has to be reimplemented in the derived class is
-``virtual double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``. After Metropolis algorithm
-function picks candidate for pixel overwrite it will then call ``changeEnergy`` for every element of the ``energyFunctions`` vector
-defined in class ``Potts3D`` (see above). The ``pt`` argument is a reference to a location of a pixel
-(specified as simple object ``Point3D``) that would be overwritten as result of the pixel copy attempt. The ``newCell``
-is pointer to a cell object that will occupy ``pt`` location of the ``cellField`` (if we accept pixel copy) and the
-``oldCell`` is a pointer to a cell that currently occupies lattice location ``pt``.
-
-In CompuCell3D users declare which energy functions they want to use in their simulation so that the number of
-energy function in the ``energyFunctions`` vector will vary depending on what users specify in the CC3DML or in Python.
-
-Later we will present detailed information on how to implement energy function plugins.
-
-.. _Implementing Cellular Potts Model in C++:
-
-Implementing Cellular Potts Model in C++ - metropolisFast method
-----------------------------------------------------------------
-
-When we peek at the ``metropolisFast`` function of the ``Potts3D`` class we can see that the change of energy is calculated
-in a fairly straightforward way:
-
-.. code-block:: cpp
-
-        Point3D pt;
-
-        // Pick a random point
-        pt.x = rand->getInteger(sectionDims.first.x, sectionDims.second.x - 1);
-        pt.y = rand->getInteger(sectionDims.first.y, sectionDims.second.y - 1);
-        pt.z = rand->getInteger(sectionDims.first.z, sectionDims.second.z - 1);
-
-        CellG *cell = cellFieldG->getQuick(pt);
-
-        if (sizeFrozenTypeVec && cell) {///must also make sure that cell ptr is different 0; Will never freeze medium
-            if (checkIfFrozen(cell->type))
-                continue;
-        }
-
-        unsigned int directIdx = rand->getInteger(0, maxNeighborIndex);
-
-        Neighbor n = boundaryStrategy->getNeighborDirect(pt, directIdx);
-
-        if (!n.distance) {
-            //if distance is 0 then the neighbor returned is invalid
-            continue;
-        }
-        Point3D changePixel = n.pt;
-
-        //check if changePixel refers to different cell.
-        CellG* changePixelCell = cellFieldG->getQuick(changePixel);
-
-        if (changePixelCell == cell) {
-            //skip the rest of the loop if change pixel points to the same cell as pt
-            continue;
-        }
-
-        if (sizeFrozenTypeVec && changePixelCell) {///must also make sure that cell ptr is different 0; Will never freeze medium
-            if (checkIfFrozen(changePixelCell->type))
-                continue;
-        }
-
-        ++attemptedECVec[currentWorkNodeNumber];
-
-        flipNeighborVec[currentWorkNodeNumber] = pt;
-
-        /// change takes place at change pixel  and pt is a neighbor of changePixel
-        // Calculate change in energy
-
-        double change = energyCalculator->changeEnergy(changePixel, cell, changePixelCell, i);
-
-We first pick a random lattice location ``pt`` and retrieve pointer of a cell that occupies this location:
-
-.. code-block:: cpp
-
-    CellG *cell = cellFieldG->getQuick(pt);
-
-We next make sure that the cell can move *i.e.* it is not frozen:
-
-.. code-block:: cpp
-
-    if (sizeFrozenTypeVec && cell) {///must also make sure that cell ptr is different 0; Will never freeze medium
-        if (checkIfFrozen(cell->type))
-            continue;
     }
 
-Next we pick a random pixel out of set of neighbors of pixel ``pt``:
+For the cell field, ``T`` is ``CellG*``. A watcher therefore receives:
+
+* ``pt``: the lattice point that changed.
+* ``value``: the new ``CellG*`` stored at that point.
+* ``oldValue``: the previous ``CellG*`` stored at that point.
+
+This observer pattern is central to CC3D. It lets plugins update derived
+cell state automatically when the lattice changes. For example, a volume
+tracker can increase the volume of the cell that gains a pixel and
+decrease the volume of the cell that loses a pixel. Other watchers can
+update center of mass, surface information, inertia tensors, neighbor
+relationships, or plugin-specific attributes.
+
+``Potts3D`` exposes watcher registration through:
 
 .. code-block:: cpp
 
-    unsigned int directIdx = rand->getInteger(0, maxNeighborIndex);
+    void Potts3D::registerCellGChangeWatcher(CellGChangeWatcher *_watcher) {
+        if (!_watcher)
+            throw CC3DException("registerBCGChangeWatcher() _watcher cannot be NULL!");
 
-    Neighbor n = boundaryStrategy->getNeighborDirect(pt, directIdx);
-
-    if (!n.distance) {
-        //if distance is 0 then the neighbor returned is invalid
-        continue;
-    }
-    Point3D changePixel = n.pt;
-
-    //check if changePixel refers to different cell.
-    CellG* changePixelCell = cellFieldG->getQuick(changePixel);
-
-    if (changePixelCell == cell) {
-        //skip the rest of the loop if change pixel points to the same cell as pt
-        continue;
-    }
-
-    if (sizeFrozenTypeVec && changePixelCell) {///must also make sure that cell ptr is different 0; Will never freeze medium
-        if (checkIfFrozen(changePixelCell->type))
-            continue;
+        cellFieldG->addChangeWatcher(_watcher);
     }
 
+The order of watcher registration matters because watchers are called in
+registration order. CC3D may load some internal modules before others to
+keep dependent cell attributes consistent.
 
-We use ``BoundaryStrategy`` object pointed by ``boundaryStrategy`` to carry out all operations related to pixel neighbor
-operations. we will cover it later. For now it is important to remember that tracking and operating on pixel neighbors is
-usually done via ``BoundaryStrategy`` and this helps greatly when we have to deal with periodic boundary conditions
-pixels residing close to the edge of the lattice or classifying neighbor order of pixels.
-In this example we use boundary strategy to pick a neighbor ``changePixel`` of the ``pt`` and verify that this neighbor is a
-legitimate neighbor - ``if (!n.distance)``. We next fetch cell that occupies ``changePixel``:
+CellG and Dynamic Cell Attributes
+---------------------------------
+
+``CellG`` is the core C++ cell object. It contains common fields such as
+``id``, ``clusterId``, ``type``, ``volume``, center-of-mass components,
+surface-related values, fluctuation amplitude, and several other common
+attributes.
+
+However, ``CellG`` is intentionally not a giant structure containing
+every possible plugin attribute. Many attributes are added dynamically by
+plugins. This keeps the base cell object small and allows new plugins to
+attach their own data without editing ``CellG`` itself.
+
+Two mechanisms are especially important:
+
+* ``BasicClassGroupFactory cellFactoryGroup`` stores factories/accessors
+  for extra per-cell data.
+* ``AttributeAdder`` hooks into cell inventory events so attributes can
+  be created when a cell is added and destroyed when a cell is removed.
+
+``Potts3D::registerAttributeAdder`` connects an ``AttributeAdder`` to the
+cell inventory:
 
 .. code-block:: cpp
 
-    CellG* changePixelCell = cellFieldG->getQuick(changePixel);
+    void Potts3D::registerAttributeAdder(AttributeAdder *_attrAdder) {
+        attrAdder = _attrAdder;
+        cellInventory.registerWatcher(attrAdder->getInventoryWatcher());
+    }
 
-and verify that ``changePixelCell`` is different than cell at the location ``pt``. We do this because overwriting pixel
-with the same cell pointer does not change lattice configuration at all. After also confirming that the ``changePixelCell``
-is not frozen we compute change of energy if pixel ```changePixel`` currently occupied by ``changePixelCell``
-were to be overwritten by ``cell`` currently residing at location ``pt``. Or using ``double changeEnergy(const Point3D &pt, const CellG *newCell,const CellG *oldCell)``
-terminology we can say that ``pt <-> changePixel``, ``newCell <-> cell`` and ``oldCell <-> changePixelCell`` where
-we used ``<->`` symbol to illustrate how ``changeEnergy`` function arguments will be assigned in the call.
+The corresponding watcher calls ``addAttribute(cell)`` when a cell is
+added and ``destroyAttribute(cell)`` when a cell is removed. This is why
+cell creation and destruction in CC3D involve more than calling ``new``
+and ``delete``.
 
-Interestingly, we call ``changeEnergy`` method of the object called ``energyCalculator``:
+Cell Creation and Inventory
+---------------------------
+
+``Potts3D`` creates cells and inserts them into the simulation's cell
+inventory. The lattice and the inventory serve different purposes:
+
+* The lattice answers: which cell occupies this pixel?
+* The inventory answers: which cells exist in the simulation?
+
+This distinction matters for performance. Iterating over every cell
+should not require scanning every lattice site. Python code such as:
+
+.. code-block:: python
+
+    for cell in self.cell_list:
+        ...
+
+ultimately relies on the C++ cell inventory rather than a full lattice
+scan.
+
+Creating a cell at a point follows this pattern:
 
 .. code-block:: cpp
 
-    double change = energyCalculator->changeEnergy(changePixel, cell, changePixelCell, i);
+    CellG *Potts3D::createCellG(const Point3D pt, long _clusterId) {
+        if (!cellFieldG->isValid(pt))
+            throw CC3DException("createCell() cellFieldG Point out of range!");
 
-There is no magic here. If we look inside this function (``Potts3D/EnergyFunctionCalculator.cpp``) we see
-familiar summation over all values returned by ``changeEnergy`` of each ``EnergyFunction`` object:
+        CellG *cell = createCell(_clusterId);
+        cellFieldG->set(pt, cell);
+        return cell;
+    }
+
+The call to ``cellFieldG->set`` is important. It triggers the registered
+field watchers, so the new cell's volume and other tracked attributes can
+be initialized consistently with the lattice.
+
+Potts Energy Functions
+----------------------
+
+The Cellular Potts Model accepts or rejects a proposed pixel copy based
+on the change in effective energy. In CC3D each energy term is
+implemented as an object derived from ``EnergyFunction``:
 
 .. code-block:: cpp
 
-    double EnergyFunctionCalculator::changeEnergy(Point3D &pt, const CellG *newCell,const CellG *oldCell,const unsigned int _flipAttempt){
+    class EnergyFunction {
+    public:
+        virtual double changeEnergy(
+            const Point3D &pt,
+            const CellG *newCell,
+            const CellG *oldCell
+        ) {
+            return 0.0;
+        }
 
+        virtual std::string toString() {
+            return std::string("EnergyFunction");
+        }
+    };
+
+The arguments describe the proposed copy:
+
+* ``pt`` is the lattice point that may change.
+* ``newCell`` is the cell that would occupy ``pt`` if the copy is accepted.
+* ``oldCell`` is the cell currently occupying ``pt``.
+
+Plugins that contribute to the Potts energy register their energy
+function with ``Potts3D``:
+
+.. code-block:: cpp
+
+    void Potts3D::registerEnergyFunctionWithName(
+        EnergyFunction *_function,
+        std::string _functionName
+    ) {
+        energyCalculator->registerEnergyFunctionWithName(_function, _functionName);
+    }
+
+``EnergyFunctionCalculator`` owns the summation loop. Its
+``changeEnergy`` method calls every registered energy function and sums
+the returned values:
+
+.. code-block:: cpp
+
+    double EnergyFunctionCalculator::changeEnergy(
+        Point3D &pt,
+        const CellG *newCell,
+        const CellG *oldCell,
+        const unsigned int _flipAttempt
+    ) {
         double change = 0;
-        for (unsigned int i = 0; i < energyFunctions.size(); i++){
+        for (unsigned int i = 0; i < energyFunctions.size(); i++) {
             change += energyFunctions[i]->changeEnergy(pt, newCell, oldCell);
         }
         return change;
     }
 
-The reason we use ``EnergyFunctionCalculator`` object instead of implementing summation loop inside ``metropolisFast`` function
-is to handle additional tasks that might be associated with calculating energies - for example collecting information
-on every energy term associated with every pixel copy attempts. In this case we would use not ``EnergyFunctionCalculator`` but
-a more sophisticated version of this class called ``EnergyFunctionCalculatorStatistics``
+This indirection lets CC3D swap in specialized calculators, such as
+statistics or test-data calculators, without changing the Metropolis
+algorithm itself.
 
-Steppers
-~~~~~~~~
+One Pixel-Copy Attempt
+----------------------
 
-A vector of ``Stepper`` objects - ``std::vector<Stepper *> steppers;`` is also a part of ``Potts3D`` object.
-Stepper objects all inherit from ``Stepper`` class defined in ``Potts3D/Stepper.h`` header file:
+A single Potts copy attempt in ``metropolisFast`` follows this logic:
+
+1. Pick a random lattice point ``pt``.
+2. Read the cell currently at ``pt``. This is the source cell.
+3. Pick a neighbor of ``pt`` using ``BoundaryStrategy``.
+4. Read the cell currently at the neighbor point. This is the target cell.
+5. Skip the attempt if source and target are the same cell.
+6. Skip the attempt if either cell type is frozen.
+7. Ask ``EnergyFunctionCalculator`` for the total energy change.
+8. Ask the fluctuation amplitude function for the effective motility.
+9. Ask the acceptance function for the probability of accepting the copy.
+10. If accepted, assign the source cell pointer to the target pixel.
+11. Let field watchers and Potts steppers update dependent state.
+
+The key lines in ``metropolisFast`` are:
+
+.. code-block:: cpp
+
+    CellG *cell = cellFieldG->getQuick(pt);
+    Neighbor n = boundaryStrategy->getNeighborDirectVoxelCopy(pt, directIdx);
+    Point3D changePixel = n.pt;
+    CellG *changePixelCell = cellFieldG->getQuick(changePixel);
+
+    double change = energyCalculator->changeEnergy(
+        changePixel,
+        cell,
+        changePixelCell,
+        i
+    );
+
+    double motility = fluctAmplFcn->fluctuationAmplitude(cell, changePixelCell);
+    double prob = acceptanceFunction->accept(motility, change);
+
+    if (prob >= 1.0 || rand->getRatio() < prob) {
+        cellFieldG->set(changePixel, flipNeighborVec[currentWorkNodeNumber], cell);
+    }
+
+The copy direction is easy to confuse. The source cell is read from
+``pt``. The target pixel is ``changePixel``. If the copy is accepted,
+``changePixel`` is overwritten with the source cell pointer.
+
+BoundaryStrategy
+----------------
+
+``Potts3D`` delegates neighbor lookup and boundary-condition behavior to
+``BoundaryStrategy``. This keeps the Metropolis code independent of the
+details of square versus hexagonal lattices, periodic boundaries,
+no-flux boundaries, neighbor order, and maximum neighbor distance.
+
+The simulator instantiates ``BoundaryStrategy`` while reading the
+``<Potts>`` section, after dimensions, lattice type, dimension type, and
+boundary-condition tags have been parsed.
+
+Acceptance and Fluctuation Amplitude
+------------------------------------
+
+After the energy change has been computed, ``Potts3D`` asks two objects
+to decide whether the copy should be accepted:
+
+* ``FluctuationAmplitudeFunction`` computes the effective fluctuation
+  amplitude for the two cells involved in the copy.
+* ``AcceptanceFunction`` converts fluctuation amplitude and energy change
+  into an acceptance probability.
+
+The default acceptance behavior is the usual Potts behavior: energetically
+favorable copies are accepted, while unfavorable copies may still be
+accepted with a probability that decreases as the energy increase becomes
+large relative to the fluctuation amplitude.
+
+The fluctuation amplitude may be global or cell-type-specific. When two
+cells are involved, CC3D can combine their amplitudes using strategies
+such as minimum, maximum, or arithmetic average. These strategies are
+implemented in ``StandardFluctuationAmplitudeFunctions``.
+
+Steppers and Fixed Steppers
+---------------------------
+
+``Potts3D`` has two low-level callback mechanisms that are separate from
+simulation-level steppables:
+
+* ``FixedStepper`` objects run before every copy attempt.
+* ``Stepper`` objects run after copy attempts.
+
+The ``Stepper`` interface is intentionally small:
 
 .. code-block:: cpp
 
@@ -498,69 +349,47 @@ Stepper objects all inherit from ``Stepper`` class defined in ``Potts3D/Stepper.
         virtual void step() = 0;
     };
 
-This is a very simple base class that defines only one function called ``step``. More important is the question
-where and **why** we need this function. Steppers are called at the very end of the pixel copy attempt *i.e.* after
-all energy function calculation and if pixel copy was accepted after modifying ``cellField``. Steppers are called
-always regardless whether pixel copy was accepted or not. A canonical example of the ``Stepper`` object is ``VolumeTracker``
-declared and defined in ``plugins/VolumeTracker/VolumeTrackerPlugin.h`` and
-``plugins/VolumeTracker/VolumeTrackerPlugin.cpp``. ``VolumeTracker`` plugin tracks volume of each cell and ensures that
-cells' volume information is correct. It also removes dead cells i./e. those cells whose volume reached 0. In a sense it
-performs cleanup actions. However cleanup needs to be done as a very last action associated with pixel copy attempt.
-It would be a bad idea to do it earlier because we could remove cell object that might still be needed by other actions
-related to *e.g.* updating ``cellField``.
+These callbacks are for low-level Potts maintenance tasks that must be
+synchronized with pixel-copy attempts. They are not the same as
+``Steppable`` modules managed by ``Simulator`` and ``ClassRegistry``.
+Simulation-level steppables run once per MCS, after ``Potts3D`` finishes
+all copy attempts for that MCS.
 
-Cell Inventory
-~~~~~~~~~~~~~~
+How Plugins Usually Interact with Potts3D
+-----------------------------------------
 
-``cellInventory`` as its name suggest is an object that serves as a container for pointers to cell objects but it also
-allows fast lookups of particular cells. This is one of he most frequently accessed objects from Python
-(although we do it somewhat indirectly). Many of the Python modules you write for CC3D include the following loop:
+A C++ plugin can interact with ``Potts3D`` in several ways:
 
-.. code-block:: python
+* Register an ``EnergyFunction`` to contribute to copy-attempt energy.
+* Register a ``CellGChangeWatcher`` to react when the lattice changes.
+* Register a ``Stepper`` or ``FixedStepper`` for low-level copy-attempt
+  callbacks.
+* Register per-cell attribute accessors or an ``AttributeAdder`` for
+  plugin-specific cell data.
+* Query the cell field, cell inventory, automaton, or boundary strategy.
 
-    for cell in self.cell_list:
-        ...
+Most plugins use more than one of these mechanisms. For example, a
+constraint plugin may register an energy function and also register a
+watcher to keep cached cell attributes up to date.
 
-What we are doing here is we iterate over every cell in the simulation. Internally the ``self.cell_list`` Python object
-accesses ``cellInventory``. when we create a cell using ``Potts3D``'s method ``createCellG`` we first construct cell object
-and then insert it into cell inventory. Similarly when we delete cell object using ``destroyCellG`` (method of ``Potts3D``)
-we first remove the ``cell`` object from inventory and then carryout its destruction
-(which, as you know, is not just simple call to  the C++ ``delete`` operator). It is worth knowing that in addition to
-cell inventories e track cell clusters and even links between cells (``FocalPointPlasticityPlugin``) via various
-"inventory" objects.
+Relationship to Simulator
+-------------------------
 
-Acceptance Function and Fluctuation Amplitude Function
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``Potts3D`` does not decide when the simulation starts or stops. The
+``Simulator`` calls ``potts.metropolis`` from ``Simulator::step``. The
+number of copy attempts is computed from the lattice volume and
+``Flip2DimRatio``:
 
-A key component of the Cellular Potts Model simulation is the so called acceptance function. It is the function
-that is responsible for they dynamic behavior of the simulation. It takes as an input a change in energy due to
-proposed pixel copy and outputs a probability with which this proposed pixel copy attempt will be accepted
+.. code-block:: cpp
 
-Canonical formulation of the Cellular Potts Model acceptance function is as follows:
+    Dim3D dim = potts.getCellFieldG()->getDim();
+    int flipAttempts = (int)(dim.x * dim.y * dim.z * ppdCC3DPtr->flip2DimRatio);
+    int flips = potts.metropolis(flipAttempts, ppdCC3DPtr->temperature);
 
-.. math::
-   :nowrap:
+After ``potts.metropolis`` returns, the simulator calls simulation-level
+steppables through ``ClassRegistry``. This separation is useful when
+reading CC3D C++ code:
 
-    \begin{cases}
-     & P = e^{-(\Delta E-\delta)/kT} \text{ if } \Delta E > 0 \\
-     & 1 \text{ if } \Delta E > 0 \\
-     & 1/2 \text{ if } \Delta E = 0
-    \end{cases}
-
-where :math:`\Delta E` is a change in the energy due to proposed pixel copy attempt :math:`T` is the the "temperature" which is
-a measure of cell membrane fluctuation amplitude and :math:`k` is a constant which by default is set to ``1`` and
-:math:`\delta` is an energy offset by default set to ``0``
-
-The higher the ``T`` is the higher the chance of accepting pixel copy attempts that result in higher energy
-Those appear to be the "wrong" kind of attempts but it turns out that they often save the simulation from being stuck
-in a local minimum so ensuring some of them are accepted is essential.
-
-The "temperature" or membrane fluctuation amplitude parameter can be set globally and many of the simulations
-using this convention. However, you can imagine that certain cells may have different membrane fluctuation amplitudes
-(different "temperatures"). To account for this fact and the fact that the two cells involved in pixel copy attempt
-may have different "temperatures" we use objects that derive from ``FluctuationAmplitudeFunction`` and whose goal is
-to compute effective "temperature" parameter associated with pixel copy based on the two "temperature" parameters that come
-from two cells involved in pixel copy. There are many possibilities here but the default strategy is to choose minimum
-of the two "temperatures". The details can be found in ``Potts3D/StandardFluctuationAmplitudeFunctions.h`` and
-``Potts3D/StandardFluctuationAmplitudeFunctions.cpp``. We can also create new fluctuation amplitude functions
-depending on our needs.
+* ``Potts3D`` handles pixel-copy mechanics inside one MCS.
+* ``Simulator`` handles the lifecycle and the per-MCS scheduling of
+  steppables.

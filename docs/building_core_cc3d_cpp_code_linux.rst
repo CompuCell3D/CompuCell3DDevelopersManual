@@ -1,4 +1,4 @@
-.. _My target:
+.. _linux_core_cc3d_build:
 
 Linux - Ubuntu
 ==============
@@ -265,7 +265,7 @@ We are changing to the "build directory" where or cmake, Makefile, and transient
     [100%] Built target CompuCell
 
 
-After the compilation is done we will call ```make install`
+After the compilation is done we will call ``make install``
 
 .. code-block:: console
 
@@ -276,8 +276,8 @@ The installed files will be placed in ``~/src-cc3d/CompuCell3D_install`` , exact
 
 
 
-Installing Player and Twedit++ into the compiled environment
-------------------------------------------------------------
+Installing Player and Twedit++ on Linux
+----------------------------------------
 
 After successful compilation and ``make install``, the newly compiled CompuCell3D Python package is installed into the active conda environment. To run the Player and Twedit++ from the same environment, we need to make the ``cc3d-player5`` and ``cc3d-twedit5`` repositories available inside that environment's ``site-packages/cc3d`` folder.
 

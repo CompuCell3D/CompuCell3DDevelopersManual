@@ -1,4 +1,4 @@
-.. _My target:
+.. _windows_core_cc3d_build:
 
 Windows
 =======

@@ -176,7 +176,7 @@ If you edited files in the ``Configuration`` directory, for instance, run this c
 Be careful about where you copy to. 
 It may be wise to create a backup of your Miniconda CC3D Player directory if you are not sure.  
 
-.. console::
+.. code-block:: console
 
    cp -fr C:\Users\Me\cc3d\cc3d-player5\cc3d\player5\Configuration\* C:\ProgramData\miniconda3\envs\name-of-your-environment\Lib\site-packages\cc3d\player5\Configuration\ && python -m cc3d.player5
 

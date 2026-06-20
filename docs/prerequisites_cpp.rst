@@ -1,5 +1,6 @@
 Prerequisites
 =============
 
-We assume that you know C++ . To be more precise, you need to understand polymorphism, how virtual functions work and have basic knowledge of templates. We also assume that you are familiar with Cellular Potts Model, that is that you understand what CPM is all about and how it works.
-We will try to demonstrate how to develop new plugins by using a concrete example. This is probably the best way to introduce you to CompuCell3D development. Before we go there it is probably a good idea to understand how CompuCell3D works.
+This chapter assumes that you are comfortable with C++. In particular, you should understand polymorphism, virtual functions, and the basics of templates. We also assume that you are familiar with the Cellular Potts Model (CPM), including what it is and how it works.
+
+We will demonstrate how to develop new plugins by working through a concrete example. This is usually the most effective way to introduce CompuCell3D development. Before we begin, it is useful to understand how CompuCell3D works.

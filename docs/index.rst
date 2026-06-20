@@ -13,6 +13,14 @@ C++ extension modules for CompuCell3D
    funding
 
 .. toctree::
+    :maxdepth: 1
+    :hidden:
+    :caption: Setting up compilers
+
+    setting_up_compilers
+
+
+.. toctree::
    :maxdepth: 1
    :hidden:
    :caption: Compiling CC3D From Source
@@ -27,33 +35,28 @@ C++ extension modules for CompuCell3D
     :caption: CC3D Core Objects
 
     prerequisites_cpp
+    intro_to_cc3d_c++_module_development
     potts
     simulator
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: C++ Module Development - Tutorials
+   :caption: C++ Module Development - Plugins - Tutorials
 
-   intro_to_cc3d_c++_module_development
+
    developing_simple_volume_tracker_plugin
    developing_simple_volume_tracker_plugin_part_2
 
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-    :caption: Setting up compilers
-
-    setting_up_compilers
 
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Building Steppables in Developer Zone
+   :caption: Building C++ Steppables
 
    configuring_developer_zone
-   building_steppable_case_study
+   building_growth_steppable_in_main_code
    building_growth_steppable_in_developer_zone
    adding_python_binding_to_developer_zone_steppable
    heteropytic_boundary_surface_steppable

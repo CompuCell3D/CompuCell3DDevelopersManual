@@ -1,30 +1,24 @@
-Building Growth Steppable In the Developer Zone folder
-======================================================
+Building A Growth Steppable In DeveloperZone
+=============================================
 
-Quite often you will want to build a steppable in a "non-intrusive" way *i.e.* without adding it to the main
-CC3D code-base. The way to do it is to utilize functionality of ``DeveloperZone``.
+DeveloperZone lets you build C++ plugins and steppables without adding them to the main CC3D source tree. This is useful when you are developing an extension module, testing an idea, or distributing custom C++ code separately from core CC3D.
 
-This time we will use Windows system and our  CC3D git repository is cloned to ``D:\CC3D_PY3_GIT\CompuCell3D``
+This example uses Windows paths and assumes that the CC3D repository is cloned to ``D:\CC3D_PY3_GIT\CompuCell3D``. On Linux and macOS the same source layout applies, but the build generator and compiler commands differ.
 
-To add a steppable or plugin in the DeveloperZone you open up Twedit and from ``CC3D C++`` menu select
-``Generate New Module...``.
+To add a steppable in DeveloperZone, open Twedit++ and choose ``CC3D C++`` -> ``Generate New Module...``.
 
 |dev_zone_1|
 
-Notice that in the ``Module Directory`` in the dialog box we put ``D:\CC3D_PY3_GIT\CompuCell3D\DeveloperZone``.
-Previously we put there a path to the Steppable folder in the main CC3D Code base (give where our repository is cloned
-this path would be ``D:\CC3D_PY3_GIT\CompuCell3D\core\CompuCell3D\steppables\``)
+Set ``Module Directory`` to ``D:\CC3D_PY3_GIT\CompuCell3D\DeveloperZone``. This is the important difference from generating a core steppable, where the module directory would be a folder under ``CompuCell3D/core/CompuCell3D/steppables``.
 
-Notice that we also checked ``Python Wrap`` option to generate Python bindings. We will show you how you ca
-be creative here and leverage both XML and Python as a way to pass parameters to the Steppable. As you
-remember you do not have to generate Python bindings and it is perfectly OK to to stick with C++ and XML.
+This example also checks ``Python Wrap`` so that later sections can show how XML and Python can both control the C++ steppable. Python wrapping is optional. If your module only needs XML configuration and C++ execution, you can leave it disabled.
 
-After we press ``OK`` button Twedit++ will generate , a template Steppable code:
+After you click ``OK``, Twedit++ generates template steppable code:
 
 |dev_zone_2|
 
-Now we copy code from our earlier example into appropriate files - we are only showing files that we modified:
-``GrowthSteppable.h`` :
+Next, copy the growth logic from the earlier core-code example into the DeveloperZone module. Only the modified files are shown here:
+``GrowthSteppable.h``:
 
 .. code-block:: cpp
     :linenos:
@@ -220,8 +214,7 @@ and ``GrowthSteppable.cpp``
        return toString();
     }
 
-As you can see based on the previous discussion the ``update`` function where we parse XML is designed to
-handle the following syntax for the GrowthSteppable:
+The ``update`` function parses XML entries with the following ``GrowthSteppable`` syntax:
 
 .. code-block:: xml
 
@@ -232,14 +225,9 @@ handle the following syntax for the GrowthSteppable:
 
 .. note::
 
-    Starting from version ``4.3.0`` of CC3D the DeveloperZone compilation setup (for any compiler) is is done automatically. All you need to do is to follow procedure outlined in `Configuring Developer Zone <configuring_developer_zone.html>`_
+    Starting with CC3D ``4.3.0``, DeveloperZone compilation setup is generated automatically for supported compilers. Follow :doc:`configuring_developer_zone` for the current setup procedure.
 
-After we generated plugin code and added our modification to those two files, we are ready to begin compilation.
-We will show how to compile code on Windows. Compilation on Linux system is analogous up to CMake configuration
-part but then instead of using Visual Studio you will type ``make`` and ``make install`` in the terminal. For now
-let's stick with Windows compilation. After Twedit++ generated new files in the ``Developer Zone`` we need to use
-CMake tool (GUI - as we will go here, or console based tool) to configure our compilation. This is how CMake
-configuration looks in our case
+After generating the module and editing the two files above, configure and build DeveloperZone. The screenshots below use CMake GUI and Visual Studio on Windows. On Linux and macOS the configuration inputs are similar, but the build step uses the platform compiler from the conda environment.
 
 |dev_zone_3|
 
@@ -271,8 +259,8 @@ VisualStudio Project will be placed in ``D:/CC3D_PY3_GIT_build_developer_zone`` 
 ``Where to build the binaries`` at the top of CMake GUI). We will open it next and
 will show you how to compile plugins and steppables in the ``DeveloperZone``
 
-Compiling ``DeveloperZone`` in Visual Studio
----------------------------------------------
+Compiling DeveloperZone In Visual Studio
+------------------------------------------
 
 Now that we created Visual Studio project for Developer Zone we will show you how to set up compilation.
 We open up Visual Studio and navigate to ``File->Open->Project/Solution...`` and in the File Open Dialog we go to
@@ -302,11 +290,10 @@ that we specified during CMake configuration (``D:/Program Files/cc3d_py3_demo_n
 
 At this point we can build a simulation that will use newly created ``GrowthSteppable``
 
-Using DeveloperZone steppable in the simulation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using The DeveloperZone Steppable In A Simulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Writing C++ code and compiling it was a hard-part of the project. Using newly created steppable in the simulation is
-easy. In fact all we need to do is to add
+After the C++ code compiles and installs, using the new steppable in a simulation is simple. Add the following XML block to any simulation where cells of type ``1`` should increase target volume by ``1.3`` pixels per MCS and cells of type ``2`` should increase target volume by ``1.7`` pixels per MCS:
 
 .. code-block:: xml
 
@@ -315,22 +302,17 @@ easy. In fact all we need to do is to add
         <GrowthRate CellType="2" Rate="1.7"/>
     </Steppable>
 
-to any simulation where we want cell of type `1` to increase target volume at 1.3 pixels/MCS rate and for cells of type 2
-the growth would be 1.7.
-
 .. note::
 
-    The name of the steppable or plugin that we reference from XML is not based on module name but on the label encoded in the proxy file. In our case ``GrowthSteppableProxy.cpp`` has the following line ``growthSteppableProxy("GrowthSteppable", ...`` and there we have label ``GrowthSteppable`` that we use in XML. If we changed this label to e.g. `growthSteppableProxy("MyGrowthSteppable", ...`` then we would need to change first line of XML for GrowthSteppable to ``<Steppable Type="GrowthSteppable">``
+    The XML name of a steppable or plugin comes from the label registered in its proxy file, not necessarily from the C++ class name. In this example ``GrowthSteppableProxy.cpp`` registers ``growthSteppableProxy("GrowthSteppable", ...)``, so the XML uses ``<Steppable Type="GrowthSteppable">``. If the proxy registered ``"MyGrowthSteppable"`` instead, the XML would need to use ``<Steppable Type="MyGrowthSteppable">``.
 
 Here are the results of the simulation at MCS 0, 20, and 40:
 
 |gs_cpp|
 
-As you can see there are 3 cell types here but we specified growth rates for two of them As a result "red" cells are
-getting squashed by growing neighbors and at MCS 40 they disappear. Also notice that green cells are bigger than blue
-ones. This is what we expect when we have different growth rates.
+The simulation contains three cell types, but the XML specifies growth rates for only two of them. The type without an explicit growth rate is squeezed by growing neighbors and disappears by MCS 40. Green cells become larger than blue cells because they use the larger growth rate.
 
-Since we are modifying target volume we must use ``Volume`` plugin where we control all parameters for each cell individually - we use "local flex" version of Volume constraint ``<Plugin Name="Volume"/>`` where we only load ``Volume`` plugin but dont pass any parameters to it. Those parameters ``targetVolume`` ``lambdaVolume`` are set in C++ code:
+Because this steppable modifies ``targetVolume`` directly, the simulation must load the ``Volume`` plugin. Here we use the local-flex form, ``<Plugin Name="Volume"/>``, which loads the plugin without global XML parameters. The per-cell ``targetVolume`` and ``lambdaVolume`` values are assigned in C++ code:
 
 .. code-block:: xml
 
@@ -397,15 +379,15 @@ Since we are modifying target volume we must use ``Volume`` plugin where we cont
 
 .. note::
 
-    We placed ``GrowthSteppable`` last. This is not coincidence. We must place it after steppable that creates cells ``UniformInitializer``. If we reversed the order of those two steppables GrowthSteppable would be called first and in particular its ``start`` function would be called before ``UniformInitializer`` function and as a result the code that is supposed to set initaial volume constraint parameters from ``GrowthSteppable`` (``start`` function) woudl iterate over empty cell inventory. Therefore, listing ``UniformInitializer`` before ``GrowthSteppable`` is the rihght thing to to. Simply put order of appearances of steppables in the XML determines the order in which CC3D will call them
+    ``GrowthSteppable`` is listed after ``UniformInitializer`` on purpose. CC3D calls steppables in the order in which they appear in XML. If ``GrowthSteppable`` ran first, its ``start`` function would iterate over an empty cell inventory because ``UniformInitializer`` would not have created cells yet.
 
 .. note::
 
-    Specified growth rates of 1.3 and 1.7 are very high and we used them for illustration purposes. In your simulation you should much smaller rates to allow cells on the lattice to "equilibrate"
+    The growth rates ``1.3`` and ``1.7`` are intentionally high for illustration. Real simulations usually need smaller rates so cells can equilibrate on the lattice.
 
 Full simulation can be downloaded here :download:`zip <archives/GrowthSteppableSimulationCpp.zip>` and full code for
 ``GrowthSteppable`` is here :download:`zip <archives/GrowthSteppable-code-cpp.zip>`. You can also access both example
-and c++ code by going directly to ``CompuCell3D/DeveloperZone``
+and C++ code by going directly to ``CompuCell3D/DeveloperZone``
 
 .. |dev_zone_1| image:: images/dev_zone_1.png
    :width: 2.4in

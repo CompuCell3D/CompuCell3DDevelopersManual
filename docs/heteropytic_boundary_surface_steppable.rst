@@ -1,21 +1,11 @@
 Computing Heterotypic Boundary Length
 ======================================
 
-Heterotypic boundary surface (or length in 2D) is total surface of contact between all cells of two types. For example when you have 2
-cells of type `1` and 100 cells of type `2` the heterotypic surface between thw two will be a sum of all contact
-surfaces between the two types.
-In this example we are not going to show every step how we generate the steppable using Twedit. We have shown this
-earlier and here we will concentrate on the actual code.
+Heterotypic boundary surface is the total contact surface between cells of two different types. In 2D this quantity is usually described as boundary length. For example, if a simulation contains cells of type ``1`` and type ``2``, the heterotypic boundary between those types is the sum of all pixel or voxel contacts where a type ``1`` cell touches a type ``2`` cell.
 
-This example is a bit more advanced but we will explain clearly every line of code.
+This example is more advanced than the basic growth steppable because it walks the lattice, inspects neighboring pixels, accumulates measurements in a C++ map, and exposes the result to Python. The steppable is called ``HeterotypicBoundaryLength``.
 
-The module that we generated is called ``HeterotypicBoundaryLength``. We then click ``Configure`` and ``Generate`` in
-the CMake Gui and start writing actual code. We will first implement function that walks over entire lattice and
-computes heterotypic surface (or length in 2D) between all cells of different types.
-
-All C++ files can be found in ``DeveloperZone/Demos/HeterotypicBoundarySurface`` and Python bindings are , as usual in
-``DeveloperZone/pyinterface/CompuCellExtraModules/CompuCellExtraModules.i``. The simulation example that uses our newly
-created module is in ``DeveloperZone/Demos/HeterotypicBoundarySurface``
+The C++ files and example simulation are in ``DeveloperZone/Demos/HeterotypicBoundarySurface``. The Python bindings are generated through ``DeveloperZone/pyinterface/CompuCellExtraModules/CompuCellExtraModules.i``.
 
 Here is the header file for our new steppable:
 
@@ -92,7 +82,7 @@ Here is the header file for our new steppable:
 
     #endif
 
-we added few methods and one class member there:
+The important additions are one map and three public methods:
 
 .. code-block:: c++
 
@@ -104,11 +94,7 @@ we added few methods and one class member there:
     void calculateHeterotypicSurface();
     double getHeterotypicSurface(unsigned int cellType1, unsigned int cellType2);
 
-The typePairHTSurfaceMap is a dictionary (map) that will store heterotypic boundary surface between different cell
-types. Notice that we will encode pair of cell types as a single unsigned integer (hence a key to the dictionary
-is unsigned integer). To do this we will use convenience function
-``unsigned int typePairIndex(unsigned int cellType1, unsigned int cellType2)`` that takes as its arguments two
-unsigned integers that denote cell type 1 and cell type 2. Here is the implementation of this function:
+``typePairHTSurfaceMap`` stores heterotypic boundary measurements. The map key is a single ``unsigned int`` that encodes a pair of cell types. The helper method ``typePairIndex`` performs that encoding:
 
 .. code-block:: c++
 
@@ -116,12 +102,9 @@ unsigned integers that denote cell type 1 and cell type 2. Here is the implement
         return 256 * cellType2 + cellType1;
     }
 
-we take advantage of the fact that the number of cell types in CC3D is limited to 256 and the index this function
-returns looks analogous to the index you woudl use to access a matrix if you were to store a matrix as 1D array.
+This uses the fact that CC3D cell types fit in 8 bits. The expression is analogous to flattening a two-dimensional matrix index into a one-dimensional array index.
 
-Next we have two functions ``calculateHeterotypicSurface()`` that computed actual total heterotypic surface between
-all cell types and ``double getHeterotypicSurface(unsigned int cellType1, unsigned int cellType2)`` that given two types
-it returns a boundary between them.
+The method ``calculateHeterotypicSurface()`` computes all pairwise measurements. The method ``getHeterotypicSurface(cellType1, cellType2)`` returns the measurement for one requested type pair.
 
 Let's start analyzing code for ``calculateHeterotypicSurface`` function:
 
@@ -183,7 +166,7 @@ Let's start analyzing code for ``calculateHeterotypicSurface`` function:
 
     }
 
-We will be iterating over lattice pixels. Every lattice pixel has neighbors of different order but 1-st order neighbors
+The algorithm iterates over lattice pixels. Every lattice pixel has neighbors of different order but 1-st order neighbors
 are simply adjacent pixels. ``BoundaryStrategy`` is an object that facilitates iteration over pixel neighbors and it
 also keeps track of boundary conditions, pixels, adjacent to the boundary etc. so that you can write a simpler code. All
 we need to do to iterate over 1-st order pixel neighbors is to know what is the maximum number of them and this is what
@@ -197,11 +180,9 @@ We get maximum index of a 1-st order pixel (``BoundaryStrategy`` keeps them in a
 this vector). On 2D. cartesian lattice there could be up to 4 such neighbors hence the max vector index is 3 (we start
 counting from 0).
 
-We next clear the map where we store our results because each time we call this function it wil be incrementing
-the values so if we did not clear we would be starting counting from different value that zero.
+We next clear the map where we store our results because each time we call this function it increments the stored values. If we did not clear the map first, each new calculation would start from the previous result instead of zero.
 
-At line 16 we start triple loop where we iterate over all lattice pixels. This might not be the most efficient method
-but it is the simplest to code.
+At line 16 we start triple loop where we iterate over all lattice pixels. This is not the most optimized implementation, but it is direct and easy to inspect.
 
 In lines 19 and 20 we get a cell that resides at a given pixel. If the cell pointer returned is ``NULL`` we are dealing
 with ``Medium`` and cell and this is why in lines 23-25 we check if the cell is different than ``NULL``
@@ -230,7 +211,7 @@ and increment appropriate entry in the ``this->typePairHTSurfaceMap`` - lines 43
 cell types in call to ``typePairIndex`` - line 44-45. so that when we access boundary length between cell type 1 and 2
 it will give us the same value as between cell types 2 and 1. But we do this only when the two types are different
 
-Obviously, we are double-counting and we correct this in the function that returns heterotypic surfaces:
+Because each contact is encountered from both sides, the raw accumulation double-counts contacts. ``getHeterotypicSurface`` corrects this by dividing by two:
 
 .. code-block:: c++
 
@@ -245,8 +226,7 @@ Obviously, we are double-counting and we correct this in the function that retur
 Running the Simulation with Heterotypic Surface Calculator
 ----------------------------------------------------------
 
-The simulation code is quite easy to write as it follows the same pattern that we encountered in the previous chapter
-where we introduced Python bindings to the C++ steppable. We start with an XML file:
+The simulation follows the same pattern used in the Python-binding growth example. First, instantiate the C++ steppable in XML:
 
 .. code-block:: xml
     :linenos:
@@ -303,7 +283,7 @@ where we introduced Python bindings to the C++ steppable. We start with an XML f
 
     </CompuCell3D>
 
-It is Twedit-generated XML file that has basic energy terms (Volume and Contact Constraints) plus initializer and
+This Twedit++-generated XML file contains basic energy terms (Volume and Contact Constraints) plus initializer and
 at the end in line 48 we add our new ``HeterotypicBoundaryLength`` steppable. Notice that this is a one-line call
 because we are not really passing any parameters to the steppable from the XML and our
 ``update(CC3DXMLElement *_xmlData, bool _fullInitFlag=false)`` method does not contain any code that parses XML.
@@ -375,11 +355,10 @@ functionality that gets called on-demand from Python code. Let us now look at th
             print('THIS ENTRY DOES NOT EXIST. HTBL between type 3 and 20 is ',
                   self.htbl_steppable_cpp.getHeterotypicSurface(3, 20))
 
-At the top we import ``CompuCellExtraModules`` that SWIG generates. This Python contains contains Python-wrapper
-for our ``HeterotypicBoundaryLength`` C++ steppable. In line 12 we fetch a reference to the steppable and store it in
+At the top we import ``CompuCellExtraModules``, the SWIG-generated Python module that contains the wrapper for ``HeterotypicBoundaryLength``. In line 12 we fetch a reference to the steppable and store it in
 class-accessible ``self.htbl_steppable_cpp`` variable. In Python steppable ``step`` function we call C++ function
-that calculates heterotypic surface (line 15). The next series of ``print`` statements fetches results fo the
-calculations - see lines 18 21, *etc...* . The output looks as follows:
+that calculates heterotypic surface (line 15). The next series of ``print`` statements fetches results from the
+calculations; see lines 18, 21, and the following print statements. The output looks like this:
 
 |htbl_output|
 
@@ -418,7 +397,7 @@ For more information please see http://www.compucell3d.org/BinDoc/cc3d_binaries/
 in the code of the BoundaryStrategy class method
 ``LatticeMultiplicativeFactors BoundaryStrategy::generateLatticeMultiplicativeFactors(LatticeType _latticeType, Dim3D dim)`` in ``CompuCell3D/core/CompuCell3D/Boundary/BoundaryStrategy.cpp``
 
-For completeness we also show SWIG file that was used to generate the wrapper :
+For completeness, the relevant SWIG wrapper file is shown below:
 
 .. code-block:: c++
 
@@ -457,7 +436,7 @@ For completeness we also show SWIG file that was used to generate the wrapper :
     // ********************************************* END OF SECTION ********************************** ************************************************
 
 
-    //have to include all  export definitions for modules which are arapped to avoid problems with interpreting by swig win32 specific c++ extensions...
+    //have to include all  export definitions for modules which are wrapped to avoid problems with interpreting by swig win32 specific c++ extensions...
     #define SIMPLEVOLUME_EXPORT
     #define VOLUMEMEAN_EXPORT
     //AutogeneratedModules2 - DO NOT REMOVE THIS LINE IT IS USED BY TWEDIT TO LOCATE CODE INSERTION POINT
@@ -485,7 +464,7 @@ For completeness we also show SWIG file that was used to generate the wrapper :
     // C++ std::vector handling
     %include "std_vector.i"
 
-    //have to include all  export definitions for modules which are arapped to avoid problems with interpreting by swig win32 specific c++ extensions...
+    //have to include all  export definitions for modules which are wrapped to avoid problems with interpreting by swig win32 specific c++ extensions...
     #define SIMPLEVOLUME_EXPORT
     #define VOLUMEMEAN_EXPORT
 
@@ -505,7 +484,7 @@ For completeness we also show SWIG file that was used to generate the wrapper :
     // REMEMBER TO CHANGE #include to %include
     %include <SimpleVolume/SimpleVolumePlugin.h>
     // %include <SimpleVolume/SimpleVolumeParseData.h>
-    // THIS IS VERY IMORTANT STETEMENT WITHOUT IT SWIG will produce incorrect wrapper code which will compile but will not work
+    // THIS IS VERY IMPORTANT STATEMENT WITHOUT IT SWIG will produce incorrect wrapper code which will compile but will not work
     using namespace CompuCell3D;
 
     %inline %{

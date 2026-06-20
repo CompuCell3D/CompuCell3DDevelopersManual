@@ -1,4 +1,4 @@
-.. _My target:
+.. _mac_core_cc3d_build:
 
 Mac - OSX
 =========
@@ -176,7 +176,7 @@ Let's explain command line arguments we used when calling ``cmake`` command
 
 ``-DPython3_EXECUTABLE=`` specifies the location of the python interpreter. Notice that it points to the conda environment we creates (``/envs/cc3d_compile/bin/python``). **Important:** We used ``$CONDA_PREFIX`` env var to point to the conda environment we have just activated. In my case it points to ``/Users/m/miniconda3_arm64/envs/cc3d_compile``. In your case it will be different but ouu can always check by executing ``echo $CONDA_PREFIX`` from the terminal where you activate ``cc3d_compile`` environment
 
-``-DNO_OPENCL=ON `` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
+``-DNO_OPENCL=ON`` - is a CC3D-specific setting that tells cmake to skip generating GPU diffusion solvers. Note, the support for OpenCL on OSX is/might be problematic, hence we are using morte conservative setting and skip generation of those solvers
 
 ``-DBUILD_STANDALONE=OFF`` - is a CC3D-specific setting that tells cmake to install all python packages to python interpreter directory - i.e. inside ``$CONDA_PREFIX`` (e.g. ``/Users/m/miniconda3_arm64/envs/cc3d_compile``)
 
@@ -232,7 +232,7 @@ We are changing to the "build directory" where or cmake, Makefile, and transient
     [100%] Built target CompuCell
 
 
-After the compilation is done we will call ```make install`
+After the compilation is done we will call ``make install``
 
 .. code-block:: console
 
@@ -279,8 +279,8 @@ The output of the run should look something like this
                           Other Time:        0.08 ( 0.9%)
     -----------------------------------------------------------
 
-Installing Player and Twedit++ into the compiled environment
-------------------------------------------------------------
+Installing Player and Twedit++ on macOS
+----------------------------------------
 
 After successful compilation and ``make install``, the newly compiled CompuCell3D Python package is installed into the active conda environment. To run the Player and Twedit++ from the same environment, we need to make the ``cc3d-player5`` and ``cc3d-twedit5`` repositories available inside that environment's ``site-packages/cc3d`` folder.
 
