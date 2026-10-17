@@ -1,0 +1,5 @@
+<CompuCell3D>
+    <XMLScript>Simulation/MinimalClassSteppable.xml</XMLScript>
+    <PythonScript>Simulation/MinimalClassSteppable.py</PythonScript>
+    <Resource Type="Cpp">Native/MinimalClassSteppable.cpp</Resource>
+</CompuCell3D>

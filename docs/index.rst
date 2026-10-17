@@ -63,6 +63,13 @@ C++ extension modules for CompuCell3D
    attaching_attributes_to_cells
 
 .. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Kernel ABI C++ Steppables
+
+   cpp_kernel_abi_steppables/index
+
+.. toctree::
    :maxdepth: 1
    :hidden:
    :caption: Debugging Techniques
