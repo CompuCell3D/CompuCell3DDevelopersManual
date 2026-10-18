@@ -26,17 +26,289 @@ The ``.cc3d`` descriptor names the XML script, Python script, and native C++
 source. The Python script registers the compiled library using a path relative
 to the project directory.
 
-Build the native library
-------------------------
+Build the native library automatically
+--------------------------------------
 
-The exact compiler command depends on the platform and the active CC3D
-environment. The command must:
+CC3D automatically compiles compiled steppables for you. When a ``.cc3d``
+project declares a C++ resource, CC3D discovers that source, checks whether
+its generated library is current, detects or selects a compiler, and builds
+the library before the simulation runs. In the normal workflow, you do not
+need to invoke ``cl.exe``, ``g++``, or ``clang++`` yourself.
 
-* compile the native ``.cpp`` file as C++17 or later;
-* include the directory containing ``cc3d/kernel.h``;
-* produce a shared library or DLL;
-* place the output beside the native source or in the path used by the Python
-  registration script.
+The automatic compiler looks only at C++ resources declared by the active
+project. For example:
+
+.. code-block:: xml
+
+   <Resource Type="Cpp">Native/MySteppable.cpp</Resource>
+
+CC3D compares the source, kernel header, ABI information, metadata, and
+output library. It rebuilds when the output is missing or when an input is
+newer. A successful build writes a ``.cc3d-build.json`` sidecar beside the
+library. The sidecar records the compiler command, paths, hashes, ABI
+version, platform, machine, and build time.
+
+Run with automatic compilation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the project through ``run_script.py`` from the CC3D environment:
+
+.. code-block:: console
+
+   python -m cc3d.run_script \
+       --input path/to/MySteppable.cc3d
+
+The same command works with the short input option:
+
+.. code-block:: console
+
+   python -m cc3d.run_script -i path/to/MySteppable.cc3d
+
+Automatic compilation is enabled by default. If the compiler is unavailable
+or compilation fails, the simulation does not continue with a stale or
+missing compiled steppable.
+
+Control compilation from the command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following switches control the project-scoped compilation workflow:
+
+``--no-compile-steppables``
+   Skip automatic compilation. Use this only when the required libraries have
+   already been built and you intentionally want to prevent a rebuild.
+
+``--force-compile-steppables``
+   Compile every C++ steppable resource even when the output appears current.
+
+``--clean-compiled-steppables``
+   Remove generated artifacts for the C++ resources declared by the project
+   and exit without running the simulation.
+
+``--clean-and-compile-steppables``
+   Remove generated artifacts, force a complete rebuild, and then run the
+   simulation.
+
+For example, to rebuild all native resources before running:
+
+.. code-block:: console
+
+   python -m cc3d.run_script \
+       -i path/to/MySteppable.cc3d \
+       --clean-and-compile-steppables
+
+The cleanup options operate on the active project resources. They do not scan
+unrelated ``Native`` directories elsewhere on the machine.
+
+Select compiler inputs from the command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic compiler normally uses the detected compiler settings. These
+options provide explicit inputs when a project needs a different environment:
+
+``--steppable-include-root <path>``
+   Use an explicit include root containing ``cc3d/kernel.h``.
+
+``--steppable-repo <path>``
+   Use a CompuCell3D repository as a source-tree fallback for the kernel
+   header.
+
+``--steppable-msvc-version <major>``
+   On Windows, select a Visual Studio major version such as ``16``, ``17``,
+   or ``18``.
+
+``--steppable-macos-toolchain apple|conda``
+   On macOS, select the Apple or Conda compiler toolchain.
+
+For example:
+
+.. code-block:: console
+
+   python -m cc3d.run_script \
+       -i path/to/MySteppable.cc3d \
+       --steppable-repo C:\\src\\CompuCell3D \
+       --steppable-msvc-version 18
+
+Compiler detection and cached settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CC3D stores compiler settings and detected compiler information in:
+
+.. code-block:: text
+
+   ~/.compucell3d_py3/compiled_steppables.yaml
+
+On Windows this is normally:
+
+.. code-block:: text
+
+   C:\\Users\\<user>\\.compucell3d_py3\\compiled_steppables.yaml
+
+The file is created when settings are first loaded. It contains platform
+specific compiler preferences and a ``detected`` record. It is a settings
+cache, not a replacement for the compiler installation. Removing it causes
+CC3D to create fresh defaults and perform initial detection again.
+
+On Windows, detection searches Visual Studio installations with
+``vswhere.exe``, activates each candidate through ``vcvars64.bat``, locates
+the x64 ``cl.exe``, and records the compiler version. The default policy is
+the latest available Visual Studio installation. Selecting a Visual Studio
+major is supported; arbitrary path-based Visual Studio selection is not the
+active backend policy.
+
+On macOS, detection searches for ``clang++``. On Linux it searches for
+``g++`` and then ``clang++``. The selected path is recorded in the detected
+settings.
+
+Detection and project status are separate operations. Project status checks
+whether a particular project's source and generated artifacts require a
+build. Compiler detection finds or refreshes the compiler information used to
+perform that build.
+
+Manage compilation in Player
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Player provides a **Compiled Steppables** action for inspecting and managing
+the native resources in the current project. When Player opens a simulation
+that declares one or more C++ resources, the Compiled Steppables toolbar action
+becomes available:
+
+.. figure:: images/c++_button_on_player_toolbar_gets_activated_if_opened_simulation_has_cpp_steppables.png
+   :align: center
+   :alt: Player toolbar with the compiled steppables action available
+
+   Player enables the compiled-steppables action for a simulation that
+   declares C++ resources.
+
+Open that action to inspect the project. The Simulation tab lists each C++
+resource and shows whether its output library and metadata are valid. If the
+output is missing or the metadata no longer matches the source or kernel
+header, the project is marked as needing compilation:
+
+.. figure:: images/steppable_in_need_on_compilation_player_view.png
+   :align: center
+   :alt: Player compiled steppables view showing an output that is missing
+
+   A project with a missing output is marked ``needs compile``. The view shows
+   the source, output, metadata, kernel header, and hash validation details.
+
+Use **Compile now** to build the resources listed by the project. After a
+successful build, the output library and metadata sidecar are present and the
+status changes to valid:
+
+.. figure:: images/steppable_succesfully_compiled_player_view.png
+   :align: center
+   :alt: Player compiled steppables view showing valid metadata after compilation
+
+   A successfully compiled resource reports ``metadata matches`` and ``valid``.
+
+Compiler detection in Player
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The dialog also contains a **Compiler settings** tab. Detection is lazy: Player
+does not probe compilers when the dialog is first created. Detection starts
+when the Compiler settings tab is selected, which avoids delaying ordinary
+simulation startup. The detection worker runs in a background thread so the
+Player interface remains responsive:
+
+.. figure:: images/detecting_compiler_in_player.png
+   :align: center
+   :alt: Player compiler settings tab while compiler detection is running
+
+   Player reports ``Detecting compiler...`` while the background detection
+   worker probes the current platform.
+
+When detection completes, Player displays the settings file, platform,
+selected compiler policy, and detected compiler information:
+
+.. figure:: images/succesfully_detected_compile_in_player.png
+   :align: center
+   :alt: Player compiler settings tab showing detected Visual Studio information
+
+   The detected record includes the Visual Studio major version, installation,
+   ``vcvars64.bat`` path, ``cl.exe`` path, and compiler version on Windows.
+
+The **Refresh detection** button repeats detection. **Use latest detected
+compiler** selects the latest detected compiler, **Reset to automatic** clears
+manual preferences, and **Apply / Save** writes the selected settings.
+
+On Windows, detection searches Visual Studio installations with
+``vswhere.exe``. It probes each candidate through ``vcvars64.bat``, locates
+the x64 ``cl.exe``, and reads the compiler version. On macOS, detection looks
+for ``clang++``. On Linux, it looks for ``g++`` and falls back to ``clang++``.
+
+The settings file shown by Player is normally:
+
+.. code-block:: text
+
+   ~/.compucell3d_py3/compiled_steppables.yaml
+
+The file stores both user preferences and the latest detected compiler record.
+Detection updates the ``detected`` section while preserving the user's
+selection policy. Opening the Compiler settings tab in Player is usually the
+most convenient way to detect and select a compiler because it exposes the
+result, provides refresh controls, and reports failures without requiring a
+simulation run.
+
+The project view reports the status of the C++ resources and can start the
+project compilation workflow. Player uses the same project-scoped compiler
+selection and build status as the command-line runner. On Windows, compiler
+probing may take time because each Visual Studio installation is tested in its
+own activated environment; Player performs this work outside the GUI thread.
+
+Command-line compiler detection and selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The command-line runner does not currently expose a separate
+``--detect-compiler`` command. Compiler detection is part of the automatic
+compilation path. When ``run_script.py`` needs to compile a project, it loads
+the settings file, selects a compiler according to the current platform and
+selection policy, refreshes detected information as needed, and then builds
+the C++ resources.
+
+The usual command is therefore enough:
+
+.. code-block:: console
+
+   python -m cc3d.run_script -i path/to/MySteppable.cc3d
+
+To deliberately exercise the compilation and compiler-selection path, use:
+
+.. code-block:: console
+
+   python -m cc3d.run_script \
+       -i path/to/MySteppable.cc3d \
+       --force-compile-steppables
+
+To remove prior outputs and perform a clean build:
+
+.. code-block:: console
+
+   python -m cc3d.run_script \
+       -i path/to/MySteppable.cc3d \
+       --clean-and-compile-steppables
+
+Use ``--steppable-msvc-version 16``, ``17``, or ``18`` to request a specific
+Visual Studio major on Windows. Use ``--steppable-macos-toolchain apple`` or
+``conda`` on macOS. ``--steppable-include-root`` and ``--steppable-repo``
+control where the compiler workflow finds ``cc3d/kernel.h``. The
+``--global-settings-dir-name`` option changes the settings directory name
+under the user's home directory when a separate compiler-settings profile is
+needed.
+
+The command-line runner prints a compiled-steppable summary for each declared
+C++ resource. The summary reports whether the resource was compiled or
+skipped and gives the reason, such as ``output missing``, ``source changed``,
+``kernel ABI changed``, or ``metadata matches``. ``--no-compile-steppables``
+skips this automatic path entirely, so it is not a compiler-detection command.
+
+Manual compiler invocation for diagnostics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Direct compiler commands are useful when diagnosing a toolchain or testing a
+minimal command outside CC3D, but they are an advanced fallback. The command
+must compile the native ``.cpp`` file as C++17 or later, include the directory
+containing ``cc3d/kernel.h``, produce a shared library or DLL, and place the
+output where the Python registration script expects it.
 
 On Windows, a representative MSVC command is:
 
@@ -79,16 +351,17 @@ number of calls and is useful for work that does not need to run every MCS.
 Run the simulation
 ------------------
 
-Run the simulation from the same environment used to compile or install the
-CC3D package:
+Run the simulation from the same environment used to run or automatically
+compile the CC3D package:
 
 .. code-block:: console
 
    python -m cc3d.run_script -i path/to/MySteppable.cc3d
 
-The project can also be opened in Player. If the library fails to load, first
-check the path, filename, architecture, and runtime environment before
-debugging the C++ implementation.
+The project can also be opened in Player, which can inspect the project,
+detect the compiler, and manage compilation through the Compiled Steppables
+dialog. If the library fails to load, first check the path, filename,
+architecture, and runtime environment before debugging the C++ implementation.
 
 Build verification checklist
 ----------------------------
