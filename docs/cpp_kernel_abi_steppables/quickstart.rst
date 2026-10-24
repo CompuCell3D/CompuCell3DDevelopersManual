@@ -12,6 +12,18 @@ C-compatible entry point to CC3D. The ABI does not require the implementation
 to use a C++ class. It requires a set of lifecycle callbacks and a way to keep
 state between those callbacks.
 
+
+The simulation lifecycle
+------------------------
+
+The life-cycle of each such steppable in CC3D is as follows. It applies to built-in steppables, PPython steppables and the newly introduced C++ ABI Steppables:
+
+.. code-block:: text
+
+   create -> init -> start -> step -> step -> ... -> finish -> destroy
+
+The new C++ ABI steppables follow implement ``create``, ``init`` etc... functions that CC3D calls when it runs steppable operations
+
 Function-based steppables
 -------------------------
 
@@ -81,35 +93,10 @@ by a small C++ ``struct`` allocated in ``create``:
                            continue;
                        }
                        ++cell_pixels;
-                       // auto cell = pixelCell.value();
-                       // if (!printedSample && cell.type == TUMOR) {
-                       //     std::printf("Compiled field growth pixel sample x=%d y=%d z=%d targetVolume=%g\n",
-                       //                 x, y, z, static_cast<double>(cell.targetVolume));
-                       //     printedSample = true;
-                       // }
                    }
                }
            }
            cerr<<"medium_pixels="<<medium_pixels<<" cell_pixels="<<cell_pixels<<" totalPixels="<<cell_pixels+medium_pixels<<endl;
-           // for (auto cell : ctx->cells) {
-           //     if (cell.type != TUMOR) {
-           //         continue;
-           //     }
-           //
-           //     int x = static_cast<int>(cell.xCOM);
-           //     int y = static_cast<int>(cell.yCOM);
-           //     int z = static_cast<int>(cell.zCOM);
-           //
-           //     float concentration = fgf(x, y, z);
-           //     if (concentration > 0.0f) {
-           //         cell.targetVolume += 0.05f * concentration / (10.0f + concentration);
-           //     }
-           // }
-           //
-           // ++state->executionCount;
-           // std::printf("Compiled field growth step mcs=%llu execution=%llu\n",
-           //             static_cast<unsigned long long>(ctx->mcs),
-           //             static_cast<unsigned long long>(state->executionCount));
        }
    
        void finish(CC3DKernelContext *ctx, void *statePtr) {
@@ -219,10 +206,10 @@ The context is supplied by CC3D through ``init``, ``start``, and ``step``.
 Create simulator-owned fields and other context-dependent resources in
 ``init`` or ``start``.
 
-The simulation lifecycle
-------------------------
+Quick guide to C++ ABI steppable lifecycle functions
+----------------------------------------------------
 
-For a class-based implementation, the normal order is:
+As we mentioned above, the normal function call order is as follows:
 
 .. code-block:: text
 
