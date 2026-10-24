@@ -22,7 +22,7 @@ The life-cycle of each such steppable in CC3D is as follows. It applies to built
 
    create -> init -> start -> step -> step -> ... -> finish -> destroy
 
-The new C++ ABI steppables follow implement ``create``, ``init`` etc... functions that CC3D calls when it runs steppable operations
+The new C++ ABI steppables follow implement ``create``, ``init`` etc..., functions that CC3D calls when it runs steppable operations.
 
 Function-based steppables
 -------------------------

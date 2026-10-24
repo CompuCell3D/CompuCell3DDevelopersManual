@@ -21,7 +21,6 @@ it when a library does not load or behaves unexpectedly.
    class_design
    lifecycle_and_abi
    troubleshooting
-   images/README
 
 Before You Begin
 ----------------
