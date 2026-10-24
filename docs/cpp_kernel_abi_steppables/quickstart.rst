@@ -19,27 +19,11 @@ The simplest implementation uses free functions such as ``create``,
 ``start``, ``step``, ``finish``, and ``destroy``. State is usually represented
 by a small C++ ``struct`` allocated in ``create``:
 
-.. code-block:: cpp
+.. literalinclude:: examples/FunctionBasedFieldSteppable/FieldDrivenGrowthSteppable.cpp
+   :language: cpp
+   :linenos:
 
-   struct FieldGrowthState {
-       unsigned long long executionCount = 0;
-   };
-
-   void *create() {
-       return new FieldGrowthState{};
-   }
-
-   void step(CC3DKernelContext *ctx, void *statePtr) {
-       auto *state = static_cast<FieldGrowthState *>(statePtr);
-       ++state->executionCount;
-       // Use ctx and retain data in state between calls.
-   }
-
-   void destroy(void *statePtr) {
-       delete static_cast<FieldGrowthState *>(statePtr);
-   }
-
-The ``statePtr`` argument is an opaque pointer owned by the steppable. CC3D
+The `statePtr` argument is an opaque pointer owned by the steppable. CC3D
 passes the value returned by ``create`` to the later lifecycle callbacks. This
 is how a function-based steppable retains counters, handles, configuration, or
 other values from one callback to the next. The complete function-based
@@ -193,6 +177,9 @@ When creating a new class-based steppable, copy this checklist:
 This checklist and the example code are intentionally independent of the
 documentation site layout. A user manual can reuse this page and the
 ``examples`` directory directly.
+
+
+
 
 
 
