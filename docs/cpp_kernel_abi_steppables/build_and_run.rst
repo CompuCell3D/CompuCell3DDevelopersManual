@@ -18,13 +18,55 @@ A small compiled-steppable project can use this layout:
      MySteppable.cc3d
      Native/
        MySteppable.cpp
+       Utilities/
+         Vector2D.cpp
+         Vector2D.h
      Simulation/
        MySteppable.py
        MySteppable.xml
 
+The directory containing the declared C++ entry source is the target root. A
+target root contains exactly one root-level ``.cpp`` file. Additional
+implementation files must be placed in subdirectories. CC3D recursively
+discovers nested ``.cpp`` files, compiles them into the target library, tracks
+nested ``.h`` and ``.hpp`` files, and adds discovered source directories as
+include paths.
+
+A project can contain multiple independent C++ steppables:
+
+.. code-block:: text
+
+   CombinedDemo/
+     CombinedDemo.cc3d
+     Native_GrowthSteppable/
+       GrowthSteppable.cpp
+       Utilities/
+         Vector2D.cpp
+         Vector2D.h
+     Native_FieldSteppable/
+       FieldSteppable.cpp
+       Utilities/
+         FieldUtils.cpp
+         FieldUtils.h
+     Simulation/
+       CombinedDemo.py
+       CombinedDemo.xml
+
+The project descriptor keeps one C++ resource per target:
+
+.. code-block:: xml
+
+   <Resource Type="Cpp">Native_GrowthSteppable/GrowthSteppable.cpp</Resource>
+   <Resource Type="Cpp">Native_FieldSteppable/FieldSteppable.cpp</Resource>
+
+Each resource is compiled independently. Multiple C++ resources sharing one
+target root are rejected, and a target containing more than one root-level
+``.cpp`` file is rejected. Separate steppables therefore require separate
+target roots.
+
 The ``.cc3d`` descriptor names the XML script, Python script, and native C++
-source. The Python script registers the compiled library using a path relative
-to the project directory.
+resources. The Python script registers each compiled library using a path
+relative to the project directory.
 
 Build the native library automatically
 --------------------------------------
@@ -42,11 +84,37 @@ project. For example:
 
    <Resource Type="Cpp">Native/MySteppable.cpp</Resource>
 
-CC3D compares the source, kernel header, ABI information, metadata, and
-output library. It rebuilds when the output is missing or when an input is
-newer. A successful build writes a ``.cc3d-build.json`` sidecar beside the
-library. The sidecar records the compiler command, paths, hashes, ABI
-version, platform, machine, and build time.
+CC3D compares the entry source, all discovered implementation sources, tracked
+headers, kernel header, ABI information, metadata, and output library. It
+rebuilds when the output is missing, when the discovered source set changes,
+or when a tracked input no longer matches the build metadata.
+
+The runtime shared library remains beside the entry source:
+
+* ``.dll`` on Windows;
+* ``.so`` on Linux;
+* ``.dylib`` on macOS.
+
+All metadata and compiler-generated auxiliary files are stored below the
+target root:
+
+.. code-block:: text
+
+   Native_Target/
+     Entry.cpp
+     Entry.dll
+     .cc3d-build/
+       Entry/
+         Entry.cc3d-build.json
+         Entry.obj
+         Entry.lib
+         Entry.pdb
+
+The exact auxiliary files depend on the platform and compiler. The metadata
+records the discovered source and header sets, include directories, compiler
+command, hashes, ABI version, platform, machine, and build time. The
+``.cc3d-build`` directory is generated automatically and is excluded from
+source discovery.
 
 Run with automatic compilation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,7 +165,10 @@ For example, to rebuild all native resources before running:
        --clean-and-compile-steppables
 
 The cleanup options operate on the active project resources. They do not scan
-unrelated ``Native`` directories elsewhere on the machine.
+unrelated ``Native`` directories elsewhere on the machine. For each resource,
+cleanup removes the runtime shared library, its
+``.cc3d-build/<library-name>`` directory, metadata, and legacy compiler
+artifacts left beside the library by older CC3D versions.
 
 Select compiler inputs from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -309,6 +380,12 @@ minimal command outside CC3D, but they are an advanced fallback. The command
 must compile the native ``.cpp`` file as C++17 or later, include the directory
 containing ``cc3d/kernel.h``, produce a shared library or DLL, and place the
 output where the Python registration script expects it.
+
+Direct compiler commands do not perform CC3D's recursive source discovery. If
+the target contains auxiliary implementation files, list every ``.cpp`` file
+explicitly and add the target's source directories to the include path. The
+automatic CC3D workflow is usually simpler because it derives this source set
+from the declared C++ resource.
 
 On Windows, a representative MSVC command is:
 

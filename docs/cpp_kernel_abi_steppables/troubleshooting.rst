@@ -26,6 +26,43 @@ environment mismatch. Confirm that:
 * the library was built against the intended CC3D environment;
 * dependent DLLs or shared libraries can be found by the operating system.
 
+Multiple files or multiple steppables
+-------------------------------------
+
+Each ``Resource Type="Cpp"`` defines one independent target. The target root
+must contain exactly one root-level ``.cpp`` entry source. Move additional
+implementation files into a subdirectory, or create a separate target root and
+C++ resource for another steppable.
+
+If multiple resources share one target root, CC3D rejects the project because
+the resources would discover the same source tree and produce conflicting
+build targets.
+
+Changed auxiliary files
+-----------------------
+
+CC3D tracks discovered ``.cpp``, ``.h``, and ``.hpp`` files. Adding or
+changing one of these files causes the target to require recompilation. Use
+Player's Refresh and Compile now actions, or use a force or clean compilation
+option from the command line.
+
+Stale generated files
+---------------------
+
+Generated libraries, metadata, and compiler files are stored below
+``.cc3d-build/<library-name>``. Use Player's Clean action or one of these
+command-line options to remove them:
+
+.. code-block:: console
+
+   python -m cc3d.run_script -i path/to/MySteppable.cc3d \
+       --clean-compiled-steppables
+
+   python -m cc3d.run_script -i path/to/MySteppable.cc3d \
+       --clean-and-compile-steppables
+
+The ``.cc3d-build`` directory is generated and should not be edited manually.
+
 The entry point is missing
 --------------------------
 

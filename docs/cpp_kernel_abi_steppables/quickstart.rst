@@ -13,6 +13,94 @@ to use a C++ class. It requires a set of lifecycle callbacks and a way to keep
 state between those callbacks.
 
 
+C++ steppable project layout
+----------------------------
+
+A C++ steppable is declared by a ``Resource Type="Cpp"`` entry in the
+``.cc3d`` project file. The directory containing the declared entry source is
+the target root. CC3D builds one shared library for each C++ resource.
+
+A simple modular target can use this layout:
+
+.. code-block:: text
+
+   MySteppable/
+       MySteppable.cc3d
+       Native/
+           MySteppable.cpp
+           Utilities/
+               Vector2D.cpp
+               Vector2D.h
+       Simulation/
+           MySteppable.py
+           MySteppable.xml
+
+The target root must contain exactly one root-level ``.cpp`` file: the entry
+source named by the C++ resource. Additional implementation files must be
+placed in subdirectories. CC3D recursively discovers nested ``.cpp`` files and
+compiles them into the same shared library. It also tracks nested ``.h`` and
+``.hpp`` files and adds the target root and discovered source directories to
+the include path.
+
+A project may contain several independent C++ steppables. Each steppable needs
+its own target root:
+
+.. code-block:: text
+
+   CombinedDemo/
+       CombinedDemo.cc3d
+       Native_GrowthSteppable/
+           GrowthSteppable.cpp
+           Utilities/
+               Vector2D.cpp
+               Vector2D.h
+       Native_FieldSteppable/
+           FieldSteppable.cpp
+           Utilities/
+               FieldUtils.cpp
+               FieldUtils.h
+       Simulation/
+           CombinedDemo.py
+           CombinedDemo.xml
+
+The project descriptor declares one resource for each target:
+
+.. code-block:: xml
+
+   <Resource Type="Cpp">
+       Native_GrowthSteppable/GrowthSteppable.cpp
+   </Resource>
+   <Resource Type="Cpp">
+       Native_FieldSteppable/FieldSteppable.cpp
+   </Resource>
+
+Each resource is compiled independently and produces its own shared library.
+Two C++ resources must not share a target root. A target with more than one
+root-level ``.cpp`` file is rejected because CC3D cannot distinguish which
+file is the entry source.
+
+CC3D keeps generated build files below ``.cc3d-build``:
+
+.. code-block:: text
+
+   Native_GrowthSteppable/
+       GrowthSteppable.cpp
+       GrowthSteppable.dll
+       .cc3d-build/
+           GrowthSteppable/
+               GrowthSteppable.cc3d-build.json
+               GrowthSteppable.obj
+               GrowthSteppable.lib
+               GrowthSteppable.pdb
+
+The runtime shared library remains beside the entry source so existing Python
+registration paths continue to work. Metadata and compiler-generated files
+are stored below ``.cc3d-build/<library-name>``. CC3D creates this directory
+automatically; users should not edit its contents. Player's Clean action and
+the command-line cleanup options remove generated libraries, metadata, and
+the target build directory. ``.cc3d-build`` is excluded from source discovery.
+
+
 The simulation lifecycle
 ------------------------
 
@@ -278,7 +366,6 @@ When creating a new class-based steppable, copy this checklist:
 This checklist and the example code are intentionally independent of the
 documentation site layout. A user manual can reuse this page and the
 ``examples`` directory directly.
-
 
 
 

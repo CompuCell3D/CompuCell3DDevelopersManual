@@ -43,7 +43,7 @@ Reusable sections
 
 The following pages are suitable for inclusion in a user manual:
 
-* :doc:`quickstart` explains the minimum class and project structure.
+* :doc:`quickstart` explains the minimum class, source-tree, and multi-steppable project structure.
 * :doc:`kernel_api_examples` shows common simulation operations.
 * :doc:`build_and_run` explains how to compile and register the library.
 
