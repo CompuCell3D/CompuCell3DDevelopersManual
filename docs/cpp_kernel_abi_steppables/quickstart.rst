@@ -4,12 +4,44 @@
 .. note::
 
    This page is written as a reusable practical lesson. It deliberately
-   leaves ABI layout and binary compatibility details to
+   leaves ABI (Application Binary Interface) layout and binary compatibility details to
    :doc:`lifecycle_and_abi`.
 
-A kernel-ABI steppable is a small shared library that exposes one
-C-compatible entry point to CC3D. The ABI does not require the implementation
-to use a C++ class. It requires a set of lifecycle callbacks and a way to keep
+For complete kernel API examples (cheatsheet), see :doc:`kernel_api_examples`.
+
+
+A kernel-ABI (kernel Application Binary Interface) steppable is a small shared library that exposes one
+C-compatible entry point to CC3D. Such C++ steppables coexist with Python steppables.
+One implements part of the simulation logic in C++; the other does the same in Python.
+A typical use case for C++ steppables is simulation logic that would significantly slow down your
+simulation if implemented in Python. When you need to iterate over individual voxels of the lattice or
+of a cell, you might be better off implementing this logic in C++. The speedups over equivalent Python
+can be significant. The best part of a kernel-ABI steppable is that it does not require recompiling core
+CC3D code. Instead, you write a relatively small C++ module, as explained below, and CompuCell3D
+automatically compiles it and runs it as part of your simulation. You will need a C++ compiler installed
+on your computer. We recommend Microsoft Visual Studio on Windows, g++ on Linux, and clang on macOS.
+
+Note that the compiler you use does not have to be the same version as the compiler used to build CC3D,
+but it must support the C++17 standard (or, at the very least, C++11). Modern C++ compilers generally
+support these standards.
+
+Compiler installation
+----------------------
+
+Install a compiler appropriate for your operating system. The compiler must support C++17 (or, at a
+minimum, C++11).
+
+* **Windows:** Install the `Visual Studio Build Tools <https://visualstudio.microsoft.com/downloads/>`_.
+  Select the ``Desktop development with C++`` workload. A full Visual Studio installation also works.
+* **Ubuntu:** Install GCC and the standard build tools with ``sudo apt update && sudo apt install
+  build-essential``.
+* **Red Hat Enterprise Linux/Fedora:** Install GCC and its C++ support with ``sudo dnf install gcc-c++``
+  (use ``yum`` instead of ``dnf`` on older systems).
+* **macOS:** Install Apple’s command-line developer tools with ``xcode-select --install``. This provides
+  the clang compiler.
+
+
+The ABI does not require the implementation to use a C++ class. It requires a set of lifecycle callbacks and a way to keep
 state between those callbacks.
 
 
@@ -17,7 +49,13 @@ C++ steppable project layout
 ----------------------------
 
 A C++ steppable is declared by a ``Resource Type="Cpp"`` entry in the
-``.cc3d`` project file. The directory containing the declared entry source is
+``.cc3d`` project file. E.g.:
+
+.. code-block:: xml
+
+   <Resource Type="Cpp">Native_GrowthSteppable/GrowthClassSteppable.cpp</Resource>
+
+The directory containing the declared entry source is
 the target root. CC3D builds one shared library for each C++ resource.
 
 A simple modular target can use this layout:
@@ -36,7 +74,7 @@ A simple modular target can use this layout:
            MySteppable.xml
 
 The target root must contain exactly one root-level ``.cpp`` file: the entry
-source named by the C++ resource. Additional implementation files must be
+source named by the C++ resource. IN the above example this is ``MySteppable.cpp``. Additional implementation files must be
 placed in subdirectories. CC3D recursively discovers nested ``.cpp`` files and
 compiles them into the same shared library. It also tracks nested ``.h`` and
 ``.hpp`` files and adds the target root and discovered source directories to
@@ -93,8 +131,8 @@ CC3D keeps generated build files below ``.cc3d-build``:
                GrowthSteppable.lib
                GrowthSteppable.pdb
 
-The runtime shared library remains beside the entry source so existing Python
-registration paths continue to work. Metadata and compiler-generated files
+The runtime shared library remains beside the entry source - see how  ``GrowthSteppable.cpp`` and ``GrowthSteppable.dll``
+are placed directly under ``Native_GrowthSteppable``. Metadata and compiler-generated files
 are stored below ``.cc3d-build/<library-name>``. CC3D creates this directory
 automatically; users should not edit its contents. Player's Clean action and
 the command-line cleanup options remove generated libraries, metadata, and
@@ -104,7 +142,8 @@ the target build directory. ``.cc3d-build`` is excluded from source discovery.
 The simulation lifecycle
 ------------------------
 
-The life-cycle of each such steppable in CC3D is as follows. It applies to built-in steppables, PPython steppables and the newly introduced C++ ABI Steppables:
+The life-cycle of each such steppable in CC3D is as follows. It applies to built-in steppables, Python steppables and
+the newly introduced C++ ABI Steppables:
 
 .. code-block:: text
 
@@ -217,7 +256,7 @@ passes the value returned by ``create`` to the later lifecycle callbacks. This
 is how a function-based steppable retains counters, handles, configuration, or
 other values from one callback to the next. The complete function-based
 pattern is demonstrated by ``CompiledSteppableABIFields`` and its
-``FieldDrivenGrowthSteppable.cpp`` source file.
+``FieldDrivenGrowthSteppable.cpp`` source file - see ``Demos/SteppablesDemosCompiled`` folder.
 
 The callback table and exported entry point are the same for both
 function-based and class-based implementations:
@@ -366,8 +405,6 @@ When creating a new class-based steppable, copy this checklist:
 This checklist and the example code are intentionally independent of the
 documentation site layout. A user manual can reuse this page and the
 ``examples`` directory directly.
-
-
 
 
 
