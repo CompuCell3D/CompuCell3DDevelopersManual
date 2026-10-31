@@ -29,7 +29,7 @@ environment mismatch. Confirm that:
 Multiple files or multiple steppables
 -------------------------------------
 
-Each ``Resource Type="Cpp"`` defines one independent target. The target root
+Each ``Resource Type="CppSteppable"`` defines one independent target. The target root
 must contain exactly one root-level ``.cpp`` entry source. Move additional
 implementation files into a subdirectory, or create a separate target root and
 C++ resource for another steppable.

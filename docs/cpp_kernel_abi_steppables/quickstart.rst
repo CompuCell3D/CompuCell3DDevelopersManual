@@ -48,12 +48,12 @@ state between those callbacks.
 C++ steppable project layout
 ----------------------------
 
-A C++ steppable is declared by a ``Resource Type="Cpp"`` entry in the
+A C++ steppable is declared by a ``Resource Type="CppSteppable"`` entry in the
 ``.cc3d`` project file. E.g.:
 
 .. code-block:: xml
 
-   <Resource Type="Cpp">Native_GrowthSteppable/GrowthClassSteppable.cpp</Resource>
+   <Resource Type="CppSteppable">Native_GrowthSteppable/GrowthClassSteppable.cpp</Resource>
 
 The directory containing the declared entry source is
 the target root. CC3D builds one shared library for each C++ resource.
@@ -105,10 +105,10 @@ The project descriptor declares one resource for each target:
 
 .. code-block:: xml
 
-   <Resource Type="Cpp">
+   <Resource Type="CppSteppable">
        Native_GrowthSteppable/GrowthSteppable.cpp
    </Resource>
-   <Resource Type="Cpp">
+   <Resource Type="CppSteppable">
        Native_FieldSteppable/FieldSteppable.cpp
    </Resource>
 

@@ -56,8 +56,8 @@ The project descriptor keeps one C++ resource per target:
 
 .. code-block:: xml
 
-   <Resource Type="Cpp">Native_GrowthSteppable/GrowthSteppable.cpp</Resource>
-   <Resource Type="Cpp">Native_FieldSteppable/FieldSteppable.cpp</Resource>
+   <Resource Type="CppSteppable">Native_GrowthSteppable/GrowthSteppable.cpp</Resource>
+   <Resource Type="CppSteppable">Native_FieldSteppable/FieldSteppable.cpp</Resource>
 
 Each resource is compiled independently. Multiple C++ resources sharing one
 target root are rejected, and a target containing more than one root-level
@@ -82,7 +82,7 @@ project. For example:
 
 .. code-block:: xml
 
-   <Resource Type="Cpp">Native/MySteppable.cpp</Resource>
+   <Resource Type="CppSteppable">Native/MySteppable.cpp</Resource>
 
 CC3D compares the entry source, all discovered implementation sources, tracked
 headers, kernel header, ABI information, metadata, and output library. It
